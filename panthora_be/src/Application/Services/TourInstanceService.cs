@@ -1165,6 +1165,9 @@ public class TourInstanceService(
                 if (_bookingRepository is not null)
                     await CascadeCancelBookingsAsync(id, "Tour bị huỷ bởi Manager", performedBy, cancellationToken);
 
+                // Notify assigned providers (fire-and-forget inside tx — failures are logged, not thrown)
+                await NotifyProvidersOnCancelAsync(entity, cancellationToken);
+
                 if (_unitOfWork is not null)
                     await _unitOfWork.SaveChangeAsync(cancellationToken);
             }
@@ -1240,6 +1243,85 @@ public class TourInstanceService(
                         _unitOfWork.GenericRepository<BookingCancellationRequestEntity>().Update(pendingRequest);
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Queue background email notifications to all unique assigned providers (transport + accommodation)
+    /// when a tour instance is cancelled. Failures are logged and swallowed — must not affect the main cancel flow.
+    /// </summary>
+    private async Task NotifyProvidersOnCancelAsync(TourInstanceEntity instance, CancellationToken ct)
+    {
+        try
+        {
+            // Load instance days with supplier navigation if not already loaded
+            var instanceWithDays = instance.InstanceDays.Count > 0
+                ? instance
+                : await _tourInstanceRepository.FindByIdWithInstanceDays(instance.Id, ct);
+
+            if (instanceWithDays is null)
+                return;
+
+            var startDate = instanceWithDays.StartDate.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+            var endDate = instanceWithDays.EndDate.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
+            // Collect unique suppliers with email from all activities
+            var suppliersToNotify = new Dictionary<Guid, (string Name, string Email)>();
+
+            foreach (var day in instanceWithDays.InstanceDays)
+            {
+                foreach (var activity in day.Activities)
+                {
+                    // Transport supplier
+                    if (activity.TransportSupplier is { Email: not null } ts
+                        && !string.IsNullOrWhiteSpace(ts.Email)
+                        && !suppliersToNotify.ContainsKey(ts.Id))
+                    {
+                        suppliersToNotify[ts.Id] = (ts.Name, ts.Email);
+                    }
+
+                    // Accommodation supplier
+                    if (activity.Accommodation?.Supplier is { Email: not null } accSupplier
+                        && !string.IsNullOrWhiteSpace(accSupplier.Email)
+                        && !suppliersToNotify.ContainsKey(accSupplier.Id))
+                    {
+                        suppliersToNotify[accSupplier.Id] = (accSupplier.Name, accSupplier.Email);
+                    }
+                }
+            }
+
+            foreach (var (_, (name, email)) in suppliersToNotify)
+            {
+                try
+                {
+                    var mailDto = new Domain.Mails.TourCancelledProviderMail(
+                        ProviderName: name,
+                        TourName: instanceWithDays.TourName,
+                        TourCode: instanceWithDays.TourCode,
+                        StartDate: startDate,
+                        EndDate: endDate,
+                        HotlinePhone: "1900 xxxx");
+
+                    var mail = mailDto.ToMail(email);
+                    await _mailRepository.Add(mail, ct);
+
+                    _logger.LogInformation(
+                        "Queued tour-cancelled provider email to {ProviderEmail} for TourInstance {TourInstanceId}",
+                        email, instance.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex,
+                        "Failed to queue tour-cancelled provider email to {ProviderEmail} for TourInstance {TourInstanceId}",
+                        email, instance.Id);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "NotifyProvidersOnCancelAsync failed for TourInstance {TourInstanceId} — provider emails skipped",
+                instance.Id);
         }
     }
 
