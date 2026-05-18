@@ -1173,7 +1173,7 @@ public sealed class FullApiIntegrationTests : IDisposable
                         endpoints.MapHealthChecks("/health/live");
                         endpoints.MapHealthChecks("/health/ready");
                         endpoints.MapControllers();
-                        endpoints.MapHub<NotificationsHub>("/hubs/notifications");
+                        endpoints.MapHub<NotificationsHub>("/api/hubs/notifications");
                     });
                 });
             });

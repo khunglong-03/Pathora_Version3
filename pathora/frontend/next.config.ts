@@ -68,9 +68,27 @@ const allowUnoptimized = process.env.NEXT_PUBLIC_IMAGES_UNOPTIMIZED === "true";
 
 const isDockerBuild = process.env.DOCKER_BUILD === "true";
 
+const internalApiUrl = (
+  process.env.INTERNAL_API_URL ?? "http://backend:8080"
+).replace(/\/+$/, "");
+
+const connectSrcForCsp =
+  process.env.NEXT_PUBLIC_API_GATEWAY === ""
+    ? "'self' https: wss:"
+    : process.env.NEXT_PUBLIC_API_GATEWAY ||
+      "http://host.docker.internal:8080";
+
 const nextConfig: NextConfig = {
   output: "standalone",
   ...(isDockerBuild ? { typescript: { ignoreBuildErrors: true } } : {}),
+  async rewrites() {
+    return [
+      {
+        source: "/api/hubs/:path*",
+        destination: `${internalApiUrl}/api/hubs/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -78,7 +96,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Content-Security-Policy-Report-Only",
-            value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss: ${process.env.NEXT_PUBLIC_API_GATEWAY || "http://host.docker.internal:8080"};`,
+            value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src ${connectSrcForCsp};`,
           },
           {
             key: "X-Frame-Options",

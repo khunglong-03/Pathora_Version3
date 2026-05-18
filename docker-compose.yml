@@ -102,6 +102,9 @@ x-backend-env: &backend-env
 
   ProviderAssignment__SoftHoldHours: "${ProviderAssignment__SoftHoldHours}"
 
+  InternalApi__BaseUrl: "${InternalApi__BaseUrl:-http://backend:8080}"
+  InternalApi__BroadcastSecret: "${InternalApi__BroadcastSecret:-pathora-internal-broadcast}"
+
 services:
   # ════════════════════════════════════════════════════════
   #  Infrastructure
@@ -203,6 +206,7 @@ services:
     environment:
       NODE_ENV: "${FRONTEND_NODE_ENV}"
       NEXT_PUBLIC_API_GATEWAY: "${NEXT_PUBLIC_API_GATEWAY}"
+      INTERNAL_API_URL: "${INTERNAL_API_URL:-http://backend:8080}"
       NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
       NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
     expose:

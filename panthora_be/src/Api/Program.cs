@@ -20,7 +20,7 @@ Application.Services.SepayParsingHelper.SetLogger(app.Services.GetService<Micros
 app.UseAppMiddleware();
 
 app.MapControllers();
-app.MapHub<Api.Hubs.NotificationsHub>("/hubs/notifications");
+app.MapHub<Api.Hubs.NotificationsHub>("/api/hubs/notifications").AllowAnonymous();
 app.Run();
 
 internal static class Extensions

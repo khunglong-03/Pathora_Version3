@@ -151,18 +151,23 @@ export default function PaymentStatusPage() {
 
   const isTerminal = status === "completed" || status === "failed" || status === "expired";
 
-  // Sync SignalR status to local state
+  // Sync SignalR / polling status to local state + refresh transaction when paid
   useEffect(() => {
-    if (paymentSignalR.status !== "pending") {
-      const newStatus = mapStatus(
-        paymentSignalR.status === "paid" ? "Completed"
-          : paymentSignalR.status === "failed" ? "Failed"
-          : paymentSignalR.status === "expired" ? "Cancelled"
-          : paymentSignalR.status === "cancelled" ? "Cancelled"
-          : "Pending",
-      );
-      setStatus(newStatus);
+    if (paymentSignalR.status === "pending") return;
+
+    const newStatus = mapStatus(
+      paymentSignalR.status === "paid" ? "Completed"
+        : paymentSignalR.status === "failed" ? "Failed"
+        : paymentSignalR.status === "expired" ? "Cancelled"
+        : paymentSignalR.status === "cancelled" ? "Cancelled"
+        : "Pending",
+    );
+    setStatus(newStatus);
+
+    if (paymentSignalR.status === "paid") {
+      void fetchStatus();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentSignalR.status]);
 
   useEffect(() => {

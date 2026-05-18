@@ -2,7 +2,8 @@ import * as signalR from "@microsoft/signalr";
 import { getCookie } from "@/utils/cookie";
 import { API_GATEWAY_BASE_URL } from "@/configs/apiGateway";
 
-const HUB_URL = `${API_GATEWAY_BASE_URL}/hubs/notifications`;
+// Must live under /api/* so nginx routes to backend (not Next.js catch-all).
+const HUB_URL = `${API_GATEWAY_BASE_URL}/api/hubs/notifications`;
 
 export interface Notification {
   id: string;

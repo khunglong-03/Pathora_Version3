@@ -72,7 +72,12 @@ public static class DependencyInjection
 
         services.AddSingleton<Contracts.Interfaces.IUser, ApiPublic.Infrastructure.CurrentUser>();
         services.AddSingleton<Contracts.Interfaces.IToken, ApiPublic.Infrastructure.CurrentToken>();
-        services.AddScoped<Application.Services.IPaymentNotificationBroadcaster, ApiPublic.Infrastructure.NoOpPaymentNotificationBroadcaster>();
+
+        services.AddHttpClient(nameof(ApiInternalPaymentNotificationBroadcaster), client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
+        services.AddScoped<Application.Services.IPaymentNotificationBroadcaster, ApiInternalPaymentNotificationBroadcaster>();
         services.AddScoped<Application.Services.ITourInstanceNotificationBroadcaster, ApiPublic.Infrastructure.NoOpTourInstanceNotificationBroadcaster>();
 
         return services;

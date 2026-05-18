@@ -263,7 +263,7 @@ export const SITE_CONTENT: SiteContentEndpoints = {
 };
 
 export const COMMUNICATION: CommunicationEndpoints = {
-  NOTIFICATION_HUB: "/hubs/notifications",
+  NOTIFICATION_HUB: "/api/hubs/notifications",
 };
 
 export const TOUR_MANAGER_ASSIGNMENT: TourManagerAssignmentEndpoints = {

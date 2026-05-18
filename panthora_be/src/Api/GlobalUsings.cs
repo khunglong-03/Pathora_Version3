@@ -12,6 +12,7 @@ global using Api.Swagger.Extensions;
 global using ApiExceptionHandler = Api.Exceptions.Handler.CustomExceptionHandler;
 global using Contracts.Interfaces;
 global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.ResponseCompression;
 global using Microsoft.AspNetCore.RateLimiting;

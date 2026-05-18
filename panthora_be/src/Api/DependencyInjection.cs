@@ -205,7 +205,21 @@ public static class DependencyInjection
             options.FallbackPolicy = isAuthDisabled
                 ? null
                 : new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
+                    .RequireAssertion(context =>
+                    {
+                        // SignalR negotiate + hub endpoints must stay anonymous (guest checkout, payment updates).
+                        if (context.Resource is HttpContext httpContext)
+                        {
+                            var path = httpContext.Request.Path.Value ?? string.Empty;
+                            if (path.StartsWith("/hubs/", StringComparison.OrdinalIgnoreCase)
+                                || path.StartsWith("/api/hubs/", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return true;
+                            }
+                        }
+
+                        return context.User.Identity?.IsAuthenticated == true;
+                    })
                     .Build();
             options.DefaultPolicy = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
