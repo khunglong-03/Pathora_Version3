@@ -449,7 +449,7 @@ export function CheckoutRequestPage() {
     startDateParam, endDateParam, locationParam,
     numberAdult, numberChild, numberInfant,
     adultPriceParam, childPriceParam, infantPriceParam,
-    thumbnailUrlParam
+    thumbnailUrlParam, activeTaxRate
   ]);
 
   const effectivePrice = checkoutPrice ?? computedCheckoutPrice;
