@@ -53,9 +53,9 @@ public sealed class BookingPriceCalculator : IBookingPriceCalculator
         var childUnitPrice = ApplyPricingTier(basePrice, tiers, 5);
         var infantUnitPrice = ApplyPricingTier(basePrice, tiers, 1);
 
-        var adultSubtotal = adultUnitPrice * numberAdult;
-        var childSubtotal = childUnitPrice * numberChild;
-        var infantSubtotal = infantUnitPrice * numberInfant;
+        var adultSubtotal = Math.Round(adultUnitPrice * numberAdult, 0, MidpointRounding.ToEven);
+        var childSubtotal = Math.Round(childUnitPrice * numberChild, 0, MidpointRounding.ToEven);
+        var infantSubtotal = Math.Round(infantUnitPrice * numberInfant, 0, MidpointRounding.ToEven);
         var subtotal = adultSubtotal + childSubtotal + infantSubtotal;
 
         var taxRate = taxConfig?.TaxRate ?? 0m;
@@ -67,7 +67,7 @@ public sealed class BookingPriceCalculator : IBookingPriceCalculator
         }
 
         var taxAmount = decimal.Round(subtotal * taxRate / 100m, 0, MidpointRounding.ToEven);
-        var totalAmount = subtotal + taxAmount + visaServiceFeeTotal;
+        var totalAmount = Math.Round(subtotal + taxAmount + visaServiceFeeTotal, 0, MidpointRounding.ToEven);
         var remainingBalance = Math.Max(0m, totalAmount - paidAmount);
 
         return new BookingPriceBreakdown(
