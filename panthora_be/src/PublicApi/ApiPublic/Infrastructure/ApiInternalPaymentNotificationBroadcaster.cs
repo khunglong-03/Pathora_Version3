@@ -31,7 +31,7 @@ public sealed class ApiInternalPaymentNotificationBroadcaster(
                 request.Headers.TryAddWithoutValidation("X-Internal-Broadcast-Key", secret);
             }
 
-            request.Content = JsonContent.Create(snapshot, cancellationToken: ct);
+            request.Content = JsonContent.Create(snapshot);
 
             using var response = await client.SendAsync(request, ct);
             if (!response.IsSuccessStatusCode)
