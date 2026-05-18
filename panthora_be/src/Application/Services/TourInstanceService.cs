@@ -80,7 +80,10 @@ public class TourInstanceService(
     IUnitOfWork? unitOfWork = null,
     Domain.Common.Repositories.ITourManagerAssignmentRepository? tourManagerAssignmentRepository = null,
     Domain.Common.Repositories.IPaymentTransactionRepository? paymentTransactionRepository = null,
-    Domain.Common.Repositories.IBookingCancellationRequestRepository? bookingCancellationRequestRepository = null) : ITourInstanceService
+    Domain.Common.Repositories.IBookingCancellationRequestRepository? bookingCancellationRequestRepository = null,
+    Domain.Common.Repositories.ITaxConfigRepository? taxConfigRepository = null,
+    Domain.Common.Repositories.IPricingPolicyRepository? pricingPolicyRepository = null,
+    Application.Common.Pricing.IBookingPriceCalculator? priceCalculator = null) : ITourInstanceService
 {
     private readonly ITourInstanceRepository _tourInstanceRepository = tourInstanceRepository;
     private readonly ITourRepository _tourRepository = tourRepository;
@@ -102,6 +105,9 @@ public class TourInstanceService(
     private readonly Domain.Common.Repositories.ITourManagerAssignmentRepository? _tourManagerAssignmentRepository = tourManagerAssignmentRepository;
     private readonly Domain.Common.Repositories.IPaymentTransactionRepository? _paymentTransactionRepository = paymentTransactionRepository;
     private readonly Domain.Common.Repositories.IBookingCancellationRequestRepository? _bookingCancellationRequestRepository = bookingCancellationRequestRepository;
+    private readonly Domain.Common.Repositories.ITaxConfigRepository? _taxConfigRepository = taxConfigRepository;
+    private readonly Domain.Common.Repositories.IPricingPolicyRepository? _pricingPolicyRepository = pricingPolicyRepository;
+    private readonly Application.Common.Pricing.IBookingPriceCalculator? _priceCalculator = priceCalculator;
 
     public async Task<ErrorOr<Guid>> Create(CreateTourInstanceCommand request)
     {
@@ -1972,7 +1978,32 @@ public class TourInstanceService(
             var booking = bookings.FirstOrDefault();
             if (booking != null)
             {
-                booking.TotalPrice = instance.BasePrice * booking.NumberAdult;
+                // Tính lại TotalPrice đầy đủ: pricing tier (trẻ em/trẻ nhỏ) + thuế
+                // Giống RequestPublicPrivateTourCommand dùng priceCalculator.Calculate
+                decimal totalPrice;
+                if (_priceCalculator != null && _taxConfigRepository != null)
+                {
+                    var taxConfigs = await _taxConfigRepository.GetListAsync(t => t.IsActive);
+                    var activeTaxConfig = taxConfigs.FirstOrDefault();
+
+                    IReadOnlyList<Domain.ValueObjects.PricingPolicyTier>? tiers = null;
+                    if (_pricingPolicyRepository != null)
+                    {
+                        var policy = await _pricingPolicyRepository.GetActivePolicyByTourType(instance.InstanceType)
+                            ?? await _pricingPolicyRepository.GetDefaultPolicy();
+                        tiers = policy?.Tiers;
+                    }
+
+                    var breakdown = _priceCalculator.Calculate(booking, instance, tiers, activeTaxConfig, paidAmount: 0m);
+                    totalPrice = breakdown.TotalAmount;
+                }
+                else
+                {
+                    // Fallback: chỉ nhân đơn giản nếu thiếu dependencies (không nên xảy ra trong production)
+                    totalPrice = (instance.BasePrice * booking.NumberAdult + instance.BasePrice * booking.NumberChild * 0.75m) + instance.BasePrice*0.1m;
+                }
+
+                booking.TotalPrice = totalPrice;
                 // Detach navigation graph so EF's Update(...) graph-attacher does not try to
                 // re-attach the TourInstance (which is already tracked by Recalc above).
                 booking.TourInstance = null!;
