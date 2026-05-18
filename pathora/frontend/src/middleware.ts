@@ -363,6 +363,8 @@ export default function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    // Exclude /hubs/* — SignalR negotiate + WebSocket must reach backend via nginx,
+    // not Next.js auth middleware (which would 307 to /?login=true).
+    "/((?!api|hubs|_next/static|_next/image|favicon.ico).*)",
   ],
 };

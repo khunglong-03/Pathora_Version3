@@ -95,6 +95,19 @@ internal static class DependencyInjection
                 {
                     OnMessageReceived = context =>
                     {
+                        // SignalR WebSocket transport cannot send Authorization header;
+                        // @microsoft/signalr passes accessTokenFactory result as ?access_token=...
+                        var path = context.HttpContext.Request.Path;
+                        if (path.StartsWithSegments("/hubs"))
+                        {
+                            var queryToken = context.Request.Query["access_token"].ToString();
+                            if (!string.IsNullOrWhiteSpace(queryToken))
+                            {
+                                context.Token = queryToken;
+                                return Task.CompletedTask;
+                            }
+                        }
+
                         var token = AuthTokenResolver.Resolve(
                             context.Request.Headers.Authorization.ToString(),
                             context.Request.Cookies["access_token"]);
