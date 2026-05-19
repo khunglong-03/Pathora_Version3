@@ -160,7 +160,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "HotelProvider,TransportProvider,Admin")]
+    [Authorize(Roles = "HotelServiceProvider,TransportProvider,Admin")]
     [HttpPost(TourInstanceEndpoint.Approve)]
     public async Task<IActionResult> Approve(Guid id, [FromBody] ProviderApproveRequest request)
     {
@@ -235,7 +235,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "Admin,Manager,TourOperator,HotelProvider")]
+    [Authorize(Roles = "Admin,Manager,TourOperator,HotelServiceProvider")]
     [HttpPut("{instanceId:guid}/accommodations/{activityId:guid}/assign-rooms")]
     public async Task<IActionResult> AssignRoomToAccommodation(Guid instanceId, Guid activityId, [FromBody] AssignRoomRequest request)
     {
@@ -299,7 +299,7 @@ public class TourInstanceController : BaseApiController
     /// Creates a Hard VehicleBlock hold and may activate the instance if all approvals are complete.
     /// </summary>
     // ER-12: only provider roles (plus Admin) can approve their own activities.
-    [Authorize(Roles = "TransportProvider,HotelProvider,Admin")]
+    [Authorize(Roles = "TransportProvider,HotelServiceProvider,Admin")]
     [HttpPost("{instanceId:guid}/transportation/{activityId:guid}/approve")]
     public async Task<IActionResult> ApproveTransportationActivity(
         Guid instanceId,
@@ -335,7 +335,7 @@ public class TourInstanceController : BaseApiController
     /// Provider rejects transportation — declines the assignment for an activity.
     /// Deletes any VehicleBlock and moves instance back to PendingApproval.
     /// </summary>
-    [Authorize(Roles = "TransportProvider,HotelProvider,Admin")]
+    [Authorize(Roles = "TransportProvider,HotelServiceProvider,Admin")]
     [HttpPost("{instanceId:guid}/transportation/{activityId:guid}/reject")]
     public async Task<IActionResult> RejectTransportationActivity(
         Guid instanceId,

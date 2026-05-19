@@ -43,10 +43,20 @@ export default function ConfirmationDialog({
       centered
     >
       <div className="text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
+        <div
+          className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full mb-4 ${
+            isDestructive
+              ? "bg-red-100 dark:bg-red-900/30"
+              : "bg-emerald-100 dark:bg-emerald-900/30"
+          }`}
+        >
           <Icon
-            icon="heroicons:exclamation-triangle"
-            className={`size-6 ${isDestructive ? "text-red-600 dark:text-red-400" : "text-slate-600 dark:text-slate-400"}`}
+            icon={isDestructive ? "heroicons:exclamation-triangle" : "heroicons:check-circle"}
+            className={`size-6 ${
+              isDestructive
+                ? "text-red-600 dark:text-red-400"
+                : "text-emerald-600 dark:text-emerald-400"
+            }`}
           />
         </div>
         <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -74,7 +84,10 @@ export default function ConfirmationDialog({
               : "bg-orange-500 hover:bg-orange-600"
           }`}
         >
-          <Icon icon="heroicons:trash" className="size-4" />
+          <Icon
+            icon={isDestructive ? "heroicons:trash" : "heroicons:check"}
+            className="size-4"
+          />
           {resolvedConfirm}
         </button>
       </div>
