@@ -57,8 +57,8 @@ public sealed class AssignAccommodationSupplierCommandHandler(
         if (supplier.SupplierType != SupplierType.Accommodation)
             return Error.Validation("Supplier.WrongType", "Nhà cung cấp phải thuộc loại Accommodation (Khách sạn).");
 
-        // Load instance with days
-        var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
+        // Load tracked graph so Update/SaveChanges persists supplier assignment.
+        var instance = await tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId, cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 

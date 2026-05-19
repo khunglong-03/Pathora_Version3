@@ -49,7 +49,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
         _user.Id.Returns(ownerUserId.ToString());
         _supplierRepository.GetByIdAsync(supplierId, Arg.Any<CancellationToken>()).Returns(supplier);
         _supplierRepository.FindAllByOwnerUserIdAsync(ownerUserId, Arg.Any<CancellationToken>()).Returns([supplier]);
-        _tourInstanceRepository.FindByIdWithInstanceDays(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
+        _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
         _tourInstanceRepository.FindById(instance.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(instance);
         _roomBlockRepository.GetByTourInstanceDayActivityIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(Array.Empty<RoomBlockEntity>());

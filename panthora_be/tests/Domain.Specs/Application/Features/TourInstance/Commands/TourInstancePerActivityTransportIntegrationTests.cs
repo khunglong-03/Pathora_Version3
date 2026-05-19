@@ -255,7 +255,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         };
         day.TourInstance = instance;
         day.TourInstanceId = instance.Id;
-        tourRepo.FindByIdWithInstanceDays(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
+        tourRepo.FindByIdWithInstanceDaysForUpdate(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
         tourRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         supplierRepo.GetByIdAsync(newH, Arg.Any<CancellationToken>())
             .Returns(new SupplierEntity { Id = newH, Name = "H2", IsActive = true, SupplierType = SupplierType.Accommodation });
