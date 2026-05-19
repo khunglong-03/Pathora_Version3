@@ -2,6 +2,7 @@ using System.Linq;
 using Application.Dtos;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.ValueObjects;
 
 namespace Application.Mapping;
@@ -71,7 +72,7 @@ public sealed class TourInstanceProfile : Profile
                     ? null
                     : new TourInstancePlanAccommodationDto(
                         src.Accommodation.Id,
-                        src.Accommodation.RoomType != null ? src.Accommodation.RoomType.ToString() : string.Empty,
+                        (src.Accommodation.RoomType ?? default(RoomType)).ToString(),
                         src.Accommodation.Quantity,
                         src.Accommodation.SupplierId,
                         src.Accommodation.Supplier != null ? src.Accommodation.Supplier.Name : null,
