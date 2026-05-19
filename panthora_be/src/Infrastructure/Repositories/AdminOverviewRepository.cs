@@ -20,7 +20,7 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         var insurances = await BuildInsurances(cancellationToken);
         var visaApplications = await BuildVisaApplications(cancellationToken);
 
-        var payments = new List<AdminPaymentReport>();
+        var payments = await BuildPayments(cancellationToken);
 
         return new AdminOverviewReport(
             stats, 
@@ -139,86 +139,70 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
             .ToList();
     }
 
-    //private async Task<List<AdminPaymentReport>> BuildPayments(CancellationToken cancellationToken)
-    //{
-    //    var completedPaymentRows = await _context.Payments
-    //        .AsNoTracking()
-    //        .Include(x => x.BookingId)
-    //        .OrderByDescending(x => x.TransactionTimestamp)
-    //        .Take(300)
-    //        .Select(x => new CompletedPaymentRow(
-    //            x.Id,
-    //            x.BookingId,
-    //            x.Amount,
-    //            x.PaidAt,
-    //            x.PaymentMethod,
-    //            x.Booking.Status,
-    //            x.Booking.CustomerName,
-    //            x.Booking.TourInstance.TourName,
-    //            x.Booking.TourInstance.Title))
-    //        .ToListAsync(cancellationToken);
+    private async Task<List<AdminPaymentReport>> BuildPayments(CancellationToken cancellationToken)
+    {
+        var paymentRows = await _context.PaymentTransactions
+            .AsNoTracking()
+            .Include(x => x.Booking)
+                .ThenInclude(b => b.TourInstance)
+            .OrderByDescending(x => x.CreatedAt)
+            .Take(300)
+            .Select(x => new PaymentRow(
+                x.Id,
+                x.BookingId,
+                x.TransactionCode,
+                x.Amount,
+                x.PaidAmount ?? 0,
+                x.Status,
+                x.Type,
+                x.PaymentMethod,
+                x.CreatedAt,
+                x.PaidAt,
+                x.Booking.CustomerName,
+                x.Booking.TourInstance != null ? x.Booking.TourInstance.TourName : "Unknown Tour",
+                x.Booking.TourInstance != null ? x.Booking.TourInstance.Title : null))
+            .ToListAsync(cancellationToken);
 
-    //    var completedPayments = completedPaymentRows
-    //        .Select(row => new AdminPaymentReport(
-    //            Id: PrefixId("PAY", row.Id),
-    //            Booking: ResolveBookingName(row.TourName, row.TourTitle),
-    //            Customer: row.CustomerName,
-    //            Method: row.PaymentMethod.ToString(),
-    //            Amount: row.Amount,
-    //            Status: row.BookingStatus == BookingStatus.Cancelled ? "refunded" : "completed",
-    //            Date: FormatDate(row.PaidAt)))
-    //        .ToList();
+        return paymentRows
+            .Select(row => new AdminPaymentReport(
+                Id: PrefixId("PAY", row.Id),
+                Booking: ResolveBookingName(row.TourName, row.TourTitle),
+                Customer: row.CustomerName,
+                Method: row.PaymentMethod.ToString(),
+                Amount: row.PaidAmount > 0 ? row.PaidAmount : row.Amount,
+                Status: MapTransactionStatus(row.Status),
+                Date: FormatDate(row.PaidAt ?? row.CreatedAt)))
+            .ToList();
+    }
 
-    //    var paidByBookingMap = completedPaymentRows
-    //        .GroupBy(x => x.BookingId)
-    //        .ToDictionary(x => x.Key, x => x.Sum(row => row.Amount));
+    private static string MapTransactionStatus(TransactionStatus status)
+    {
+        return status switch
+        {
+            TransactionStatus.Completed => "completed",
+            TransactionStatus.Pending => "pending",
+            TransactionStatus.Processing => "pending",
+            TransactionStatus.Failed => "refunded",
+            TransactionStatus.Cancelled => "refunded",
+            TransactionStatus.Refunded => "refunded",
+            _ => "pending"
+        };
+    }
 
-    //    var bookingRows = await _context.Bookings
-    //        .AsNoTracking()
-    //        .Include(x => x.TourInstance)
-    //        .OrderByDescending(x => x.BookingDate)
-    //        .Take(300)
-    //        .Select(x => new PendingBookingRow(
-    //            x.Id,
-    //            x.TotalPrice,
-    //            x.BookingDate,
-    //            x.PaymentMethod,
-    //            x.Status,
-    //            x.CustomerName,
-    //            x.TourInstance.TourName,
-    //            x.TourInstance.Title))
-    //        .ToListAsync(cancellationToken);
-
-    //    var pendingPayments = new List<AdminPaymentReport>();
-    //    foreach (var booking in bookingRows)
-    //    {
-    //        if (booking.Status == BookingStatus.Cancelled)
-    //        {
-    //            continue;
-    //        }
-
-    //        paidByBookingMap.TryGetValue(booking.Id, out var paidAmount);
-    //        var remainingAmount = booking.TotalPrice - paidAmount;
-    //        if (remainingAmount <= 0)
-    //        {
-    //            continue;
-    //        }
-
-    //        pendingPayments.Add(new AdminPaymentReport(
-    //            Id: PrefixId("PENDING", booking.Id),
-    //            Booking: ResolveBookingName(booking.TourName, booking.TourTitle),
-    //            Customer: booking.CustomerName,
-    //            Method: booking.PaymentMethod.ToString(),
-    //            Amount: remainingAmount,
-    //            Status: "pending",
-    //            Date: FormatDate(booking.BookingDate)));
-    //    }
-
-    //    return completedPayments
-    //        .Concat(pendingPayments)
-    //        .Take(300)
-    //        .ToList();
-    //}
+    private sealed record PaymentRow(
+        Guid Id,
+        Guid BookingId,
+        string TransactionCode,
+        decimal Amount,
+        decimal PaidAmount,
+        TransactionStatus Status,
+        TransactionType Type,
+        PaymentMethod PaymentMethod,
+        DateTimeOffset CreatedAt,
+        DateTimeOffset? PaidAt,
+        string CustomerName,
+        string TourName,
+        string? TourTitle);
 
     private async Task<List<AdminInsuranceReport>> BuildInsurances(CancellationToken cancellationToken)
     {

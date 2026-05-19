@@ -434,19 +434,11 @@ export default function StaffScheduleCalendar() {
         <>
           {/* Stats */}
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
             variants={containerVariants}
             initial="hidden"
             animate="show"
           >
-            <motion.div variants={itemVariants}>
-              <Card className="rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-stone-200/50 border-l-4 border-l-amber-300 !p-0" bodyClass="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-stone-500">{safeT("staffTracking.stat.total", "Total Staff")}</p>
-                </div>
-                <p className="text-2xl font-bold text-stone-900 tracking-tight">{metrics.total}</p>
-              </Card>
-            </motion.div>
             <motion.div variants={itemVariants}>
               <Card className="rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-stone-200/50 border-l-4 border-l-red-300 !p-0" bodyClass="p-5">
                 <div className="flex items-center justify-between mb-3">
