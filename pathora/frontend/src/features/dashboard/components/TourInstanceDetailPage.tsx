@@ -505,7 +505,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
     restorePublicTourReturnFocus();
   }, [dataState, variant]);
 
-  // Load bookings for per-booking assignment panel
+  // Load bookings for per-booking assignment panel — single fetch shared by all consumers
   useEffect(() => {
     if (!data?.id || !["public", "private"].includes(data.instanceType?.toLowerCase() || "")) {
       setInstanceBookings([]);
@@ -513,79 +513,53 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
     }
     let active = true;
     setInstanceBookingsLoading(true);
+    setTicketBookingOptionsLoading(true);
     void (async () => {
       try {
         const bookings = await bookingService.getBookingsByTourInstance(data.id);
-        if (active) setInstanceBookings(bookings.filter((b) => b.status !== "Cancelled"));
+        if (!active) return;
+
+        // 1. Instance bookings (non-cancelled)
+        setInstanceBookings(bookings.filter((b) => b.status !== "Cancelled"));
+
+        // 2. Primary private booking ID
+        if (data.instanceType?.toLowerCase() === "private" && canReassign) {
+          const first = bookings[0];
+          const bid = first?.id ?? (first as { bookingId?: string } | undefined)?.bookingId ?? null;
+          setPrimaryPrivateBookingId(bid);
+        }
+
+        // 3. Ticket booking options
+        if ((data.totalBookings ?? 0) > 0) {
+          setTicketBookingOptions(
+            bookings
+              .map((booking) => {
+                const id = booking.id || (booking as { bookingId?: string }).bookingId;
+                if (!id) return null;
+                return {
+                  id,
+                  label: `${booking.customerName} - ${booking.status}`,
+                };
+              })
+              .filter((option): option is TicketImageBookingOption => option !== null),
+          );
+        } else {
+          setTicketBookingOptions([]);
+        }
       } catch {
-        if (active) setInstanceBookings([]);
+        if (!active) return;
+        setInstanceBookings([]);
+        setPrimaryPrivateBookingId(null);
+        setTicketBookingOptions([]);
       } finally {
-        if (active) setInstanceBookingsLoading(false);
+        if (active) {
+          setInstanceBookingsLoading(false);
+          setTicketBookingOptionsLoading(false);
+        }
       }
     })();
     return () => { active = false; };
-  }, [data?.id, data?.instanceType, reloadToken]);
-
-  useEffect(() => {
-    if (!data?.id || data.instanceType?.toLowerCase() !== "private" || !canReassign) {
-      setPrimaryPrivateBookingId(null);
-      return;
-    }
-    let active = true;
-    void (async () => {
-      try {
-        const bookings = await bookingService.getBookingsByTourInstance(data.id);
-        if (!active) return;
-        const first = bookings[0];
-        const bid = first?.id ?? (first as { bookingId?: string } | undefined)?.bookingId ?? null;
-        setPrimaryPrivateBookingId(bid);
-      } catch {
-        if (active) setPrimaryPrivateBookingId(null);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [data?.id, data?.instanceType, canReassign]);
-
-  useEffect(() => {
-    if (!data?.id || (data.totalBookings ?? 0) <= 0) {
-      setTicketBookingOptions([]);
-      setTicketBookingOptionsLoading(false);
-      return;
-    }
-
-    let active = true;
-    setTicketBookingOptionsLoading(true);
-
-    const loadBookings = async () => {
-      try {
-        const bookings = await bookingService.getBookingsByTourInstance(data.id);
-        if (!active) return;
-        setTicketBookingOptions(
-          bookings
-            .map((booking) => {
-              const id = booking.id || (booking as { bookingId?: string }).bookingId;
-              if (!id) return null;
-              return {
-                id,
-                label: `${booking.customerName} - ${booking.status}`,
-              };
-            })
-            .filter((option): option is TicketImageBookingOption => option !== null),
-        );
-      } catch {
-        if (active) setTicketBookingOptions([]);
-      } finally {
-        if (active) setTicketBookingOptionsLoading(false);
-      }
-    };
-
-    void loadBookings();
-    return () => {
-      active = false;
-    };
-  }, [data?.id, data?.totalBookings]);
+  }, [data?.id, data?.instanceType, data?.totalBookings, canReassign, reloadToken]);
 
   const updateField = <K extends keyof EditForm>(field: K, value: EditForm[K]) => {
     setForm((current) => (current ? { ...current, [field]: value } : current));
