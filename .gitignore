@@ -311,3 +311,4 @@ panthora_be/src/Application/Common/Repositories/
 *.docx
 
 scripts/
+panthora_be/src/Api/appsettings.json
