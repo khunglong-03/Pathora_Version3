@@ -54,6 +54,7 @@ const toAccommodationActivities = (
         roomBlocksTotal: activity.accommodation?.roomBlocksTotal ?? 0,
         quantity: activity.accommodation?.quantity ?? 0,
         roomType: activity.accommodation?.roomType ?? null,
+        supplierId: activity.accommodation?.supplierId ?? null,
         supplierName: activity.accommodation?.supplierName ?? null,
         supplierApprovalStatus: activity.accommodation?.supplierApprovalStatus ?? null,
       })),

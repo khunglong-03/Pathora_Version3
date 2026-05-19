@@ -2243,6 +2243,33 @@
     "assignFlightTickets": "Gán vé phương tiện",
     "assignAccommodation": "Gán khách sạn",
     "assignedVehicleReadOnly": "Xe đã gán (read-only)",
+    "accommodation": {
+      "approval": "Duyệt lưu trú",
+      "supplier": "Nhà cung cấp",
+      "roomType": "Loại phòng",
+      "quantity": "Số lượng",
+      "blockedRooms": "Phòng đã giữ",
+      "editRequirements": "Sửa số phòng",
+      "changeSupplier": "Đổi NCC",
+      "addSupplier": "Thêm NCC",
+      "assignBookings": "Phân bổ booking",
+      "supplementalTitle": "Lưu trú bổ sung",
+      "supplementalHint": "Thêm hoạt động lưu trú mới cho NCC thứ hai, sau đó gán khách sạn và số phòng.",
+      "requirements": {
+        "title": "Điều chỉnh yêu cầu phòng",
+        "subtitle": "Hoạt động: {{title}}",
+        "supplier": "Khách sạn / NCC",
+        "selectSupplier": "-- Chọn khách sạn --",
+        "selectRoomType": "-- Chọn loại phòng --",
+        "roomTypeRequired": "Vui lòng chọn loại phòng.",
+        "saved": "Đã cập nhật yêu cầu phòng cho hoạt động này",
+        "approvedWarning": "Thay đổi số phòng hoặc nhà cung cấp sẽ đặt lại trạng thái duyệt về Chờ duyệt và xóa block phòng hiện tại.",
+        "insufficientRooms": "Các booking đã phân bổ tổng {{assigned}} phòng — cần ít nhất {{min}} phòng.",
+        "suggestMin": "Đề xuất tối thiểu: {{count}} phòng",
+        "editing": "Đang chỉnh yêu cầu phòng",
+        "assignedExceedsQuantity": "Đã phân bổ {{assigned}} phòng nhưng chỉ yêu cầu {{quantity}} — hãy tăng số phòng hoặc thêm NCC khác."
+      }
+    },
     "flight": {
       "emptyActivity": "Tour này không có vé máy bay / tàu / thuyền cần gán",
       "emptyBookings": "Chưa có khách đặt tour",

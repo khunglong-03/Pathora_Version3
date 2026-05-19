@@ -58,6 +58,7 @@ interface AccommodationActivityInfo {
   /** Số phòng yêu cầu của activity */
   quantity: number;
   roomType: string | null;
+  supplierId?: string | null;
   supplierName: string | null;
   supplierApprovalStatus: string | null;
 }
@@ -185,8 +186,9 @@ function AccommodationBookingCard({
       activity.quantity > 0 ? activity.quantity : Math.max(1, Math.ceil(totalGuests / 2)),
     [activity.quantity, totalGuests],
   );
+  const [isEditingRequirements, setIsEditingRequirements] = useState(false);
   const [picker, setPicker] = useState({
-    supplierId: "",
+    supplierId: activity.supplierId ?? "",
     roomType: activity.roomType ?? "",
     quantity: suggestedQuantity,
     isSubmitting: false,
@@ -316,7 +318,18 @@ function AccommodationBookingCard({
   const hasSupplierAssigned = Boolean(activity.supplierName) && activity.quantity > 0;
   const isRejectedSupplier = activity.supplierApprovalStatus?.toLowerCase() === "rejected";
   const showSupplierPicker =
-    Boolean(onSetAccommodationRequirements) && (!hasSupplierAssigned || isRejectedSupplier);
+    Boolean(onSetAccommodationRequirements)
+    && (!hasSupplierAssigned || isRejectedSupplier || isEditingRequirements);
+
+  const openRequirementsEditor = useCallback(() => {
+    setPicker({
+      supplierId: activity.supplierId ?? "",
+      roomType: activity.roomType ?? "",
+      quantity: Math.max(activity.quantity, suggestedQuantity, 1),
+      isSubmitting: false,
+    });
+    setIsEditingRequirements(true);
+  }, [activity.quantity, activity.roomType, activity.supplierId, suggestedQuantity]);
 
   // Lazy load danh sách hotel supplier theo continent của tour (chỉ chạy 1 lần khi picker hiện)
   const suppliersLoadedRef = React.useRef(false);
@@ -408,6 +421,7 @@ function AccommodationBookingCard({
         quantity: picker.quantity,
       });
       onRequirementsSaved?.();
+      setIsEditingRequirements(false);
     } catch (error) {
       const apiError = handleApiError(error);
       toast.error(t(apiError.message));
@@ -637,7 +651,27 @@ function AccommodationBookingCard({
                 <span className="text-stone-500 font-medium">Yêu cầu:</span>
                 <span className="font-bold text-stone-800">{activity.quantity} phòng</span>
               </div>
+              {onSetAccommodationRequirements && hasSupplierAssigned && !isRejectedSupplier && (
+                <button
+                  type="button"
+                  onClick={openRequirementsEditor}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                >
+                  <Icon icon="heroicons:adjustments-horizontal" className="size-3.5" />
+                  {t("tourInstance.accommodation.editRequirements", "Sửa số phòng / NCC")}
+                </button>
+              )}
             </div>
+          )}
+
+          {totalAssigned > activity.quantity && activity.quantity > 0 && (
+            <p className="mt-3 text-xs font-medium text-orange-700">
+              {t(
+                "tourInstance.accommodation.requirements.assignedExceedsQuantity",
+                "Đã phân bổ {{assigned}} phòng nhưng chỉ yêu cầu {{quantity}} — hãy tăng số phòng hoặc thêm NCC khác.",
+                { assigned: totalAssigned, quantity: activity.quantity },
+              )}
+            </p>
           )}
 
           {blockerBanner && (
@@ -694,6 +728,23 @@ function AccommodationBookingCard({
         {/* ── RIGHT: Assignment form (Supplier picker) ── */}
         {showSupplierPicker && (
           <div className="flex flex-col gap-3 md:w-[300px] md:flex-none">
+            {isEditingRequirements && (
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-amber-800">
+                  {t(
+                    "tourInstance.accommodation.requirements.editing",
+                    "Đang chỉnh yêu cầu phòng",
+                  )}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingRequirements(false)}
+                  className="text-xs text-stone-500 hover:text-stone-700"
+                >
+                  {t("common.cancel", "Huỷ")}
+                </button>
+              </div>
+            )}
             <div>
               <Select
                 label="Khách sạn / Nhà Cung Cấp (Tùy chọn)"

@@ -2216,6 +2216,33 @@
     "assignFlightTickets": "Assign Transport Tickets",
     "assignAccommodation": "Assign Accommodation",
     "assignedVehicleReadOnly": "Assigned vehicle (read-only)",
+    "accommodation": {
+      "approval": "Accommodation approval",
+      "supplier": "Supplier",
+      "roomType": "Room type",
+      "quantity": "Quantity",
+      "blockedRooms": "Blocked rooms",
+      "editRequirements": "Edit room count",
+      "changeSupplier": "Change supplier",
+      "addSupplier": "Add supplier",
+      "assignBookings": "Assign bookings",
+      "supplementalTitle": "Supplemental stay",
+      "supplementalHint": "Add a new accommodation activity for a second supplier, then assign hotel and room count.",
+      "requirements": {
+        "title": "Adjust room requirements",
+        "subtitle": "Activity: {{title}}",
+        "supplier": "Hotel / supplier",
+        "selectSupplier": "-- Select hotel --",
+        "selectRoomType": "-- Select room type --",
+        "roomTypeRequired": "Please select a room type.",
+        "saved": "Room requirements updated for this activity",
+        "approvedWarning": "Changing room count or supplier resets approval to Pending and clears existing room blocks.",
+        "insufficientRooms": "Bookings already allocate {{assigned}} rooms — need at least {{min}} rooms.",
+        "suggestMin": "Suggested minimum: {{count}} rooms",
+        "editing": "Editing room requirements",
+        "assignedExceedsQuantity": "{{assigned}} rooms assigned but only {{quantity}} requested — increase room count or add another supplier."
+      }
+    },
     "flight": {
       "emptyActivity": "This tour has no flight / train / boat tickets to assign",
       "emptyBookings": "No bookings yet for this tour",

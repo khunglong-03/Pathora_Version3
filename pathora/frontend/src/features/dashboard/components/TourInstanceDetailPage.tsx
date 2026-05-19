@@ -35,6 +35,7 @@ import {
   toDateInput,
 } from "./tour-instance/ViewComponents";
 import SupplierReassignmentModal from "./SupplierReassignmentModal";
+import AccommodationRequirementsModal from "./AccommodationRequirementsModal";
 import TicketImageUpload, { type TicketImageBookingOption } from "./TicketImageUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { PrivateTourCoDesignOperatorSection } from "@/features/private-co-design/PrivateTourCoDesignOperatorSection";
@@ -316,6 +317,8 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
 
   const [reassignActivity, setReassignActivity] = useState<TourInstanceDayActivityDto | null>(null);
   const [reassignType, setReassignType] = useState<"Transportation" | "Accommodation">("Transportation");
+  const [accommodationReqActivity, setAccommodationReqActivity] =
+    useState<TourInstanceDayActivityDto | null>(null);
   const [ticketBookingOptions, setTicketBookingOptions] = useState<TicketImageBookingOption[]>([]);
   const [ticketBookingOptionsLoading, setTicketBookingOptionsLoading] = useState(false);
   const [primaryPrivateBookingId, setPrimaryPrivateBookingId] = useState<string | null>(null);
@@ -751,6 +754,29 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
       const apiError = handleApiError(error);
       toast.error(t(apiError.message));
     }
+  };
+
+  const handleAddSupplementalAccommodation = (
+    activity: TourInstanceDayActivityDto,
+    dayId: string,
+  ) => {
+    setAddingActivityForDayId(dayId);
+    setNewActivityForm({
+      title: t("tourInstance.accommodation.supplementalTitle", "Lưu trú bổ sung"),
+      activityType: 8,
+      description: "",
+      note: "",
+      startTime: activity.startTime ?? "",
+      endTime: activity.endTime ?? "",
+      isOptional: false,
+      price: "",
+    });
+    toast.info(
+      t(
+        "tourInstance.accommodation.supplementalHint",
+        "Thêm hoạt động lưu trú mới cho NCC thứ hai, sau đó gán khách sạn và số phòng.",
+      ),
+    );
   };
 
   const saveNewActivity = async (dayId: string) => {
@@ -1604,18 +1630,51 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                                                 {getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).label}
                                               </span>
                                               {canReassign && (
-                                                <button
-                                                  type="button"
-                                                  onClick={() => {
-                                                    setReassignActivity(activity);
-                                                    setReassignType("Accommodation");
-                                                  }}
-                                                  aria-label={`Đổi nhà cung cấp chỗ ở cho hoạt động ${activity.title}`}
-                                                  className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-                                                >
-                                                  <Icon icon="heroicons:pencil-square" className="size-3" />
-                                                  Đổi NCC
-                                                </button>
+                                                <div className="flex flex-wrap items-center gap-1">
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setAccommodationReqActivity(activity)}
+                                                    aria-label={`Sửa yêu cầu phòng cho hoạt động ${activity.title}`}
+                                                    className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-white px-2 py-1 text-xs text-amber-800 hover:bg-amber-50 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+                                                  >
+                                                    <Icon icon="heroicons:adjustments-horizontal" className="size-3" />
+                                                    {t("tourInstance.accommodation.editRequirements", "Sửa số phòng")}
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      setReassignActivity(activity);
+                                                      setReassignType("Accommodation");
+                                                    }}
+                                                    aria-label={`Đổi nhà cung cấp chỗ ở cho hoạt động ${activity.title}`}
+                                                    className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                                  >
+                                                    <Icon icon="heroicons:pencil-square" className="size-3" />
+                                                    {t("tourInstance.accommodation.changeSupplier", "Đổi NCC")}
+                                                  </button>
+                                                  {canEditItinerary && (
+                                                    <button
+                                                      type="button"
+                                                      onClick={() =>
+                                                        handleAddSupplementalAccommodation(activity, day.id)
+                                                      }
+                                                      aria-label={`Thêm nhà cung cấp lưu trú bổ sung cho ngày ${day.instanceDayNumber}`}
+                                                      className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                                    >
+                                                      <Icon icon="heroicons:plus-circle" className="size-3" />
+                                                      {t("tourInstance.accommodation.addSupplier", "Thêm NCC")}
+                                                    </button>
+                                                  )}
+                                                  {variant === "public" && (
+                                                    <Link
+                                                      href={`/tour-operator/tour-instances/public/${id}/book-accommodation`}
+                                                      className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                                    >
+                                                      <Icon icon="heroicons:building-office-2" className="size-3" />
+                                                      {t("tourInstance.accommodation.assignBookings", "Phân bổ booking")}
+                                                    </Link>
+                                                  )}
+                                                </div>
                                               )}
                                             </div>
                                           </div>
@@ -2529,6 +2588,19 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
           activity={reassignActivity}
           activityType={reassignType}
           tourInstanceId={id}
+          onSuccess={() => {
+            void loadData();
+          }}
+        />
+      )}
+
+      {accommodationReqActivity && (
+        <AccommodationRequirementsModal
+          open={!!accommodationReqActivity}
+          onClose={() => setAccommodationReqActivity(null)}
+          activity={accommodationReqActivity}
+          tourInstanceId={id}
+          continent={data?.continent ?? null}
           onSuccess={() => {
             void loadData();
           }}
