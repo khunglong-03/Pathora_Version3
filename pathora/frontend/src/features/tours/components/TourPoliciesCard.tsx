@@ -82,9 +82,9 @@ export function TourPoliciesCard({
                     {cancellationPolicy.tiers.map((tier, idx) => (
                       <tr key={idx} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-2">
-                          {tier.maxDaysBeforeDeparture === 9999
-                            ? t("tours.policies.cancellation.moreThan", "More than {{days}} days before departure", { days: tier.minDaysBeforeDeparture })
-                            : t("tours.policies.cancellation.between", "{{min}} to {{max}} days before departure", { min: tier.minDaysBeforeDeparture, max: tier.maxDaysBeforeDeparture })}
+                          {tier.maxDaysBeforeDeparture >= 2147483647 || tier.maxDaysBeforeDeparture >= 9999
+                            ? t("tours.policies.cancellation.moreThan", "{{days}} ngày trở lên", { days: tier.minDaysBeforeDeparture })
+                            : t("tours.policies.cancellation.between", "{{min}} đến {{max}} ngày trước khởi hành", { min: tier.minDaysBeforeDeparture, max: tier.maxDaysBeforeDeparture })}
                         </td>
                         <td className="px-4 py-2 font-medium text-orange-600">
                           {tier.penaltyPercentage}%
