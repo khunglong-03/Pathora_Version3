@@ -70,15 +70,6 @@ export default function CustomTourRequestDetailPage({
   const canManagerAct = role === "manager" && isDraft;
   const canManagerReview = role === "manager" && isPendingManagerReview;
 
-  console.log("[DEBUG CustomTourRequestDetailPage]", {
-    role,
-    status: data?.status,
-    statusLower,
-    isDraft,
-    canManagerAct,
-    parsedRequestsLength: parsedRequests.length
-  });
-
   const managerWaitingInfo = useMemo<{
     title: string;
     description: string;

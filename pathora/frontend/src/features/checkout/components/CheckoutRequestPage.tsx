@@ -246,6 +246,15 @@ export function CheckoutRequestPage() {
   const instanceTypeParam = searchParams.get("instanceType") || "public";
   const thumbnailUrlParam = searchParams.get("thumbnailUrl");
 
+  /* ── Participant counts (must be declared before use) ──── */
+  const adultsParam = searchParams.get("adults") || "1";
+  const childrenParam = searchParams.get("children") || "0";
+  const infantsParam = searchParams.get("infants") || "0";
+  
+  const [numberAdult, setNumberAdult] = useState(() => parseInt(adultsParam, 10) || 1);
+  const [numberChild, setNumberChild] = useState(() => parseInt(childrenParam, 10) || 0);
+  const [numberInfant, setNumberInfant] = useState(() => parseInt(infantsParam, 10) || 0);
+
   /* ── State for tour instance booking ─────────────────── */
   const [tourInstanceBooking, setTourInstanceBooking] = useState<{
     tourInstanceId: string;
@@ -284,8 +293,8 @@ export function CheckoutRequestPage() {
       // Fetch tour instance detail to get currentParticipation
       const fetchTourInstanceDetail = async () => {
         try {
-          const tourService = await import("@/api/services/tourService").then((m) => m.tourService);
-          const detail = await tourService.getTourInstanceDetail(tourInstanceIdParam);
+          const tourInstanceService = await import("@/api/services/tourInstanceService").then((m) => m.tourInstanceService);
+          const detail = await tourInstanceService.getInstanceDetail(tourInstanceIdParam);
           
           setTourInstanceBooking({
             tourInstanceId: tourInstanceIdParam,
@@ -408,14 +417,7 @@ export function CheckoutRequestPage() {
   }, [isPrivateTopUpCheckout, bookingIdParam, transactionCodeParam, t]);
 
   /* ── Derived & State ──────────────────────────────────── */
-  const adultsParam = searchParams.get("adults") || "1";
-  const childrenParam = searchParams.get("children") || "0";
-  const infantsParam = searchParams.get("infants") || "0";
   
-  const [numberAdult, setNumberAdult] = useState(() => parseInt(adultsParam, 10) || 1);
-  const [numberChild, setNumberChild] = useState(() => parseInt(childrenParam, 10) || 0);
-  const [numberInfant, setNumberInfant] = useState(() => parseInt(infantsParam, 10) || 0);
-
   useEffect(() => {
     setNumberAdult(parseInt(searchParams.get("adults") || "1", 10));
     setNumberChild(parseInt(searchParams.get("children") || "0", 10));
