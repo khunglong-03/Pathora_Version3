@@ -259,8 +259,20 @@ export function CheckoutRequestPage() {
     instanceType: string;
     classificationId?: string;
     maxParticipation?: number;
+    currentParticipation?: number;
     basePrice?: number;
   } | null>(null);
+
+  // Calculate remaining slots
+  const remainingSlots = React.useMemo(() => {
+    if (!tourInstanceBooking?.maxParticipation) return null;
+    const current = tourInstanceBooking.currentParticipation || 0;
+    const max = tourInstanceBooking.maxParticipation;
+    return Math.max(0, max - current);
+  }, [tourInstanceBooking]);
+
+  // Calculate total participants
+  const totalParticipants = numberAdult + numberChild + numberInfant;
 
   /* ── Initialize tour instance booking from URL params ──── */
   useEffect(() => {
@@ -269,21 +281,51 @@ export function CheckoutRequestPage() {
       const depositPercentage = Number(depositPercentageParam) || 0.3;
       const depositAmount = Math.round(basePrice * depositPercentage);
 
-      setTourInstanceBooking({
-        tourInstanceId: tourInstanceIdParam,
-        tourName: tourNameParam || "Tour Riêng",
-        startDate: startDateParam || "",
-        endDate: endDateParam || "",
-        location: locationParam || "",
-        depositPerPerson: depositAmount,
-        depositPercentage: depositPercentage,
-        bookingType: bookingTypeParam,
-        instanceType: instanceTypeParam,
-        classificationId: searchParams.get("classificationId") || undefined,
-        maxParticipation: parseInt(searchParams.get("maxParticipation") || "1", 10),
-        basePrice: basePrice,
-      });
-      setLoadingPrice(false);
+      // Fetch tour instance detail to get currentParticipation
+      const fetchTourInstanceDetail = async () => {
+        try {
+          const tourService = await import("@/api/services/tourService").then((m) => m.tourService);
+          const detail = await tourService.getTourInstanceDetail(tourInstanceIdParam);
+          
+          setTourInstanceBooking({
+            tourInstanceId: tourInstanceIdParam,
+            tourName: tourNameParam || "Tour Riêng",
+            startDate: startDateParam || "",
+            endDate: endDateParam || "",
+            location: locationParam || "",
+            depositPerPerson: depositAmount,
+            depositPercentage: depositPercentage,
+            bookingType: bookingTypeParam,
+            instanceType: instanceTypeParam,
+            classificationId: searchParams.get("classificationId") || undefined,
+            maxParticipation: detail.maxParticipation || parseInt(searchParams.get("maxParticipation") || "1", 10),
+            currentParticipation: detail.currentParticipation || 0,
+            basePrice: basePrice,
+          });
+        } catch (error) {
+          console.error("Failed to fetch tour instance detail:", error);
+          // Fallback to URL params
+          setTourInstanceBooking({
+            tourInstanceId: tourInstanceIdParam,
+            tourName: tourNameParam || "Tour Riêng",
+            startDate: startDateParam || "",
+            endDate: endDateParam || "",
+            location: locationParam || "",
+            depositPerPerson: depositAmount,
+            depositPercentage: depositPercentage,
+            bookingType: bookingTypeParam,
+            instanceType: instanceTypeParam,
+            classificationId: searchParams.get("classificationId") || undefined,
+            maxParticipation: parseInt(searchParams.get("maxParticipation") || "1", 10),
+            currentParticipation: 0,
+            basePrice: basePrice,
+          });
+        } finally {
+          setLoadingPrice(false);
+        }
+      };
+
+      fetchTourInstanceDetail();
     }
   }, [tourInstanceIdParam, tourNameParam, startDateParam, endDateParam, locationParam, depositPerPersonParam, basePriceParam, depositPercentageParam, bookingTypeParam, instanceTypeParam]);
 
