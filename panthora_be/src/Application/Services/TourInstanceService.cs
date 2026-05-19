@@ -1501,32 +1501,44 @@ public class TourInstanceService(
                                 && ownerSupplierIds.Contains(act.Accommodation.SupplierId.Value)
                                 && (requestedActivityIds is null || requestedActivityIds.Contains(act.Id)))
                             {
-                                // ER-4.3: idempotent — if already at target status, skip
+                                // ER-4.3: idempotent status flip — skip ApproveBySupplier when already at target,
+                                // but still repair missing RoomBlocks (Approved + 0 blocks is a known bad state).
                                 var alreadyAtTarget = isApproved
                                     ? act.Accommodation.SupplierApprovalStatus == ProviderApprovalStatus.Approved
                                     : act.Accommodation.SupplierApprovalStatus == ProviderApprovalStatus.Rejected;
-                                if (alreadyAtTarget) continue;
 
-                                act.Accommodation.ApproveBySupplier(isApproved, note);
+                                if (!alreadyAtTarget)
+                                {
+                                    act.Accommodation.ApproveBySupplier(isApproved, note);
+                                }
 
                                 if (isApproved)
                                 {
-                                    // Remove any existing block to prevent duplicate key violations (IX_RoomBlocks_TourInstanceDayActivityId_RoomType)
-                                    await _roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(act.Id, cancellationToken);
+                                    var requiredRooms = act.Accommodation.Quantity;
+                                    if (requiredRooms > 0)
+                                    {
+                                        var existingBlocks = await _roomBlockRepository.GetByTourInstanceDayActivityIdAsync(
+                                            act.Id, cancellationToken);
+                                        var blockedTotal = existingBlocks.Sum(b => b.RoomCountBlocked);
 
-                                    // Tour-level holds are always Hard. Soft holds reserved for unpaid customer bookings.
-                                    var block = RoomBlockEntity.Create(
-                                        supplierId: act.Accommodation.SupplierId.Value,
-                                        roomType: act.Accommodation.RoomType ?? Domain.Enums.RoomType.Standard,
-                                        blockedDate: act.TourInstanceDay.ActualDate,
-                                        roomCountBlocked: act.Accommodation.Quantity,
-                                        performedBy: currentUserId.ToString(),
-                                        tourInstanceDayActivityId: act.Id,
-                                        holdStatus: HoldStatus.Hard
-                                    );
-                                    await _roomBlockRepository.AddAsync(block, cancellationToken);
+                                        if (blockedTotal < requiredRooms)
+                                        {
+                                            await _roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(act.Id, cancellationToken);
+
+                                            // Tour-level holds are always Hard. Soft holds reserved for unpaid customer bookings.
+                                            var block = RoomBlockEntity.Create(
+                                                supplierId: act.Accommodation.SupplierId.Value,
+                                                roomType: act.Accommodation.RoomType ?? Domain.Enums.RoomType.Standard,
+                                                blockedDate: act.TourInstanceDay.ActualDate,
+                                                roomCountBlocked: requiredRooms,
+                                                performedBy: currentUserId.ToString(),
+                                                tourInstanceDayActivityId: act.Id,
+                                                holdStatus: HoldStatus.Hard);
+                                            await _roomBlockRepository.AddAsync(block, cancellationToken);
+                                        }
+                                    }
                                 }
-                                else
+                                else if (!alreadyAtTarget)
                                 {
                                     await _roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(act.Id, cancellationToken);
                                 }

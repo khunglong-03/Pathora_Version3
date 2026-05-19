@@ -3,15 +3,9 @@
 /**
  * PublicTourBookingAssignmentPanel
  *
- * Dành riêng cho tour PUBLIC — nơi có nhiều bookings độc lập.
- *
- * Phân bổ phòng khách sạn (per-booking):
- * 1. Manager đã assign hotel supplier cho activity
- * 2. Hotel provider duyệt + block tổng số phòng
- * 3. TourOperator phân bổ số phòng đã block xuống từng booking dựa trên số khách
- *    (tổng các phân bổ ≤ số phòng đã block)
- *
- * Vé phương tiện (Flight/Train/Boat) gán per-booking qua ExternalTicketAssignmentPanel.
+ * - Tour PUBLIC: gán phòng qua bảng booking (Gán KS) — một loại phòng/ booking,
+ *   tổng phân bổ ≤ giới hạn phòng của tour; không phân bổ hàng loạt ở đây.
+ * - Tour PRIVATE: phân bổ đầy đủ (nhiều loại phòng / booking) + vé phương tiện.
  */
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -120,6 +114,12 @@ interface Props {
   ) => Promise<void>;
   /** Sau khi yêu cầu phòng được lưu — parent sẽ refetch để cập nhật trạng thái supplier. */
   onRequirementsSaved?: () => void;
+  /**
+   * public-overview: chỉ thiết lập NCC/số phòng (không list phân bổ từng booking).
+   * public-single: một booking — loại phòng cố định theo tour, chỉ nhập số phòng.
+   * private-full: UI đầy đủ (mặc định).
+   */
+  accommodationUiMode?: "public-overview" | "public-single" | "private-full";
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -192,6 +192,7 @@ function AccommodationBookingCard({
   instanceId,
   bookings,
   continent,
+  accommodationUiMode = "private-full",
   onSaveRoomAssignment,
   onLoadRoomAssignments,
   onRoomAssignmentSaved,
@@ -202,12 +203,17 @@ function AccommodationBookingCard({
   instanceId: string;
   bookings: AdminBookingListResponse[];
   continent?: number | null;
+  accommodationUiMode?: Props["accommodationUiMode"];
   onSaveRoomAssignment?: Props["onSaveRoomAssignment"];
   onLoadRoomAssignments?: Props["onLoadRoomAssignments"];
   onRoomAssignmentSaved?: Props["onRoomAssignmentSaved"];
   onSetAccommodationRequirements?: Props["onSetAccommodationRequirements"];
   onRequirementsSaved?: Props["onRequirementsSaved"];
 }) {
+  const isPublicSingle = accommodationUiMode === "public-single";
+  const isPublicOverview = accommodationUiMode === "public-overview";
+  const showPerBookingAllocation =
+    accommodationUiMode === "private-full" && bookings.length > 0;
   const { t } = useTranslation();
   // ─── Inline supplier picker state (Tour Operator chọn khách sạn cho activity) ──
   const totalGuests = useMemo(
@@ -232,7 +238,10 @@ function AccommodationBookingCard({
     isSubmitting: false,
   });
 
-  const activeRoomType = picker.roomType || activity.roomType || "Standard";
+  const tourRoomType = activity.roomType || "Standard";
+  const activeRoomType = isPublicSingle
+    ? tourRoomType
+    : picker.roomType || tourRoomType;
   const [savedBookingIds, setSavedBookingIds] = useState<Set<string>>(new Set());
   const assignmentIdsByBookingRef = useRef<Record<string, Set<string>>>({});
 
@@ -304,6 +313,20 @@ function AccommodationBookingCard({
           idSet.add(dto.id);
           idsByBooking[dto.bookingId] = idSet;
         }
+
+        if (isPublicSingle) {
+          for (const [bookingId, lines] of grouped.entries()) {
+            if (lines.length <= 1) continue;
+            const mergedCount = lines.reduce((sum, line) => sum + line.roomCount, 0);
+            grouped.set(bookingId, [
+              createRoomLine(tourRoomType, mergedCount, {
+                id: lines[0]?.id,
+                roomNumbers: lines.map((l) => l.roomNumbers).filter(Boolean).join(", "),
+                note: lines.map((l) => l.note).filter(Boolean).join("; "),
+              }),
+            ]);
+          }
+        }
         assignmentIdsByBookingRef.current = idsByBooking;
 
         setBookingStates((prev) => {
@@ -332,7 +355,15 @@ function AccommodationBookingCard({
     return () => {
       cancelled = true;
     };
-  }, [activity.activityId, bookings, buildDefaultBookingState, onLoadRoomAssignments, t]);
+  }, [
+    activity.activityId,
+    bookings,
+    buildDefaultBookingState,
+    isPublicSingle,
+    onLoadRoomAssignments,
+    t,
+    tourRoomType,
+  ]);
 
   // Đã có supplier hợp lệ chưa? Dùng để quyết định có hiển thị inline picker hay không.
   const hasSupplierAssigned = Boolean(activity.supplierName) && activity.quantity > 0;
@@ -542,27 +573,38 @@ function AccommodationBookingCard({
       return;
     }
 
-    const roomTypes = state.lines.map((l) => l.roomType.trim().toLowerCase());
-    if (roomTypes.some((rt) => !rt)) {
-      toast.warning(
-        t(
-          "tourInstance.bookingHotel.validation.roomTypeRequired",
-          "Vui lòng chọn loại phòng cho từng dòng.",
-        ),
-      );
-      return;
-    }
-    if (new Set(roomTypes).size !== roomTypes.length) {
-      toast.warning(
-        t(
-          "tourInstance.bookingHotel.validation.duplicateRoomType",
-          "Mỗi loại phòng chỉ được khai báo một lần trong cùng booking.",
-        ),
-      );
-      return;
+    const linesToSave = isPublicSingle
+      ? [
+          createRoomLine(tourRoomType, state.lines[0]?.roomCount ?? 1, {
+            roomNumbers: state.lines[0]?.roomNumbers ?? "",
+            note: state.lines[0]?.note ?? "",
+          }),
+        ]
+      : state.lines;
+
+    if (!isPublicSingle) {
+      const roomTypes = state.lines.map((l) => l.roomType.trim().toLowerCase());
+      if (roomTypes.some((rt) => !rt)) {
+        toast.warning(
+          t(
+            "tourInstance.bookingHotel.validation.roomTypeRequired",
+            "Vui lòng chọn loại phòng cho từng dòng.",
+          ),
+        );
+        return;
+      }
+      if (new Set(roomTypes).size !== roomTypes.length) {
+        toast.warning(
+          t(
+            "tourInstance.bookingHotel.validation.duplicateRoomType",
+            "Mỗi loại phòng chỉ được khai báo một lần trong cùng booking.",
+          ),
+        );
+        return;
+      }
     }
 
-    const totalRooms = sumLineRoomCount(state.lines);
+    const totalRooms = sumLineRoomCount(linesToSave);
     if (state.lines.some((l) => l.roomCount <= 0)) {
       toast.warning(
         t("tourInstance.bookingHotel.validation.roomCountPositive", "Số phòng phải lớn hơn 0"),
@@ -582,20 +624,39 @@ function AccommodationBookingCard({
       return;
     }
 
-    const otherAssigned = Object.entries(bookingStates)
+    const tourRoomCap =
+      activity.roomBlocksTotal > 0 ? activity.roomBlocksTotal : activity.quantity;
+
+    let otherAssigned = Object.entries(bookingStates)
       .filter(([id]) => id !== bookingId && savedBookingIds.has(id))
       .reduce((sum, [, other]) => sum + sumLineRoomCount(other.lines), 0);
-    if (
-      activity.roomBlocksTotal > 0
-      && otherAssigned + totalRooms > activity.roomBlocksTotal
-    ) {
+
+    if (isPublicSingle && onLoadRoomAssignments) {
+      try {
+        const allRows = await onLoadRoomAssignments(activity.activityId);
+        otherAssigned = allRows
+          .filter((row) => row.bookingId !== bookingId)
+          .reduce((sum, row) => sum + row.roomCount, 0);
+      } catch {
+        /* keep in-memory fallback */
+      }
+    }
+
+    if (tourRoomCap > 0 && otherAssigned + totalRooms > tourRoomCap) {
       toast.error(
-        t("tourInstance.bookingHotel.validation.exceedsBlocked", {
-          defaultValue:
-            "Tổng số phòng phân bổ ({{assigned}}) vượt quá số phòng đã giữ ({{blocked}}).",
-          assigned: otherAssigned + totalRooms,
-          blocked: activity.roomBlocksTotal,
-        }),
+        t(
+          isPublicSingle
+            ? "tourInstance.bookingHotel.validation.exceedsTourRoomLimit"
+            : "tourInstance.bookingHotel.validation.exceedsBlocked",
+          {
+            defaultValue: isPublicSingle
+              ? "Tổng phòng đã gán cho tour ({{assigned}}) vượt quá giới hạn {{limit}} phòng của tour."
+              : "Tổng số phòng phân bổ ({{assigned}}) vượt quá số phòng đã giữ ({{blocked}}).",
+            assigned: otherAssigned + totalRooms,
+            limit: tourRoomCap,
+            blocked: tourRoomCap,
+          },
+        ),
       );
       return;
     }
@@ -620,7 +681,7 @@ function AccommodationBookingCard({
         }
       }
 
-      for (const line of state.lines) {
+      for (const line of linesToSave) {
         await onSaveRoomAssignment(activity.activityId, {
           bookingId: state.bookingId,
           roomType: line.roomType,
@@ -716,10 +777,11 @@ function AccommodationBookingCard({
     blockerBanner = {
       tone: "amber",
       title: "Chưa giao khách sạn cho activity này",
-      message:
-        "Activity vừa được tạo, chưa có hotel supplier (Quantity = 0). Bước 1: Manager giao khách sạn + nhập số phòng cần. Bước 2: Supplier approve + block phòng. Bước 3: Quay lại đây phân bổ phòng cho từng booking.",
-      actionLabel: "Đi tới trang giao khách sạn",
-      actionHref: bookAccommodationUrl,
+      message: isPublicOverview
+        ? "Chưa giao khách sạn cho activity này. Gán NCC và số phòng yêu cầu tại đây, sau đó dùng bảng booking trên trang chi tiết tour để gán phòng từng khách (Gán KS)."
+        : "Activity vừa được tạo, chưa có hotel supplier (Quantity = 0). Bước 1: Manager giao khách sạn + nhập số phòng cần. Bước 2: Supplier approve + block phòng. Bước 3: Quay lại bảng booking và bấm Gán KS.",
+      actionLabel: isPublicOverview ? undefined : "Đi tới trang giao khách sạn",
+      actionHref: isPublicOverview ? undefined : bookAccommodationUrl,
     };
   } else if (isRejected && !showSupplierPicker) {
     blockerBanner = {
@@ -734,8 +796,9 @@ function AccommodationBookingCard({
     blockerBanner = {
       tone: "orange",
       title: "Đang chờ khách sạn duyệt",
-      message:
-        "Khách sạn đã được giao nhưng supplier chưa approve. Sau khi duyệt + block phòng, bạn mới phân bổ được.",
+      message: isPublicSingle
+        ? "Khách sạn chưa duyệt. Sau khi duyệt và block phòng, bạn có thể lưu số phòng cho booking này."
+        : "Khách sạn đã được giao nhưng supplier chưa approve. Sau khi duyệt + block phòng, dùng Gán KS trên bảng booking để gán phòng.",
     };
   } else if (approvedNoBlocks) {
     blockerBanner = {
@@ -982,8 +1045,22 @@ function AccommodationBookingCard({
         )}
       </div>
 
-      {/* ── BOTTOM: Per-booking list ── */}
-      {canAssign && bookings.length > 0 && (
+      {isPublicOverview && hasSupplierAssigned && (
+        <motion
+          className="mx-6 mb-6 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-sm text-stone-600 lg:mx-8"
+        >
+          <p>
+            {t(
+              "tourInstance.bookingHotel.publicOverviewHint",
+              "Tour public dùng chung loại phòng của tour. Quay lại trang chi tiết tour và dùng cột «Gán KS» trong bảng booking để gán số phòng — tổng không vượt quá {{limit}} phòng.",
+              { limit: activity.quantity || tourRoomCap },
+            )}
+          </p>
+        </motion>
+      )}
+
+      {/* ── BOTTOM: Per-booking list (private tour only) ── */}
+      {showPerBookingAllocation && canAssign && (
         <div className="border-t border-stone-100 bg-stone-50/30">
           <div className="px-6 py-4 lg:px-8 flex items-center justify-between">
             <h5 className="text-sm font-bold text-stone-800">
