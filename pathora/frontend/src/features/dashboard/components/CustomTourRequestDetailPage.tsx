@@ -356,58 +356,60 @@ export default function CustomTourRequestDetailPage({
                   </div>
                 ))}
               </div>
+            </motion.div>
+          )}
 
-              {/* Quick Reject Button for Manager (Draft status only) */}
-              {canManagerAct && (
-                <div className="bg-white border border-red-100 rounded-[1.5rem] p-5 md:p-6 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Icon icon="heroicons:exclamation-triangle" className="size-5 text-red-500 mt-0.5 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-slate-900">
-                        Yêu cầu không hợp lý?
-                      </h3>
-                      <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                        Nếu yêu cầu này không phù hợp hoặc không thể thực hiện, bạn có thể từ chối ngay trước khi chuyển xuống Tour Operator.
-                      </p>
-                    </div>
+          {/* Quick Reject Button for Manager (Draft status only) - Always show when canManagerAct */}
+          {canManagerAct && (
+            <motion.div variants={itemVariants} className="space-y-4">
+              <div className="bg-white border border-red-100 rounded-[1.5rem] p-5 md:p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <Icon icon="heroicons:exclamation-triangle" className="size-5 text-red-500 mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base font-semibold text-slate-900">
+                      Yêu cầu không hợp lý?
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+                      Nếu yêu cầu này không phù hợp hoặc không thể thực hiện, bạn có thể từ chối ngay trước khi chuyển xuống Tour Operator.
+                    </p>
                   </div>
-                  
-                  {/* Status feedback */}
-                  <AnimatePresence mode="wait">
-                    {actionSuccess && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-start gap-3"
-                      >
-                        <Icon icon="heroicons:check-circle" className="size-5 text-emerald-600 mt-0.5 shrink-0" />
-                        <p className="text-sm text-emerald-800 font-medium">{actionSuccess}</p>
-                      </motion.div>
-                    )}
-                    {actionError && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3"
-                      >
-                        <Icon icon="heroicons:exclamation-triangle" className="size-5 text-red-500 mt-0.5 shrink-0" />
-                        <p className="text-sm text-red-700">{actionError}</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <button
-                    onClick={() => setShowRejectModal(true)}
-                    disabled={actionLoading !== null}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-red-200 bg-white text-red-600 text-sm font-semibold transition-all hover:bg-red-50 hover:border-red-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
-                  >
-                    <Icon icon="heroicons:x-circle" className="size-5" />
-                    Từ chối yêu cầu này
-                  </button>
                 </div>
-              )}
+                
+                {/* Status feedback */}
+                <AnimatePresence mode="wait">
+                  {actionSuccess && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-start gap-3"
+                    >
+                      <Icon icon="heroicons:check-circle" className="size-5 text-emerald-600 mt-0.5 shrink-0" />
+                      <p className="text-sm text-emerald-800 font-medium">{actionSuccess}</p>
+                    </motion.div>
+                  )}
+                  {actionError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3"
+                    >
+                      <Icon icon="heroicons:exclamation-triangle" className="size-5 text-red-500 mt-0.5 shrink-0" />
+                      <p className="text-sm text-red-700">{actionError}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <button
+                  onClick={() => setShowRejectModal(true)}
+                  disabled={actionLoading !== null}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-red-200 bg-white text-red-600 text-sm font-semibold transition-all hover:bg-red-50 hover:border-red-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
+                >
+                  <Icon icon="heroicons:x-circle" className="size-5" />
+                  Từ chối yêu cầu này
+                </button>
+              </div>
             </motion.div>
           )}
 

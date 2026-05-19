@@ -197,7 +197,7 @@ export function PaymentsPage() {
             <motion.div variants={itemVariants} className="lg:col-span-5">
               <StatCard
                 label={t("payments.stat.totalRevenue", "Total Revenue")}
-                value={`$${totalRevenue.toLocaleString()}`}
+                value={`${totalRevenue.toLocaleString()} ₫`}
                 change={`+12.5% ${t("payments.stat.fromLastMonth", "from last month")}`}
                 changeType="positive"
                 icon="heroicons:banknotes"
@@ -209,7 +209,7 @@ export function PaymentsPage() {
             <motion.div variants={itemVariants} className="lg:col-span-3">
               <StatCard
                 label={t("payments.stat.pendingPayments", "Pending Payments")}
-                value={`$${pendingAmount.toLocaleString()}`}
+                value={`${pendingAmount.toLocaleString()} ₫`}
                 change={`${payments.filter((p) => p.status === "pending").length} ${t("payments.stat.transactions", "transactions")}`}
                 changeType="neutral"
                 icon="heroicons:clock"
@@ -340,7 +340,7 @@ export function PaymentsPage() {
                               {payment.method}
                             </span>
                           </td>
-                          <td className="px-6 py-3 text-right"><span className="font-semibold text-stone-900 data-value">${payment.amount.toLocaleString()}</span></td>
+                          <td className="px-6 py-3 text-right"><span className="font-semibold text-stone-900 data-value">{payment.amount.toLocaleString()} ₫</span></td>
                           <td className="px-6 py-3 text-center"><PaymentStatusBadge status={payment.status} /></td>
                           <td className="px-6 py-3"><span className="text-sm text-stone-500">{payment.date}</span></td>
                         </tr>
