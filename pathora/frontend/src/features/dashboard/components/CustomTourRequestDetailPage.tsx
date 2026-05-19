@@ -913,6 +913,23 @@ export default function CustomTourRequestDetailPage({
                   <Icon icon="heroicons:arrow-uturn-left" className="size-5" />
                   Yêu cầu điều chỉnh
                 </button>
+                <button
+                  onClick={handleReject}
+                  disabled={actionLoading !== null}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-[1.5rem] border-2 border-red-200 bg-white text-red-600 text-base font-semibold transition-all hover:bg-red-50 hover:border-red-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
+                >
+                  {actionLoading === "reject" ? (
+                    <>
+                      <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
+                      Đang xử lý...
+                    </>
+                  ) : (
+                    <>
+                      <Icon icon="heroicons:x-circle" className="size-5" />
+                      Từ chối hoàn toàn
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           )}
