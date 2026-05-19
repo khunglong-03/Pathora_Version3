@@ -148,7 +148,7 @@ const toEditForm = (data: NormalizedTourInstanceDto): EditForm => ({
 type InstanceDetailDataState = "loading" | "ready" | "error";
 
 /* ── Manager Review Panel (used when status = PendingManagerReview) ──── */
-function ManagerReviewPanel({ instanceId, onAction }: { instanceId: string; onAction: () => void }) {
+function ManagerReviewPanel({ instanceId, onAction, wantsCustomization }: { instanceId: string; onAction: () => void; wantsCustomization: boolean }) {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState<"approve" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -171,7 +171,7 @@ function ManagerReviewPanel({ instanceId, onAction }: { instanceId: string; onAc
   };
 
   const handleReject = async () => {
-    if (!note.trim()) {
+    if (wantsCustomization && !note.trim()) {
       setError("Vui lòng nhập ghi chú điều chỉnh trước khi gửi.");
       return;
     }
@@ -179,13 +179,13 @@ function ManagerReviewPanel({ instanceId, onAction }: { instanceId: string; onAc
     setError(null);
     setSuccess(null);
     try {
-      await tourInstanceService.managerRejectItinerary(instanceId, note.trim());
-      setSuccess("Lịch trình đã bị trả lại. Tour Operator sẽ nhận được ghi chú của bạn.");
+      await tourInstanceService.managerRejectItinerary(instanceId, note.trim() || "Từ chối yêu cầu");
+      setSuccess(wantsCustomization ? "Lịch trình đã bị trả lại. Tour Operator sẽ nhận được ghi chú của bạn." : "Yêu cầu đã bị từ chối.");
       setNote("");
       onAction();
     } catch (err: unknown) {
       const apiError = handleApiError(err);
-      setError(apiError.message || "Không thể gửi yêu cầu điều chỉnh.");
+      setError(apiError.message || (wantsCustomization ? "Không thể gửi yêu cầu điều chỉnh." : "Không thể từ chối yêu cầu."));
     } finally {
       setLoading(null);
     }
@@ -199,7 +199,11 @@ function ManagerReviewPanel({ instanceId, onAction }: { instanceId: string; onAc
         </div>
         <div>
           <h3 className="text-lg font-bold text-stone-900">Duyệt lịch trình</h3>
-          <p className="text-xs text-stone-500">Tour Operator đã hoàn thiện lịch trình. Xem xét và duyệt hoặc yêu cầu điều chỉnh.</p>
+          <p className="text-xs text-stone-500">
+            {wantsCustomization 
+              ? "Tour Operator đã hoàn thiện lịch trình. Xem xét và duyệt hoặc yêu cầu điều chỉnh."
+              : "Tour Operator đã hoàn thiện lịch trình. Xem xét và duyệt hoặc từ chối."}
+          </p>
         </div>
       </div>
 
@@ -216,20 +220,22 @@ function ManagerReviewPanel({ instanceId, onAction }: { instanceId: string; onAc
         </div>
       )}
 
-      {/* Note textarea */}
-      <div>
-        <label htmlFor="manager-review-note" className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block mb-2">
-          Ghi chú điều chỉnh (bắt buộc khi yêu cầu điều chỉnh)
-        </label>
-        <textarea
-          id="manager-review-note"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="VD: Cần bổ sung hoạt động buổi tối ngày 2, điều chỉnh giá vận chuyển..."
-          rows={3}
-          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 resize-none transition-all"
-        />
-      </div>
+      {/* Note textarea - only show for custom tours */}
+      {wantsCustomization && (
+        <div>
+          <label htmlFor="manager-review-note" className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block mb-2">
+            Ghi chú điều chỉnh (bắt buộc khi yêu cầu điều chỉnh)
+          </label>
+          <textarea
+            id="manager-review-note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="VD: Cần bổ sung hoạt động buổi tối ngày 2, điều chỉnh giá vận chuyển..."
+            rows={3}
+            className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 resize-none transition-all"
+          />
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-3">
@@ -244,17 +250,31 @@ function ManagerReviewPanel({ instanceId, onAction }: { instanceId: string; onAc
             <><Icon icon="heroicons:check-circle" className="size-4" /> Duyệt lịch trình</>
           )}
         </button>
-        <button
-          onClick={handleReject}
-          disabled={loading !== null}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-orange-200 bg-white text-orange-600 text-sm font-semibold transition-all hover:bg-orange-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200"
-        >
-          {loading === "reject" ? (
-            <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
-          ) : (
-            <><Icon icon="heroicons:arrow-uturn-left" className="size-4" /> Yêu cầu điều chỉnh</>
-          )}
-        </button>
+        {wantsCustomization ? (
+          <button
+            onClick={handleReject}
+            disabled={loading !== null}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-orange-200 bg-white text-orange-600 text-sm font-semibold transition-all hover:bg-orange-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200"
+          >
+            {loading === "reject" ? (
+              <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
+            ) : (
+              <><Icon icon="heroicons:arrow-uturn-left" className="size-4" /> Yêu cầu điều chỉnh</>
+            )}
+          </button>
+        ) : (
+          <button
+            onClick={handleReject}
+            disabled={loading !== null}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-red-200 bg-white text-red-600 text-sm font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200"
+          >
+            {loading === "reject" ? (
+              <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
+            ) : (
+              <><Icon icon="heroicons:x-circle" className="size-4" /> Từ chối</>
+            )}
+          </button>
+        )}
       </div>
     </article>
   );
@@ -1157,7 +1177,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
 
         {/* ── Manager Review Panel (PendingManagerReview + readOnly/manager) ─── */}
         {readOnly && isManager && data.status?.toLowerCase() === "pendingmanagerreview" && (
-          <ManagerReviewPanel instanceId={data.id} onAction={() => setReloadToken((v) => v + 1)} />
+          <ManagerReviewPanel instanceId={data.id} onAction={() => setReloadToken((v) => v + 1)} wantsCustomization={data.wantsCustomization ?? false} />
         )}
 
         {/* ── Manager Review Note (visible to Tour Operator when PendingAdjustment) ─── */}
