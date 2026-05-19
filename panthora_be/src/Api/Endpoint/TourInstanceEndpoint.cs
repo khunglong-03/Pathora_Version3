@@ -24,6 +24,8 @@ public static class TourInstanceEndpoint
     public const string BookingTickets = "{instanceId:guid}/activities/{activityId:guid}/booking-tickets";
 
     public const string BookingRoomAssignments = "{instanceId:guid}/activities/{activityId:guid}/booking-room-assignments";
+    public const string BookingRoomAssignmentById =
+        "{instanceId:guid}/activities/{activityId:guid}/booking-room-assignments/{assignmentId:guid}";
 
     /// <summary>Co-design feedback theo ngày (private tour).</summary>
     public const string DayFeedback = "{id:guid}/days/{dayId:guid}/itinerary-feedback";

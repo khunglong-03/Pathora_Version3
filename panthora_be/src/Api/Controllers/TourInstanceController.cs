@@ -481,6 +481,20 @@ public class TourInstanceController : BaseApiController
         var result = await Sender.Send(new GetBookingRoomAssignmentsQuery(activityId));
         return HandleResult(result);
     }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpDelete(TourInstanceEndpoint.BookingRoomAssignmentById)]
+    public async Task<IActionResult> DeleteBookingRoomAssignment(
+        Guid instanceId,
+        Guid activityId,
+        Guid assignmentId)
+    {
+        var result = await Sender.Send(new DeleteBookingRoomAssignmentCommand(
+            instanceId,
+            activityId,
+            assignmentId));
+        return HandleResult(result);
+    }
 }
 
 public sealed record SaveBookingRoomAssignmentRequest(

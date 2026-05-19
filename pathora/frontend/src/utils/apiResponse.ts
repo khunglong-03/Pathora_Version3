@@ -166,6 +166,8 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TourInstance.NotAccommodationActivity": "tourInstance.errors.notAccommodationActivity",
   "TourInstance.AccommodationNotApproved": "tourInstance.errors.accommodationNotApproved",
   "TourInstance.RoomAssignmentExceedsBlocked": "tourInstance.errors.roomAssignmentExceedsBlocked",
+  "TourInstance.RoomAssignmentExceedsGuestCount":
+    "tourInstance.bookingHotel.validation.roomCountTooHighTotal",
   "TourInstanceActivity.VehicleCountMismatch": "tourInstance.transport.errors.vehicleCountMismatch",
   "TourInstanceActivity.VehicleCountExceedsFleet": "tourInstance.transport.errors.vehicleCountExceedsFleet",
   "TourInstanceActivity.RoomCountExceedsInventory": "tourInstance.transport.errors.roomCountExceedsInventory",

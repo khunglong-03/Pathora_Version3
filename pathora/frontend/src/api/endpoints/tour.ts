@@ -67,6 +67,11 @@ export interface TourInstanceEndpoints {
   APPLY_PRIVATE_SETTLEMENT: (instanceId: string) => string;
   BOOKING_TICKETS: (instanceId: string, activityId: string) => string;
   BOOKING_ROOM_ASSIGNMENTS: (instanceId: string, activityId: string) => string;
+  BOOKING_ROOM_ASSIGNMENT_BY_ID: (
+    instanceId: string,
+    activityId: string,
+    assignmentId: string,
+  ) => string;
 }
 
 export interface PublicTourInstanceEndpoints {
@@ -198,6 +203,12 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     `/api/tour-instance/${instanceId}/activities/${activityId}/booking-tickets`,
   BOOKING_ROOM_ASSIGNMENTS: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/activities/${activityId}/booking-room-assignments`,
+  BOOKING_ROOM_ASSIGNMENT_BY_ID: (
+    instanceId: string,
+    activityId: string,
+    assignmentId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/booking-room-assignments/${assignmentId}`,
 };
 
 export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {

@@ -2294,8 +2294,12 @@
       "validation": {
         "roomCountPositive": "Số phòng phải lớn hơn 0",
         "roomCountTooHigh": "Số phòng không được vượt quá số khách ({{guestCount}}).",
+        "roomCountTooHighTotal": "Tổng số phòng ({{roomCount}}) không được vượt quá số khách ({{guestCount}}).",
+        "duplicateRoomType": "Mỗi loại phòng chỉ được khai báo một lần trong cùng booking.",
+        "roomTypeRequired": "Vui lòng chọn loại phòng cho từng dòng.",
         "exceedsBlocked": "Tổng số phòng phân bổ ({{assigned}}) vượt quá số phòng đã giữ ({{blocked}})."
-      }
+      },
+      "addRoomType": "Thêm loại phòng"
     },
     "bookingFlight": {
       "title": "Gán vé phương tiện",
@@ -2367,6 +2371,7 @@
       "empty": "Chưa có booking",
       "emptyDescription": "Khi có khách đặt tour, danh sách booking sẽ hiển thị ở đây.",
       "accommodationAssigned": "{{roomType}} · {{roomCount}} phòng",
+      "accommodationAssignedMulti": "{{summary}} ({{totalRooms}} phòng)",
       "flightAssignedNamed": "{{label}}",
       "flightAssigned": "{{count}}/{{total}} đã gán",
       "partialAssigned": "{{assigned}}/{{total}} đã gán",

@@ -1,3 +1,4 @@
+using Application.Common.Constant;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
@@ -34,6 +35,7 @@ public sealed class SaveBookingRoomAssignmentCommandHandler(
     ITourInstanceBookingRoomAssignmentRepository assignmentRepository,
     ITourInstanceRepository instanceRepository,
     IRoomBlockRepository roomBlockRepository,
+    IBookingRepository bookingRepository,
     IUser user,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
     : ICommandHandler<SaveBookingRoomAssignmentCommand, ErrorOr<Success>>
@@ -59,6 +61,14 @@ public sealed class SaveBookingRoomAssignmentCommandHandler(
                 "Khách sạn chưa duyệt activity này — không thể phân bổ phòng.");
         }
 
+        var booking = await bookingRepository.GetByIdAsync(request.BookingId, cancellationToken);
+        if (booking is null || booking.TourInstanceId != request.TourInstanceId)
+        {
+            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+        }
+
+        var guestCount = booking.TotalParticipants();
+
         var blocks = await roomBlockRepository.GetByTourInstanceDayActivityIdAsync(
             request.ActivityId, cancellationToken);
         var blockedTotal = blocks.Sum(b => b.RoomCountBlocked);
@@ -70,20 +80,40 @@ public sealed class SaveBookingRoomAssignmentCommandHandler(
                 "Activity chưa có phòng nào được block bởi supplier — không thể phân bổ.");
         }
 
-        var alreadyAssigned = await assignmentRepository.GetTotalRoomsAssignedAsync(
-            request.ActivityId, request.BookingId, cancellationToken);
+        var existingLine = await assignmentRepository.GetByActivityBookingAndRoomTypeAsync(
+            request.ActivityId,
+            request.BookingId,
+            request.RoomType,
+            cancellationToken);
 
-        if (alreadyAssigned + request.RoomCount > blockedTotal)
+        var bookingRoomTotal = await assignmentRepository.GetTotalRoomsForBookingAsync(
+            request.ActivityId,
+            request.BookingId,
+            cancellationToken);
+        var newBookingRoomTotal = bookingRoomTotal - (existingLine?.RoomCount ?? 0) + request.RoomCount;
+
+        if (newBookingRoomTotal > guestCount)
+        {
+            return Error.Validation(
+                TourInstanceBookingRoomErrors.RoomCountExceedsGuestCountCode,
+                TourInstanceBookingRoomErrors.RoomCountExceedsGuestCountDescription
+                    .Replace("{guestCount}", guestCount.ToString(), StringComparison.Ordinal)
+                    .Replace("{roomCount}", newBookingRoomTotal.ToString(), StringComparison.Ordinal));
+        }
+
+        var activityRoomTotal = await assignmentRepository.GetTotalRoomsAssignedAsync(
+            request.ActivityId,
+            cancellationToken: cancellationToken);
+        var newActivityRoomTotal = activityRoomTotal - (existingLine?.RoomCount ?? 0) + request.RoomCount;
+
+        if (newActivityRoomTotal > blockedTotal)
         {
             return Error.Validation(
                 "TourInstance.RoomAssignmentExceedsBlocked",
-                $"Tổng số phòng phân bổ vượt quá số phòng đã block ({alreadyAssigned + request.RoomCount}/{blockedTotal}).");
+                $"Tổng số phòng phân bổ vượt quá số phòng đã block ({newActivityRoomTotal}/{blockedTotal}).");
         }
 
-        var existing = await assignmentRepository.GetByActivityAndBookingAsync(
-            request.ActivityId, request.BookingId, cancellationToken);
-
-        if (existing == null)
+        if (existingLine == null)
         {
             var entity = TourInstanceBookingRoomAssignmentEntity.Create(
                 request.ActivityId,
@@ -98,7 +128,7 @@ public sealed class SaveBookingRoomAssignmentCommandHandler(
         }
         else
         {
-            existing.Update(
+            existingLine.Update(
                 request.RoomType,
                 request.RoomCount,
                 request.RoomNumbers,

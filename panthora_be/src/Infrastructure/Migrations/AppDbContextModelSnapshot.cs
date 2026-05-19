@@ -3071,7 +3071,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.HasIndex("TourInstanceDayActivityId", "BookingId")
+                    b.HasIndex("TourInstanceDayActivityId", "BookingId", "RoomType")
                         .IsUnique();
 
                     b.ToTable("TourInstanceBookingRoomAssignments");

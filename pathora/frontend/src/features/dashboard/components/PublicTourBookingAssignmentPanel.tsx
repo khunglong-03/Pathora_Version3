@@ -24,28 +24,43 @@ import TextInput from "@/components/ui/TextInput";
 import type { AdminBookingListResponse } from "@/api/services/bookingService";
 import ExternalTicketAssignmentPanel from "./ExternalTicketAssignmentPanel";
 import type { BookingTicketEntry } from "./ExternalTicketAssignmentPanel";
-import type { BookingRoomAssignmentDto } from "@/api/services/tourInstanceService";
+import {
+  tourInstanceService,
+  type BookingRoomAssignmentDto,
+} from "@/api/services/tourInstanceService";
 import { supplierService, type SupplierItem } from "@/api/services/supplierService";
 import { handleApiError } from "@/utils/apiResponse";
 import { logTourOperatorEvent } from "@/utils/telemetry";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+/** @deprecated Dùng RoomAssignmentBookingState — giữ cho tương thích callback cũ. */
 export interface RoomAssignmentEntry {
   bookingId: string;
   customerName: string;
-  /** Số người lớn + trẻ em + em bé */
   guestCount: number;
-  /** Số phòng đề xuất theo guest count */
   roomsSuggested: number;
-  /** Số phòng TourOperator phân bổ */
   roomCount: number;
-  /** Loại phòng được giao */
   roomType: string;
-  /** Số phòng / tên phòng cụ thể (optional, ghi sau khi check-in) */
   roomNumbers: string;
-  /** Ghi chú */
   note: string;
+}
+
+export interface RoomAssignmentLine {
+  id?: string;
+  clientId: string;
+  roomType: string;
+  roomCount: number;
+  roomNumbers: string;
+  note: string;
+}
+
+export interface RoomAssignmentBookingState {
+  bookingId: string;
+  customerName: string;
+  guestCount: number;
+  roomsSuggested: number;
+  lines: RoomAssignmentLine[];
 }
 
 interface AccommodationActivityInfo {
@@ -97,10 +112,7 @@ interface Props {
   /** Load existing assignments for an activity */
   onLoadRoomAssignments?: (activityId: string) => Promise<BookingRoomAssignmentDto[]>;
   /** Notify parent after a room assignment has been saved successfully. */
-  onRoomAssignmentSaved?: (
-    activityId: string,
-    entry: RoomAssignmentEntry,
-  ) => void;
+  onRoomAssignmentSaved?: (activityId: string, bookingId: string) => void;
   /** Lưu yêu cầu phòng (supplier + roomType + quantity) cho activity. */
   onSetAccommodationRequirements?: (
     activityId: string,
@@ -149,6 +161,32 @@ const FALLBACK_ROOM_TYPES = [
   "Deluxe",
 ];
 
+const ROOM_TYPE_SELECT_OPTIONS = [
+  ...FALLBACK_ROOM_TYPES,
+  "Villa",
+  "VIP",
+  "Other",
+];
+
+const newLineClientId = () =>
+  `line-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+const createRoomLine = (
+  roomType: string,
+  roomCount: number,
+  partial?: Partial<RoomAssignmentLine>,
+): RoomAssignmentLine => ({
+  clientId: newLineClientId(),
+  roomType,
+  roomCount,
+  roomNumbers: "",
+  note: "",
+  ...partial,
+});
+
+const sumLineRoomCount = (lines: RoomAssignmentLine[]) =>
+  lines.reduce((sum, line) => sum + (line.roomCount > 0 ? line.roomCount : 0), 0);
+
 function AccommodationBookingCard({
   activity,
   instanceId,
@@ -195,73 +233,38 @@ function AccommodationBookingCard({
   });
 
   const activeRoomType = picker.roomType || activity.roomType || "Standard";
-  const prevActiveRoomTypeRef = useRef(activeRoomType);
-  const prevQuantityRef = useRef(picker.quantity);
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [savedBookingIds, setSavedBookingIds] = useState<Set<string>>(new Set());
+  const assignmentIdsByBookingRef = useRef<Record<string, Set<string>>>({});
 
-  const [entries, setEntries] = useState<Record<string, RoomAssignmentEntry>>(() => {
-    const init: Record<string, RoomAssignmentEntry> = {};
-    for (const b of bookings) {
-      const adults = b.numberAdult ?? 0;
-      const children = b.numberChild ?? 0;
-      const suggested = bookings.length === 1 && picker.quantity > 0 ? picker.quantity : suggestRoomCount(adults, children, activeRoomType);
-      init[b.id] = {
-        bookingId: b.id,
-        customerName: b.customerName,
-        guestCount: adults + children + (b.numberInfant ?? 0),
+  const buildDefaultBookingState = useCallback(
+    (booking: AdminBookingListResponse): RoomAssignmentBookingState => {
+      const adults = booking.numberAdult ?? 0;
+      const children = booking.numberChild ?? 0;
+      const guestCount = adults + children + (booking.numberInfant ?? 0);
+      const suggested =
+        bookings.length === 1 && picker.quantity > 0
+          ? picker.quantity
+          : suggestRoomCount(adults, children, activeRoomType);
+      return {
+        bookingId: booking.id,
+        customerName: booking.customerName,
+        guestCount,
         roomsSuggested: suggested,
-        roomCount: suggested,
-        roomType: activeRoomType,
-        roomNumbers: "",
-        note: "",
+        lines: [createRoomLine(activeRoomType, suggested)],
       };
-    }
-    return init;
-  });
+    },
+    [activeRoomType, bookings.length, picker.quantity],
+  );
 
-  useEffect(() => {
-    const isRoomTypeChanged = prevActiveRoomTypeRef.current !== activeRoomType;
-    prevActiveRoomTypeRef.current = activeRoomType;
-
-    const currentQuantity = picker.quantity;
-    const isQuantityChanged = prevQuantityRef.current !== currentQuantity;
-    prevQuantityRef.current = currentQuantity;
-
-    setEntries((prev) => {
-      const next = { ...prev };
-      let changed = false;
+  const [bookingStates, setBookingStates] = useState<Record<string, RoomAssignmentBookingState>>(
+    () => {
+      const init: Record<string, RoomAssignmentBookingState> = {};
       for (const b of bookings) {
-        if (!next[b.id]) {
-          const adults = b.numberAdult ?? 0;
-          const children = b.numberChild ?? 0;
-          const suggested = bookings.length === 1 && currentQuantity > 0 ? currentQuantity : suggestRoomCount(adults, children, activeRoomType);
-          next[b.id] = {
-            bookingId: b.id,
-            customerName: b.customerName,
-            guestCount: adults + children + (b.numberInfant ?? 0),
-            roomsSuggested: suggested,
-            roomCount: suggested,
-            roomType: activeRoomType,
-            roomNumbers: "",
-            note: "",
-          };
-          changed = true;
-        } else {
-          let entryChanged = false;
-          if (isRoomTypeChanged && !savedIds.has(b.id)) {
-            next[b.id] = { ...next[b.id], roomType: activeRoomType };
-            entryChanged = true;
-          }
-          if (isQuantityChanged && bookings.length === 1 && !savedIds.has(b.id)) {
-            next[b.id] = { ...next[b.id], roomCount: currentQuantity };
-            entryChanged = true;
-          }
-          if (entryChanged) changed = true;
-        }
+        init[b.id] = buildDefaultBookingState(b);
       }
-      return changed ? next : prev;
-    });
-  }, [picker.quantity, bookings, activeRoomType, savedIds]);
+      return init;
+    },
+  );
 
   const [savingId, setSavingId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -283,22 +286,39 @@ function AccommodationBookingCard({
         const existing = await onLoadRoomAssignments(activity.activityId);
         if (cancelled) return;
         if (existing.length === 0) return;
-        setEntries((prev) => {
+        const grouped = new Map<string, RoomAssignmentLine[]>();
+        const idsByBooking: Record<string, Set<string>> = {};
+        for (const dto of existing) {
+          const roomType =
+            typeof dto.roomType === "string" ? dto.roomType : String(dto.roomType);
+          const lines = grouped.get(dto.bookingId) ?? [];
+          lines.push(
+            createRoomLine(roomType, dto.roomCount, {
+              id: dto.id,
+              roomNumbers: dto.roomNumbers ?? "",
+              note: dto.note ?? "",
+            }),
+          );
+          grouped.set(dto.bookingId, lines);
+          const idSet = idsByBooking[dto.bookingId] ?? new Set<string>();
+          idSet.add(dto.id);
+          idsByBooking[dto.bookingId] = idSet;
+        }
+        assignmentIdsByBookingRef.current = idsByBooking;
+
+        setBookingStates((prev) => {
           const next = { ...prev };
-          for (const dto of existing) {
-            if (next[dto.bookingId]) {
-              next[dto.bookingId] = {
-                ...next[dto.bookingId],
-                roomCount: dto.roomCount,
-                roomType: typeof dto.roomType === "string" ? dto.roomType : String(dto.roomType),
-                roomNumbers: dto.roomNumbers ?? "",
-                note: dto.note ?? "",
-              };
-            }
+          for (const b of bookings) {
+            const lines = grouped.get(b.id);
+            if (!lines || lines.length === 0) continue;
+            next[b.id] = {
+              ...(next[b.id] ?? buildDefaultBookingState(b)),
+              lines,
+            };
           }
           return next;
         });
-        setSavedIds(new Set(existing.map((d) => d.bookingId)));
+        setSavedBookingIds(new Set(grouped.keys()));
       } catch {
         if (cancelled) return;
         setLoadError(
@@ -312,7 +332,7 @@ function AccommodationBookingCard({
     return () => {
       cancelled = true;
     };
-  }, [activity.activityId, onLoadRoomAssignments, t]);
+  }, [activity.activityId, bookings, buildDefaultBookingState, onLoadRoomAssignments, t]);
 
   // Đã có supplier hợp lệ chưa? Dùng để quyết định có hiển thị inline picker hay không.
   const hasSupplierAssigned = Boolean(activity.supplierName) && activity.quantity > 0;
@@ -430,23 +450,81 @@ function AccommodationBookingCard({
     }
   };
 
-  // Tổng số phòng đã phân bổ (ngoại trừ booking đang edit) — dùng validate
   const totalAssigned = useMemo(
-    () => Object.values(entries).filter((e) => savedIds.has(e.bookingId)).reduce((sum, e) => sum + e.roomCount, 0),
-    [entries, savedIds],
+    () =>
+      Object.entries(bookingStates)
+        .filter(([bookingId]) => savedBookingIds.has(bookingId))
+        .reduce((sum, [, state]) => sum + sumLineRoomCount(state.lines), 0),
+    [bookingStates, savedBookingIds],
   );
 
-  const updateEntry = useCallback(
-    (bookingId: string, field: keyof RoomAssignmentEntry, value: string | number) => {
-      setEntries((prev) => ({ ...prev, [bookingId]: { ...prev[bookingId], [field]: value } }));
+  const updateLine = useCallback(
+    (
+      bookingId: string,
+      clientId: string,
+      field: keyof Pick<RoomAssignmentLine, "roomType" | "roomCount" | "roomNumbers" | "note">,
+      value: string | number,
+    ) => {
+      setBookingStates((prev) => {
+        const state = prev[bookingId];
+        if (!state) return prev;
+        return {
+          ...prev,
+          [bookingId]: {
+            ...state,
+            lines: state.lines.map((line) =>
+              line.clientId === clientId ? { ...line, [field]: value } : line,
+            ),
+          },
+        };
+      });
     },
     [],
   );
 
+  const addRoomLine = useCallback(
+    (bookingId: string) => {
+      setBookingStates((prev) => {
+        const state = prev[bookingId];
+        if (!state) return prev;
+        const usedTypes = new Set(state.lines.map((l) => l.roomType.toLowerCase()));
+        const nextType =
+          ROOM_TYPE_SELECT_OPTIONS.find((rt) => !usedTypes.has(rt.toLowerCase()))
+          ?? "Standard";
+        const remaining = Math.max(
+          1,
+          state.guestCount - sumLineRoomCount(state.lines),
+        );
+        return {
+          ...prev,
+          [bookingId]: {
+            ...state,
+            lines: [...state.lines, createRoomLine(nextType, remaining)],
+          },
+        };
+      });
+    },
+    [],
+  );
+
+  const removeRoomLine = useCallback((bookingId: string, clientId: string) => {
+    setBookingStates((prev) => {
+      const state = prev[bookingId];
+      if (!state || state.lines.length <= 1) return prev;
+      return {
+        ...prev,
+        [bookingId]: {
+          ...state,
+          lines: state.lines.filter((line) => line.clientId !== clientId),
+        },
+      };
+    });
+  }, []);
+
   const handleSave = async (bookingId: string) => {
     if (savingId) return;
-    const entry = entries[bookingId];
-    if (!entry) return;
+    const state = bookingStates[bookingId];
+    if (!state) return;
     const booking = bookings.find((item) => item.id === bookingId);
     const bookingStatus = booking?.status?.toLowerCase() ?? "";
     const lockedByCheckIn =
@@ -464,33 +542,58 @@ function AccommodationBookingCard({
       return;
     }
 
-    if (entry.roomCount <= 0) {
+    const roomTypes = state.lines.map((l) => l.roomType.trim().toLowerCase());
+    if (roomTypes.some((rt) => !rt)) {
+      toast.warning(
+        t(
+          "tourInstance.bookingHotel.validation.roomTypeRequired",
+          "Vui lòng chọn loại phòng cho từng dòng.",
+        ),
+      );
+      return;
+    }
+    if (new Set(roomTypes).size !== roomTypes.length) {
+      toast.warning(
+        t(
+          "tourInstance.bookingHotel.validation.duplicateRoomType",
+          "Mỗi loại phòng chỉ được khai báo một lần trong cùng booking.",
+        ),
+      );
+      return;
+    }
+
+    const totalRooms = sumLineRoomCount(state.lines);
+    if (state.lines.some((l) => l.roomCount <= 0)) {
       toast.warning(
         t("tourInstance.bookingHotel.validation.roomCountPositive", "Số phòng phải lớn hơn 0"),
       );
       return;
     }
 
-    if (entry.roomCount > entry.guestCount) {
+    if (totalRooms > state.guestCount) {
       toast.warning(
-        t("tourInstance.bookingHotel.validation.roomCountTooHigh", {
-          defaultValue: "Số phòng không được vượt quá số khách ({{guestCount}}).",
-          guestCount: entry.guestCount,
+        t("tourInstance.bookingHotel.validation.roomCountTooHighTotal", {
+          defaultValue:
+            "Tổng số phòng ({{roomCount}}) không được vượt quá số khách ({{guestCount}}).",
+          roomCount: totalRooms,
+          guestCount: state.guestCount,
         }),
       );
       return;
     }
 
-    // Validate: tổng phòng phân bổ không vượt block total
-    const otherAssigned = Object.values(entries)
-      .filter((e) => e.bookingId !== bookingId && savedIds.has(e.bookingId))
-      .reduce((sum, e) => sum + e.roomCount, 0);
-    if (activity.roomBlocksTotal > 0 && otherAssigned + entry.roomCount > activity.roomBlocksTotal) {
+    const otherAssigned = Object.entries(bookingStates)
+      .filter(([id]) => id !== bookingId && savedBookingIds.has(id))
+      .reduce((sum, [, other]) => sum + sumLineRoomCount(other.lines), 0);
+    if (
+      activity.roomBlocksTotal > 0
+      && otherAssigned + totalRooms > activity.roomBlocksTotal
+    ) {
       toast.error(
         t("tourInstance.bookingHotel.validation.exceedsBlocked", {
           defaultValue:
             "Tổng số phòng phân bổ ({{assigned}}) vượt quá số phòng đã giữ ({{blocked}}).",
-          assigned: otherAssigned + entry.roomCount,
+          assigned: otherAssigned + totalRooms,
           blocked: activity.roomBlocksTotal,
         }),
       );
@@ -506,27 +609,69 @@ function AccommodationBookingCard({
 
     try {
       setSavingId(bookingId);
-      await onSaveRoomAssignment(activity.activityId, {
-        bookingId: entry.bookingId,
-        roomType: entry.roomType,
-        roomCount: entry.roomCount,
-        roomNumbers: entry.roomNumbers.trim() || null,
-        note: entry.note.trim() || null,
-      });
-      setSavedIds((prev) => new Set([...prev, bookingId]));
+      const previousIds = assignmentIdsByBookingRef.current[bookingId] ?? new Set<string>();
+      for (const id of previousIds) {
+        if (!state.lines.some((line) => line.id === id)) {
+          await tourInstanceService.deleteBookingRoomAssignment(
+            instanceId,
+            activity.activityId,
+            id,
+          );
+        }
+      }
+
+      for (const line of state.lines) {
+        await onSaveRoomAssignment(activity.activityId, {
+          bookingId: state.bookingId,
+          roomType: line.roomType,
+          roomCount: line.roomCount,
+          roomNumbers: line.roomNumbers.trim() || null,
+          note: line.note.trim() || null,
+        });
+      }
+
+      if (onLoadRoomAssignments) {
+        const refreshed = await onLoadRoomAssignments(activity.activityId);
+        const grouped = refreshed.filter((d) => d.bookingId === bookingId);
+        const nextIds = new Set(grouped.map((d) => d.id));
+        assignmentIdsByBookingRef.current[bookingId] = nextIds;
+        setBookingStates((prev) => ({
+          ...prev,
+          [bookingId]: {
+            ...state,
+            lines: grouped.map((dto) =>
+              createRoomLine(
+                typeof dto.roomType === "string" ? dto.roomType : String(dto.roomType),
+                dto.roomCount,
+                {
+                  id: dto.id,
+                  roomNumbers: dto.roomNumbers ?? "",
+                  note: dto.note ?? "",
+                },
+              ),
+            ),
+          },
+        }));
+      } else {
+        assignmentIdsByBookingRef.current[bookingId] = new Set(
+          state.lines.map((l) => l.id).filter((id): id is string => Boolean(id)),
+        );
+      }
+
+      setSavedBookingIds((prev) => new Set([...prev, bookingId]));
       logTourOperatorEvent("booking_accommodation_assigned", {
         instanceId,
-        bookingId: entry.bookingId,
+        bookingId: state.bookingId,
         activityId: activity.activityId,
-        roomCount: entry.roomCount,
+        roomCount: totalRooms,
       });
       toast.success(
         t("tourInstance.bookingHotel.assignSuccess", {
           defaultValue: "Đã lưu phân bổ phòng cho {{customerName}}",
-          customerName: entry.customerName,
+          customerName: state.customerName,
         }),
       );
-      onRoomAssignmentSaved?.(activity.activityId, entry);
+      onRoomAssignmentSaved?.(activity.activityId, bookingId);
     } catch (error) {
       const apiError = handleApiError(error);
       toast.error(
@@ -545,7 +690,7 @@ function AccommodationBookingCard({
     }
   };
 
-  const allSaved = bookings.every((b) => savedIds.has(b.id));
+  const allSaved = bookings.every((b) => savedBookingIds.has(b.id));
   const approvalStatus = activity.supplierApprovalStatus?.toLowerCase() ?? null;
   const isApproved = approvalStatus === "approved";
   const isRejected = approvalStatus === "rejected";
@@ -845,14 +990,15 @@ function AccommodationBookingCard({
               {bookings.length === 1 ? "Phân bổ phòng cho booking này" : "Phân bổ phòng cho từng booking"}
             </h5>
             <span className="text-[10px] font-semibold text-stone-500 bg-white border border-stone-200 px-2 py-0.5 rounded-full">
-              {savedIds.size}/{bookings.length} đã phân bổ
+              {savedBookingIds.size}/{bookings.length} đã phân bổ
             </span>
           </div>
           <div className="divide-y divide-stone-100 border-t border-stone-100">
             {bookings.map((booking, index) => {
-              const entry = entries[booking.id];
-              if (!entry) return null;
-              const isSaved = savedIds.has(booking.id);
+              const state = bookingStates[booking.id];
+              if (!state) return null;
+              const isSaved = savedBookingIds.has(booking.id);
+              const totalRooms = sumLineRoomCount(state.lines);
               const isSaving = savingId === booking.id;
               const bookingStatus = booking.status?.toLowerCase() ?? "";
               const lockedByCheckIn =
@@ -879,7 +1025,7 @@ function AccommodationBookingCard({
                       <div className="min-w-0">
                         <p className="text-base font-semibold text-stone-900 truncate">{booking.customerName}</p>
                         <p className="text-sm text-stone-500 mt-0.5">
-                          {entry.guestCount} khách · đề xuất {entry.roomsSuggested} phòng
+                          {state.guestCount} khách · đề xuất {state.roomsSuggested} phòng · đã nhập {totalRooms}/{state.guestCount} phòng
                         </p>
                       </div>
                     </div>
@@ -888,8 +1034,12 @@ function AccommodationBookingCard({
                       <div className="w-full sm:w-40">
                         <Select
                           label="Loại phòng"
-                          value={entry.roomType}
-                          onChange={(e) => updateEntry(booking.id, "roomType", e.target.value)}
+                          value={state.lines[0]?.roomType ?? "Standard"}
+                          onChange={(e) =>
+                            state.lines[0]
+                              ? updateLine(booking.id, state.lines[0].clientId, "roomType", e.target.value)
+                              : undefined
+                          }
                           disabled={!canAssign || lockedByCheckIn}
                           options={[
                             "Single",
@@ -913,10 +1063,19 @@ function AccommodationBookingCard({
                           label="Số phòng"
                           type="number"
                           min={1}
-                          value={entry.roomCount.toString()}
-                          onChange={(e) =>
-                            updateEntry(booking.id, "roomCount", Math.max(1, Number(e.target.value) || 1))
-                          }
+                          value={(state.lines[0]?.roomCount ?? 1).toString()}
+                          max={state.guestCount}
+                          onChange={(e) => {
+                            if (!state.lines[0]) return;
+                            const other = sumLineRoomCount(state.lines.slice(1));
+                            const maxForLine = Math.max(1, state.guestCount - other);
+                            updateLine(
+                              booking.id,
+                              state.lines[0].clientId,
+                              "roomCount",
+                              Math.min(maxForLine, Math.max(1, Number(e.target.value) || 1)),
+                            );
+                          }}
                           disabled={!canAssign || lockedByCheckIn}
                         />
                       </div>
@@ -951,11 +1110,91 @@ function AccommodationBookingCard({
                       </Button>
                     </div>
                   </div>
-                  {entry.roomCount !== entry.roomsSuggested && (
+                  {totalRooms > state.guestCount && (
                     <div className="mt-2 pl-11">
-                      <p className="text-xs text-orange-600 font-medium">
-                        Đề xuất: {entry.roomsSuggested} phòng
+                      <p className="text-xs font-medium text-rose-600">
+                        {t("tourInstance.bookingHotel.validation.roomCountTooHighTotal", {
+                          defaultValue:
+                            "Tổng số phòng ({{roomCount}}) không được vượt quá số khách ({{guestCount}}).",
+                          roomCount: totalRooms,
+                          guestCount: state.guestCount,
+                        })}
                       </p>
+                    </div>
+                  )}
+                  {state.lines.length < ROOM_TYPE_SELECT_OPTIONS.length
+                    && totalRooms < state.guestCount
+                    && !lockedByCheckIn && (
+                    <div className="mt-2 pl-11">
+                      <button
+                        type="button"
+                        onClick={() => addRoomLine(booking.id)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-700 hover:text-orange-800"
+                      >
+                        <Icon icon="heroicons:plus-circle" className="size-4" />
+                        {t("tourInstance.bookingHotel.addRoomType", "Thêm loại phòng")}
+                      </button>
+                    </div>
+                  )}
+                  {state.lines.length > 1 && (
+                    <div className="mt-3 pl-11 space-y-3 border-t border-stone-100 pt-3">
+                      {state.lines.slice(1).map((line) => {
+                        const otherRooms = sumLineRoomCount(
+                          state.lines.filter((l) => l.clientId !== line.clientId),
+                        );
+                        const maxForLine = Math.max(1, state.guestCount - otherRooms);
+                        return (
+                          <div
+                            key={line.clientId}
+                            className="flex flex-col sm:flex-row sm:items-end gap-3"
+                          >
+                            <div className="w-full sm:w-40">
+                              <Select
+                                label={t("tourInstance.accommodation.roomType", "Loại phòng")}
+                                value={line.roomType}
+                                onChange={(e) =>
+                                  updateLine(booking.id, line.clientId, "roomType", e.target.value)
+                                }
+                                disabled={!canAssign || lockedByCheckIn}
+                                options={ROOM_TYPE_SELECT_OPTIONS.map((rt) => ({
+                                  value: rt,
+                                  label: rt,
+                                }))}
+                              />
+                            </div>
+                            <div className="w-full sm:w-24">
+                              <TextInput
+                                label={t("tourInstance.accommodation.quantity", "Số phòng")}
+                                type="number"
+                                min={1}
+                                max={maxForLine}
+                                value={line.roomCount.toString()}
+                                onChange={(e) =>
+                                  updateLine(
+                                    booking.id,
+                                    line.clientId,
+                                    "roomCount",
+                                    Math.min(
+                                      maxForLine,
+                                      Math.max(1, Number(e.target.value) || 1),
+                                    ),
+                                  )
+                                }
+                                disabled={!canAssign || lockedByCheckIn}
+                              />
+                            </div>
+                            {!lockedByCheckIn && (
+                              <button
+                                type="button"
+                                onClick={() => removeRoomLine(booking.id, line.clientId)}
+                                className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-2 text-xs text-stone-500 hover:bg-stone-100 h-10"
+                              >
+                                <Icon icon="heroicons:trash" className="size-4" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

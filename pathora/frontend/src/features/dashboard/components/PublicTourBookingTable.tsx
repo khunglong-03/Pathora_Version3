@@ -123,14 +123,19 @@ export function getBookingAccommodationStatus(
     };
   }
   if (assignments.length > 0) {
-    const first = assignments[0];
-    const roomType = first.roomType ? String(first.roomType) : "—";
+    const totalRooms = assignments.reduce((sum, row) => sum + row.roomCount, 0);
+    const roomSummary = assignments
+      .map((row) => {
+        const roomType = row.roomType ? String(row.roomType) : "—";
+        return `${roomType} × ${row.roomCount}`;
+      })
+      .join(", ");
     const label =
       assignments.length >= activityCount
-        ? t("tourInstance.bookingTable.accommodationAssigned", {
-            defaultValue: "{{roomType}} · {{roomCount}} phòng",
-            roomType,
-            roomCount: first.roomCount,
+        ? t("tourInstance.bookingTable.accommodationAssignedMulti", {
+            defaultValue: "{{summary}} ({{totalRooms}} phòng)",
+            summary: roomSummary,
+            totalRooms,
           })
         : t("tourInstance.bookingTable.partialAssigned", {
             defaultValue: "{{assigned}}/{{total}} đã gán",

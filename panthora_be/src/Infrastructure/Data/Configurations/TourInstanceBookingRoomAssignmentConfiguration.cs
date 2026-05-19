@@ -24,7 +24,7 @@ public class TourInstanceBookingRoomAssignmentConfiguration : IEntityTypeConfigu
         builder.Property(t => t.RoomNumbers).HasMaxLength(500);
         builder.Property(t => t.Note).HasMaxLength(1000);
 
-        builder.HasIndex(t => new { t.TourInstanceDayActivityId, t.BookingId })
+        builder.HasIndex(t => new { t.TourInstanceDayActivityId, t.BookingId, t.RoomType })
             .IsUnique();
     }
 }

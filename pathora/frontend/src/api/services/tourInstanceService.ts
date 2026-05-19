@@ -1012,9 +1012,25 @@ export const tourInstanceService = {
     );
     return extractResult<unknown>(response.data);
   },
+
+  deleteBookingRoomAssignment: async (
+    instanceId: string,
+    activityId: string,
+    assignmentId: string,
+  ) => {
+    const response = await api.delete<ServiceResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.BOOKING_ROOM_ASSIGNMENT_BY_ID(
+        instanceId,
+        activityId,
+        assignmentId,
+      ),
+    );
+    return extractResult<unknown>(response.data);
+  },
 };
 
 export interface BookingRoomAssignmentDto {
+  id: string;
   bookingId: string;
   roomType: string | number;
   roomCount: number;

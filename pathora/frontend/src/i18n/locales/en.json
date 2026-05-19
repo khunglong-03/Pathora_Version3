@@ -2267,8 +2267,12 @@
       "validation": {
         "roomCountPositive": "Room count must be greater than 0",
         "roomCountTooHigh": "Room count cannot exceed guest count ({{guestCount}}).",
+        "roomCountTooHighTotal": "Total rooms ({{roomCount}}) cannot exceed guest count ({{guestCount}}).",
+        "duplicateRoomType": "Each room type can only be used once per booking.",
+        "roomTypeRequired": "Please select a room type for each row.",
         "exceedsBlocked": "Assigned rooms ({{assigned}}) exceed blocked rooms ({{blocked}})."
-      }
+      },
+      "addRoomType": "Add room type"
     },
     "bookingFlight": {
       "title": "Assign transport tickets",

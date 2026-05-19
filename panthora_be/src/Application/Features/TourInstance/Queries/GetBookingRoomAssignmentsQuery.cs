@@ -9,6 +9,7 @@ public sealed record GetBookingRoomAssignmentsQuery(Guid ActivityId)
     : IQuery<ErrorOr<List<BookingRoomAssignmentDto>>>;
 
 public sealed record BookingRoomAssignmentDto(
+    Guid Id,
     Guid BookingId,
     RoomType RoomType,
     int RoomCount,
@@ -23,6 +24,7 @@ public sealed class GetBookingRoomAssignmentsQueryHandler(
     {
         var assignments = await assignmentRepository.GetByActivityIdAsync(request.ActivityId, cancellationToken);
         return assignments.Select(a => new BookingRoomAssignmentDto(
+            a.Id,
             a.BookingId,
             a.RoomType,
             a.RoomCount,
