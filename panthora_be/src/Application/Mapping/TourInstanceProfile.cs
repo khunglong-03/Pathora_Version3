@@ -52,7 +52,9 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.SupplierApprovalNote), opt => opt.MapFrom(src => src.SupplierApprovalNote))
             // Fallback when Accommodation is mapped in isolation; nested activity map overrides via src.RoomBlocks.
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.RoomBlocksTotal), opt => opt.MapFrom(src =>
-                src.TourInstanceDayActivity?.RoomBlocks?.Sum(b => b.RoomCountBlocked) ?? 0));
+                src.TourInstanceDayActivity != null && src.TourInstanceDayActivity.RoomBlocks != null
+                    ? src.TourInstanceDayActivity.RoomBlocks.Sum(b => b.RoomCountBlocked)
+                    : 0));
 
         CreateMap<TourInstanceDayActivityEntity, TourInstanceDayActivityDto>()
             .ForCtorParam(nameof(TourInstanceDayActivityDto.Id), opt => opt.MapFrom(src => src.Id))
@@ -69,10 +71,10 @@ public sealed class TourInstanceProfile : Profile
                     ? null
                     : new TourInstancePlanAccommodationDto(
                         src.Accommodation.Id,
-                        src.Accommodation.RoomType?.ToString() ?? string.Empty,
+                        src.Accommodation.RoomType != null ? src.Accommodation.RoomType.ToString() : string.Empty,
                         src.Accommodation.Quantity,
                         src.Accommodation.SupplierId,
-                        src.Accommodation.Supplier?.Name,
+                        src.Accommodation.Supplier != null ? src.Accommodation.Supplier.Name : null,
                         src.Accommodation.SupplierApprovalStatus.ToString(),
                         src.Accommodation.SupplierApprovalNote,
                         src.RoomBlocks.Sum(b => b.RoomCountBlocked))))
