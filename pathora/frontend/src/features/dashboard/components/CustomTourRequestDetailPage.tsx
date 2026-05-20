@@ -930,6 +930,10 @@ export default function CustomTourRequestDetailPage({
                     </>
                   )}
                 </button>
+                {/* Debug info */}
+                <div className="text-xs text-slate-400 text-center">
+                  Debug: status={data.status}, canManagerReview={canManagerReview ? 'true' : 'false'}
+                </div>
               </div>
             </motion.div>
           )}
