@@ -142,22 +142,24 @@ export default function CustomTourRequestDetailPage({
     setActionError(null);
     setActionSuccess(null);
     try {
+      console.log('[handleReject] Attempting to cancel tour:', { id, status: data?.status, statusValue: STATUS_CANCELLED });
       await tourInstanceService.changeStatus(id, STATUS_CANCELLED);
-      setActionSuccess("Yêu cầu đã bị từ chối.");
+      setActionSuccess("Tour đã bị huỷ.");
       setShowRejectModal(false);
       setRejectReason("");
       setReloadToken((v) => v + 1);
     } catch (error: unknown) {
+      console.error('[handleReject] Error:', error);
       if (isAxiosError(error) && error.response?.status === 401) {
         setActionError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để thực hiện thao tác này.");
       } else {
         const apiError = handleApiError(error);
-        setActionError(apiError.message || "Không thể từ chối yêu cầu. Vui lòng thử lại.");
+        setActionError(apiError.message || "Không thể huỷ tour. Vui lòng thử lại.");
       }
     } finally {
       setActionLoading(null);
     }
-  }, [id]);
+  }, [id, data?.status]);
 
   // Handler for review approval (PendingManagerReview → PendingCustomerApproval)
   const handleManagerApproveItinerary = useCallback(async () => {
@@ -926,14 +928,10 @@ export default function CustomTourRequestDetailPage({
                   ) : (
                     <>
                       <Icon icon="heroicons:x-circle" className="size-5" />
-                      Từ chối hoàn toàn
+                      Huỷ tour này
                     </>
                   )}
                 </button>
-                {/* Debug info */}
-                <div className="text-xs text-slate-400 text-center">
-                  Debug: status={data.status}, canManagerReview={canManagerReview ? 'true' : 'false'}
-                </div>
               </div>
             </motion.div>
           )}
