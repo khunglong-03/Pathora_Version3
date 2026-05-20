@@ -111,7 +111,7 @@ public sealed class ManagerRejectPrivateTourCommandHandler(
 {
     public async Task<ErrorOr<Success>> Handle(ManagerRejectPrivateTourCommand request, CancellationToken cancellationToken)
     {
-        var instance = await repository.FindById(request.InstanceId, asNoTracking: false, cancellationToken);
+        var instance = await repository.FindByIdWithBookingsAsync(request.InstanceId, cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
@@ -120,7 +120,18 @@ public sealed class ManagerRejectPrivateTourCommandHandler(
             // wantsCustomization=false: không có Operator nào chỉnh sửa → Cancel luôn.
             // wantsCustomization=true: trả về Operator để điều chỉnh → PendingAdjustment.
             if (!instance.WantsCustomization)
+            {
                 instance.Cancel(request.Reason, user.Id ?? string.Empty);
+                // Cancel tất cả bookings liên quan (Pending/Confirmed/Deposited/Paid)
+                foreach (var booking in instance.Bookings)
+                {
+                    if (booking.Status != Domain.Enums.BookingStatus.Cancelled
+                        && booking.Status != Domain.Enums.BookingStatus.Completed)
+                    {
+                        booking.Cancel(request.Reason, user.Id ?? string.Empty);
+                    }
+                }
+            }
             else
                 instance.ManagerRejectItinerary(request.Reason, user.Id ?? string.Empty);
         }

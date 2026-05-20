@@ -1338,7 +1338,7 @@ public class TourInstanceService(
 
     public async Task<ErrorOr<Success>> ManagerRejectItinerary(Guid id, string reason)
     {
-        var entity = await _tourInstanceRepository.FindById(id);
+        var entity = await _tourInstanceRepository.FindByIdWithBookingsAsync(id);
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
         try
@@ -1346,7 +1346,18 @@ public class TourInstanceService(
             // wantsCustomization=false: không có Operator nào chỉnh sửa → Cancel luôn.
             // wantsCustomization=true: trả về Operator để điều chỉnh → PendingAdjustment.
             if (!entity.WantsCustomization)
+            {
                 entity.Cancel(reason, _user.Id ?? string.Empty);
+                // Cancel tất cả bookings liên quan (Pending/Confirmed/Deposited/Paid)
+                foreach (var booking in entity.Bookings)
+                {
+                    if (booking.Status != Domain.Enums.BookingStatus.Cancelled
+                        && booking.Status != Domain.Enums.BookingStatus.Completed)
+                    {
+                        booking.Cancel(reason, _user.Id ?? string.Empty);
+                    }
+                }
+            }
             else
                 entity.ManagerRejectItinerary(reason, _user.Id ?? string.Empty);
         }
