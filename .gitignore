@@ -312,3 +312,5 @@ panthora_be/src/Application/Common/Repositories/
 
 scripts/
 panthora_be/src/Api/appsettings.json
+
+*.kiro

@@ -116,10 +116,8 @@ export function RefundTrackingPage() {
     }
   };
 
-  const filteredBookings = useMemo(() => {
-    if (activeTab === "All") return bookings;
-    return bookings.filter((b) => b.refundStatus === activeTab);
-  }, [bookings, activeTab]);
+  // API already filters by refundStatus, no need to filter again on client
+  const filteredBookings = bookings;
 
   const renderRow = (b: AdminBookingListResponse) => {
     const status: RefundStatusString = b.refundStatus ?? "NotApplicable";
