@@ -1179,9 +1179,11 @@ public class TourInstanceService(
                 else
                     await DoCancel();
             }
-            catch (InvalidOperationException ex) when (ex.InnerException is not InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                return Error.Validation("TourInstance.InvalidTransition", ex.Message);
+                // Unwrap inner exception message if present (thrown from entity.ChangeStatus inside DoCancel)
+                var message = ex.InnerException?.Message ?? ex.Message;
+                return Error.Validation("TourInstance.InvalidTransition", message);
             }
 
             return Result.Success;
