@@ -1086,7 +1086,7 @@ public class TourInstanceService(
                     await _roomBlockRepository.DeleteByTourInstanceAsync(id);
                     if (_vehicleBlockRepository is not null)
                         await _vehicleBlockRepository.DeleteByTourInstanceAsync(id);
-                    await CascadeCancelBookingsAsync(id, "Tour bị xoá bởi Manager", performedBy, cancellationToken);
+                    await CascadeCancelBookingsAsync(entity, "Tour bị xoá bởi Manager", performedBy, cancellationToken);
                     await _tourInstanceRepository.SoftDelete(id);
                     if (_unitOfWork is not null)
                         await _unitOfWork.SaveChangeAsync(cancellationToken);
@@ -1163,7 +1163,7 @@ public class TourInstanceService(
 
                 // Cascade cancel bookings
                 if (_bookingRepository is not null)
-                    await CascadeCancelBookingsAsync(id, "Tour bị huỷ bởi Manager", performedBy, cancellationToken);
+                    await CascadeCancelBookingsAsync(entity, "Tour bị huỷ bởi Manager", performedBy, cancellationToken);
 
                 // Notify assigned providers (fire-and-forget inside tx — failures are logged, not thrown)
                 await NotifyProvidersOnCancelAsync(entity, cancellationToken);
@@ -1208,17 +1208,21 @@ public class TourInstanceService(
     /// Cascade huỷ tất cả booking active của instance về Cancelled, khởi tạo refund tracking,
     /// và auto-reject các booking cancellation request đang pending.
     /// </summary>
-    private async Task CascadeCancelBookingsAsync(Guid instanceId, string reason, string performedBy, CancellationToken ct)
+    private async Task CascadeCancelBookingsAsync(TourInstanceEntity instance, string reason, string performedBy, CancellationToken ct)
     {
         if (_bookingRepository is null || _paymentTransactionRepository is null)
             return;
 
-        var bookings = await _bookingRepository.GetByTourInstanceIdAsync(instanceId, ct);
+        var bookings = await _bookingRepository.GetByTourInstanceIdAsync(instance.Id, ct);
 
         foreach (var booking in bookings)
         {
             if (booking.Status is BookingStatus.Completed or BookingStatus.Cancelled)
                 continue;
+
+            // Fix EF Core tracking conflict: replace detached TourInstance with the tracked instance
+            // to prevent "cannot be tracked because another instance... is already being tracked" error.
+            booking.TourInstance = instance;
 
             // Compute net paid amount
             var txs = await _paymentTransactionRepository.GetByBookingIdListAsync(booking.Id, ct);
