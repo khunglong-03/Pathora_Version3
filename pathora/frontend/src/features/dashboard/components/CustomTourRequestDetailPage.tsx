@@ -68,11 +68,21 @@ export default function CustomTourRequestDetailPage({
   const statusLower = data?.status?.toLowerCase() ?? "";
   const isDraft = statusLower === STATUS_DRAFT.toLowerCase();
   const isPendingManagerReview = statusLower === STATUS_PENDING_MANAGER_REVIEW.toLowerCase();
+  const isPendingAdjustment = statusLower === STATUS_PENDING_ADJUSTMENT.toLowerCase();
   const canManagerAct = role === "manager" && isDraft;
   const canManagerReview = role === "manager" && isPendingManagerReview;
-  // Luôn hiện panel hành động cho manager khi tour chưa kết thúc/huỷ
-  const isCancelledOrDone = ["cancelled", "completed", "inprogress"].includes(statusLower);
+  // Ẩn panel khi tour đã huỷ, đã duyệt xong (chờ khách/confirmed), đang chạy, hoặc hoàn thành
+  const isCancelledOrDone = [
+    "cancelled",
+    "completed",
+    "inprogress",
+    "pendingcustomerapproval",
+    "confirmed",
+  ].includes(statusLower);
   const showManagerActionPanel = role === "manager" && !isCancelledOrDone;
+  // Nút Duyệt và Yêu cầu điều chỉnh chỉ có nghĩa khi Manager có thể hành động
+  // PendingAdjustment = đang chờ Operator → disable 2 nút đó, chỉ cho phép Huỷ
+  const canApproveOrAdjust = canManagerAct || canManagerReview;
 
   const managerWaitingInfo = useMemo<{
     title: string;
@@ -767,7 +777,8 @@ export default function CustomTourRequestDetailPage({
                 {/* Nút 1: Duyệt */}
                 <button
                   onClick={handleApprove}
-                  disabled={actionLoading !== null}
+                  disabled={actionLoading !== null || !canApproveOrAdjust}
+                  title={!canApproveOrAdjust ? "Đang chờ Tour Operator chỉnh sửa lịch trình" : undefined}
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-[1.5rem] bg-emerald-600 text-white text-base font-semibold transition-all hover:bg-emerald-700 hover:-translate-y-0.5 active:scale-[0.98] shadow-sm disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:translate-y-0"
                 >
                   {actionLoading === "approve" ? (
@@ -786,14 +797,15 @@ export default function CustomTourRequestDetailPage({
                 {/* Nút 2: Yêu cầu điều chỉnh */}
                 <button
                   onClick={() => { setShowAdjustModal(true); setShowRejectModal(false); }}
-                  disabled={actionLoading !== null}
+                  disabled={actionLoading !== null || !canApproveOrAdjust}
+                  title={!canApproveOrAdjust ? "Đang chờ Tour Operator chỉnh sửa lịch trình" : undefined}
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-[1.5rem] border border-orange-200 bg-white text-orange-600 text-base font-semibold transition-all hover:bg-orange-50 hover:border-orange-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
                 >
                   <Icon icon="heroicons:arrow-uturn-left" className="size-5" />
                   Yêu cầu điều chỉnh
                 </button>
 
-                {/* Nút 3: Từ chối / Huỷ tour */}
+                {/* Nút 3: Huỷ tour — luôn available khi panel hiện */}
                 <button
                   onClick={() => { setShowRejectModal(true); setShowAdjustModal(false); }}
                   disabled={actionLoading !== null}
