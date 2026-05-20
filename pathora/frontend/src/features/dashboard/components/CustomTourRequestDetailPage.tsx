@@ -60,6 +60,7 @@ export default function CustomTourRequestDetailPage({
   /* ── Approve / Reject state ──────────────────────────────── */
   const [actionLoading, setActionLoading] = useState<"approve" | "reject" | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -69,6 +70,9 @@ export default function CustomTourRequestDetailPage({
   const isPendingManagerReview = statusLower === STATUS_PENDING_MANAGER_REVIEW.toLowerCase();
   const canManagerAct = role === "manager" && isDraft;
   const canManagerReview = role === "manager" && isPendingManagerReview;
+  // Luôn hiện panel hành động cho manager khi tour chưa kết thúc/huỷ
+  const isCancelledOrDone = ["cancelled", "completed", "inprogress"].includes(statusLower);
+  const showManagerActionPanel = role === "manager" && !isCancelledOrDone;
 
   const managerWaitingInfo = useMemo<{
     title: string;
@@ -114,15 +118,22 @@ export default function CustomTourRequestDetailPage({
     }
   }, [role, statusLower, canManagerAct, canManagerReview]);
 
-  // Handler for initial approval (Draft → PendingAdjustment)
+  // Handler for approval — routes to correct API based on current status
+  // Draft → PendingAdjustment (chuyển cho Tour Operator lên lịch)
+  // PendingManagerReview → PendingCustomerApproval (duyệt lịch trình)
   const handleApprove = useCallback(async () => {
     if (!id) return;
     setActionLoading("approve");
     setActionError(null);
     setActionSuccess(null);
     try {
-      await tourInstanceService.changeStatus(id, STATUS_PENDING_ADJUSTMENT);
-      setActionSuccess("Yêu cầu đã được duyệt và chuyển cho Tour Operator xử lý.");
+      if (isPendingManagerReview) {
+        await tourInstanceService.managerApproveItinerary(id);
+        setActionSuccess("Lịch trình đã được duyệt. Tour đang chờ khách hàng xác nhận.");
+      } else {
+        await tourInstanceService.changeStatus(id, STATUS_PENDING_ADJUSTMENT);
+        setActionSuccess("Yêu cầu đã được duyệt và chuyển cho Tour Operator xử lý.");
+      }
       setReloadToken((v) => v + 1);
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response?.status === 401) {
@@ -134,19 +145,17 @@ export default function CustomTourRequestDetailPage({
     } finally {
       setActionLoading(null);
     }
-  }, [id]);
+  }, [id, isPendingManagerReview]);
 
+  // Handler for cancel/reject — always calls changeStatus → Cancelled (cascade cancels bookings)
   const handleReject = useCallback(async () => {
     if (!id) return;
     setActionLoading("reject");
     setActionError(null);
     setActionSuccess(null);
     try {
-      // Dùng changeStatus Cancelled cho cả Draft và PendingManagerReview
-      // Backend state machine cho phép PendingManagerReview → Cancelled
-      // và ChangeStatus handler có CascadeCancelBookingsAsync để cancel tất cả bookings
       await tourInstanceService.changeStatus(id, STATUS_CANCELLED);
-      setActionSuccess("Tour đã bị huỷ.");
+      setActionSuccess("Tour đã bị huỷ. Tất cả booking liên quan đã được huỷ.");
       setShowRejectModal(false);
       setRejectReason("");
       setReloadToken((v) => v + 1);
@@ -162,37 +171,23 @@ export default function CustomTourRequestDetailPage({
     }
   }, [id]);
 
-  // Handler for review approval (PendingManagerReview → PendingCustomerApproval)
-  const handleManagerApproveItinerary = useCallback(async () => {
+  // Handler for "Yêu cầu điều chỉnh" — routes based on current status
+  // PendingManagerReview → PendingAdjustment via dedicated endpoint (kèm lý do)
+  // Draft/other → PendingAdjustment via changeStatus (không cần lý do)
+  const handleRequestAdjustment = useCallback(async () => {
     if (!id) return;
-    setActionLoading("approve");
-    setActionError(null);
-    setActionSuccess(null);
-    try {
-      await tourInstanceService.managerApproveItinerary(id);
-      setActionSuccess("Lịch trình đã được duyệt. Tour đang chờ khách hàng xác nhận.");
-      setReloadToken((v) => v + 1);
-    } catch (error: unknown) {
-      if (isAxiosError(error) && error.response?.status === 401) {
-        setActionError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-      } else {
-        const apiError = handleApiError(error);
-        setActionError(apiError.message || "Không thể duyệt lịch trình. Vui lòng thử lại.");
-      }
-    } finally {
-      setActionLoading(null);
-    }
-  }, [id]);
-
-  // Handler for review rejection (PendingManagerReview → PendingAdjustment)
-  const handleManagerRejectItinerary = useCallback(async () => {
-    if (!id || !rejectReason.trim()) return;
     setActionLoading("reject");
     setActionError(null);
     setActionSuccess(null);
     try {
-      await tourInstanceService.managerRejectItinerary(id, rejectReason.trim());
-      setActionSuccess("Lịch trình đã bị trả lại. Tour Operator sẽ nhận được ghi chú của bạn.");
+      if (isPendingManagerReview) {
+        if (!rejectReason.trim()) return;
+        await tourInstanceService.managerRejectItinerary(id, rejectReason.trim());
+        setActionSuccess("Lịch trình đã bị trả lại. Tour Operator sẽ nhận được ghi chú của bạn.");
+      } else {
+        await tourInstanceService.changeStatus(id, STATUS_PENDING_ADJUSTMENT);
+        setActionSuccess("Đã yêu cầu điều chỉnh. Tour Operator sẽ chỉnh sửa lịch trình.");
+      }
       setShowRejectModal(false);
       setRejectReason("");
       setReloadToken((v) => v + 1);
@@ -201,12 +196,12 @@ export default function CustomTourRequestDetailPage({
         setActionError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
       } else {
         const apiError = handleApiError(error);
-        setActionError(apiError.message || "Không thể từ chối lịch trình. Vui lòng thử lại.");
+        setActionError(apiError.message || "Không thể gửi yêu cầu điều chỉnh. Vui lòng thử lại.");
       }
     } finally {
       setActionLoading(null);
     }
-  }, [id, rejectReason]);
+  }, [id, isPendingManagerReview, rejectReason]);
 
   const backHref =
     role === "tour-operator"
@@ -362,59 +357,7 @@ export default function CustomTourRequestDetailPage({
             </motion.div>
           )}
 
-          {/* Quick Reject Button for Manager (Draft status only) - Always show when canManagerAct */}
-          {canManagerAct && (
-            <motion.div variants={itemVariants} className="space-y-4">
-              <div className="bg-white border border-red-100 rounded-[1.5rem] p-5 md:p-6 space-y-4">
-                <div className="flex items-start gap-3">
-                  <Icon icon="heroicons:exclamation-triangle" className="size-5 text-red-500 mt-0.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-slate-900">
-                      Yêu cầu không hợp lý?
-                    </h3>
-                    <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                      Nếu yêu cầu này không phù hợp hoặc không thể thực hiện, bạn có thể từ chối ngay trước khi chuyển xuống Tour Operator.
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Status feedback */}
-                <AnimatePresence mode="wait">
-                  {actionSuccess && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-start gap-3"
-                    >
-                      <Icon icon="heroicons:check-circle" className="size-5 text-emerald-600 mt-0.5 shrink-0" />
-                      <p className="text-sm text-emerald-800 font-medium">{actionSuccess}</p>
-                    </motion.div>
-                  )}
-                  {actionError && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3"
-                    >
-                      <Icon icon="heroicons:exclamation-triangle" className="size-5 text-red-500 mt-0.5 shrink-0" />
-                      <p className="text-sm text-red-700">{actionError}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <button
-                  onClick={() => setShowRejectModal(true)}
-                  disabled={actionLoading !== null}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-red-200 bg-white text-red-600 text-sm font-semibold transition-all hover:bg-red-50 hover:border-red-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
-                >
-                  <Icon icon="heroicons:x-circle" className="size-5" />
-                  Từ chối yêu cầu này
-                </button>
-              </div>
-            </motion.div>
-          )}
+          {/* (Manager action buttons moved to sidebar) */}
 
           {/* Hero Image & Title */}
           <motion.div variants={itemVariants} className="space-y-6">
@@ -772,19 +715,25 @@ export default function CustomTourRequestDetailPage({
             </motion.div>
           )}
 
-          {/* ── Manager Approval Actions ─────────────────────── */}
-          {canManagerAct && (
+          {/* ── Manager Action Panel (always visible when tour is actionable) ── */}
+          {showManagerActionPanel && (
             <motion.div
               variants={itemVariants}
               className="bg-white rounded-[2rem] border border-slate-200/60 p-6 md:p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] space-y-6"
             >
               <div>
-                <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
-                  Xử lý yêu cầu
-                </h3>
-                <p className="text-sm text-slate-500 mt-2 leading-relaxed max-w-[65ch]">
-                  Duyệt yêu cầu để chuyển cho Tour Operator lên lịch trình chi tiết,
-                  hoặc từ chối nếu không phù hợp.
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600">
+                    <Icon icon="heroicons:clipboard-document-check" className="size-5" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
+                    Xử lý yêu cầu
+                  </h3>
+                </div>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  {isPendingManagerReview
+                    ? "Tour Operator đã hoàn thiện lịch trình. Duyệt để gửi khách hàng xác nhận, yêu cầu điều chỉnh, hoặc huỷ tour."
+                    : "Duyệt yêu cầu để chuyển cho Tour Operator lên lịch trình, yêu cầu điều chỉnh, hoặc huỷ tour."}
                 </p>
               </div>
 
@@ -815,6 +764,7 @@ export default function CustomTourRequestDetailPage({
               </AnimatePresence>
 
               <div className="space-y-3">
+                {/* Nút 1: Duyệt */}
                 <button
                   onClick={handleApprove}
                   disabled={actionLoading !== null}
@@ -828,96 +778,24 @@ export default function CustomTourRequestDetailPage({
                   ) : (
                     <>
                       <Icon icon="heroicons:check-circle" className="size-5" />
-                      Duyệt yêu cầu
+                      {isPendingManagerReview ? "Duyệt lịch trình" : "Duyệt yêu cầu"}
                     </>
                   )}
                 </button>
-                <button
-                  onClick={() => setShowRejectModal(true)}
-                  disabled={actionLoading !== null}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-[1.5rem] border border-red-200 bg-white text-red-600 text-base font-semibold transition-all hover:bg-red-50 hover:border-red-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
-                >
-                  <Icon icon="heroicons:x-circle" className="size-5" />
-                  Từ chối yêu cầu
-                </button>
-              </div>
-            </motion.div>
-          )}
 
-          {/* ── Manager Review Actions (PendingManagerReview) ─── */}
-          {canManagerReview && (
-            <motion.div
-              variants={itemVariants}
-              className="bg-white rounded-[2rem] border border-blue-200/60 p-6 md:p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] space-y-6"
-            >
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600">
-                    <Icon icon="heroicons:clipboard-document-check" className="size-5" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
-                    Duyệt lịch trình
-                  </h3>
-                </div>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  Tour Operator đã hoàn thiện lịch trình. Vui lòng xem xét và duyệt để gửi cho khách hàng xác nhận, hoặc ghi chú yêu cầu điều chỉnh.
-                </p>
-              </div>
-
-              {/* Status feedback */}
-              <AnimatePresence mode="wait">
-                {actionSuccess && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-start gap-3"
-                  >
-                    <Icon icon="heroicons:check-circle" className="size-5 text-emerald-600 mt-0.5 shrink-0" />
-                    <p className="text-sm text-emerald-800 font-medium">{actionSuccess}</p>
-                  </motion.div>
-                )}
-                {actionError && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3"
-                  >
-                    <Icon icon="heroicons:exclamation-triangle" className="size-5 text-red-500 mt-0.5 shrink-0" />
-                    <p className="text-sm text-red-700">{actionError}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="space-y-3">
+                {/* Nút 2: Yêu cầu điều chỉnh */}
                 <button
-                  onClick={handleManagerApproveItinerary}
-                  disabled={actionLoading !== null}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-[1.5rem] bg-blue-600 text-white text-base font-semibold transition-all hover:bg-blue-700 hover:-translate-y-0.5 active:scale-[0.98] shadow-sm disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:translate-y-0"
-                >
-                  {actionLoading === "approve" ? (
-                    <>
-                      <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
-                      Đang xử lý...
-                    </>
-                  ) : (
-                    <>
-                      <Icon icon="heroicons:check-circle" className="size-5" />
-                      Duyệt lịch trình
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => setShowRejectModal(true)}
+                  onClick={() => { setShowAdjustModal(true); setShowRejectModal(false); }}
                   disabled={actionLoading !== null}
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-[1.5rem] border border-orange-200 bg-white text-orange-600 text-base font-semibold transition-all hover:bg-orange-50 hover:border-orange-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
                 >
                   <Icon icon="heroicons:arrow-uturn-left" className="size-5" />
                   Yêu cầu điều chỉnh
                 </button>
+
+                {/* Nút 3: Từ chối / Huỷ tour */}
                 <button
-                  onClick={handleReject}
+                  onClick={() => { setShowRejectModal(true); setShowAdjustModal(false); }}
                   disabled={actionLoading !== null}
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-[1.5rem] border-2 border-red-200 bg-white text-red-600 text-base font-semibold transition-all hover:bg-red-50 hover:border-red-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
                 >
@@ -993,7 +871,93 @@ export default function CustomTourRequestDetailPage({
     <>
       {content}
 
-      {/* Reject Modal Overlay */}
+      {/* ── Adjust Modal (Yêu cầu điều chỉnh) ── */}
+      <AnimatePresence>
+        {showAdjustModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+            onClick={() => !actionLoading && setShowAdjustModal(false)}
+            role="dialog"
+            aria-labelledby="adjust-modal-title"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="bg-white rounded-[1.5rem] shadow-xl max-w-md w-full p-6 md:p-8 space-y-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div>
+                <h3 id="adjust-modal-title" className="text-xl font-semibold text-slate-900 tracking-tight">
+                  Yêu cầu điều chỉnh
+                </h3>
+                <p className="text-sm text-slate-500 mt-2">
+                  {isPendingManagerReview
+                    ? "Nhập ghi chú hướng dẫn cho Tour Operator điều chỉnh lịch trình."
+                    : "Tour sẽ được chuyển sang trạng thái chờ điều chỉnh."}
+                </p>
+              </div>
+
+              {isPendingManagerReview && (
+                <div>
+                  <label htmlFor="adjust-reason" className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                    Ghi chú điều chỉnh <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="adjust-reason"
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="VD: Cần bổ sung hoạt động buổi tối ngày 2, điều chỉnh lại giá vận chuyển..."
+                    rows={4}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 resize-none transition-all"
+                  />
+                </div>
+              )}
+
+              {actionError && (
+                <div className="bg-red-50 border border-red-100 rounded-xl p-3 flex items-start gap-2">
+                  <Icon icon="heroicons:exclamation-triangle" className="size-4 text-red-500 mt-0.5 shrink-0" />
+                  <p className="text-xs text-red-700">{actionError}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowAdjustModal(false);
+                    setRejectReason("");
+                    setActionError(null);
+                  }}
+                  disabled={actionLoading !== null}
+                  className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  Huỷ
+                </button>
+                <button
+                  onClick={handleRequestAdjustment}
+                  disabled={actionLoading !== null || (isPendingManagerReview && !rejectReason.trim())}
+                  className="flex-1 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  {actionLoading === "reject" ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />
+                      Đang xử lý...
+                    </span>
+                  ) : (
+                    "Gửi yêu cầu điều chỉnh"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Cancel/Reject Modal (Huỷ tour) ── */}
       <AnimatePresence>
         {showRejectModal && (
           <motion.div
@@ -1013,31 +977,18 @@ export default function CustomTourRequestDetailPage({
               className="bg-white rounded-[1.5rem] shadow-xl max-w-md w-full p-6 md:p-8 space-y-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <div>
-                <h3 id="reject-modal-title" className="text-xl font-semibold text-slate-900 tracking-tight">
-                  {canManagerReview ? "Yêu cầu điều chỉnh" : "Từ chối yêu cầu"}
-                </h3>
-                <p className="text-sm text-slate-500 mt-2">
-                  {canManagerReview
-                    ? "Nhập ghi chú hướng dẫn cho Tour Operator điều chỉnh lịch trình."
-                    : "Vui lòng nhập lý do từ chối để thông báo cho khách hàng."}
-                </p>
-              </div>
-
-              <div>
-                <label htmlFor="reject-reason" className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                  {canManagerReview ? "Ghi chú điều chỉnh" : "Lý do từ chối"}
-                </label>
-                <textarea
-                  id="reject-reason"
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder={canManagerReview
-                    ? "VD: Cần bổ sung hoạt động buổi tối ngày 2, điều chỉnh lại giá vận chuyển..."
-                    : "Nhập lý do từ chối..."}
-                  rows={4}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 resize-none transition-all"
-                />
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 shrink-0">
+                  <Icon icon="heroicons:exclamation-triangle" className="size-5" />
+                </div>
+                <div>
+                  <h3 id="reject-modal-title" className="text-xl font-semibold text-slate-900 tracking-tight">
+                    Xác nhận huỷ tour
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-2">
+                    Tour sẽ bị huỷ và tất cả booking liên quan sẽ được huỷ theo. Hành động này không thể hoàn tác.
+                  </p>
+                </div>
               </div>
 
               {actionError && (
@@ -1051,26 +1002,25 @@ export default function CustomTourRequestDetailPage({
                 <button
                   onClick={() => {
                     setShowRejectModal(false);
-                    setRejectReason("");
                     setActionError(null);
                   }}
                   disabled={actionLoading !== null}
                   className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
                 >
-                  Huỷ
+                  Quay lại
                 </button>
                 <button
-                  onClick={canManagerReview ? handleManagerRejectItinerary : handleReject}
-                  disabled={actionLoading !== null || (canManagerReview && !rejectReason.trim())}
-                  className={`flex-1 py-3 rounded-xl text-white text-sm font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 ${canManagerReview ? "bg-orange-500 hover:bg-orange-600" : "bg-red-600 hover:bg-red-700"}`}
+                  onClick={handleReject}
+                  disabled={actionLoading !== null}
+                  className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 >
                   {actionLoading === "reject" ? (
                     <span className="flex items-center justify-center gap-2">
                       <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />
-                      Đang xử lý...
+                      Đang huỷ...
                     </span>
                   ) : (
-                    canManagerReview ? "Gửi yêu cầu điều chỉnh" : "Xác nhận từ chối"
+                    "Xác nhận huỷ tour"
                   )}
                 </button>
               </div>
