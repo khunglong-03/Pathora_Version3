@@ -142,16 +142,11 @@ export default function CustomTourRequestDetailPage({
     setActionError(null);
     setActionSuccess(null);
     try {
-      if (role === "manager" && statusLower === STATUS_PENDING_MANAGER_REVIEW.toLowerCase()) {
-        // PendingManagerReview → dùng managerRejectItinerary (giống nút Từ chối bên Tour Instances)
-        // Endpoint này cho phép transition hợp lệ từ PendingManagerReview
-        await tourInstanceService.managerRejectItinerary(id, rejectReason.trim() || "Huỷ tour");
-        setActionSuccess("Tour đã bị huỷ.");
-      } else {
-        // Draft → changeStatus Cancelled
-        await tourInstanceService.changeStatus(id, STATUS_CANCELLED);
-        setActionSuccess("Tour đã bị huỷ.");
-      }
+      // Dùng changeStatus Cancelled cho cả Draft và PendingManagerReview
+      // Backend state machine cho phép PendingManagerReview → Cancelled
+      // và ChangeStatus handler có CascadeCancelBookingsAsync để cancel tất cả bookings
+      await tourInstanceService.changeStatus(id, STATUS_CANCELLED);
+      setActionSuccess("Tour đã bị huỷ.");
       setShowRejectModal(false);
       setRejectReason("");
       setReloadToken((v) => v + 1);
@@ -165,7 +160,7 @@ export default function CustomTourRequestDetailPage({
     } finally {
       setActionLoading(null);
     }
-  }, [id, role, statusLower, rejectReason]);
+  }, [id]);
 
   // Handler for review approval (PendingManagerReview → PendingCustomerApproval)
   const handleManagerApproveItinerary = useCallback(async () => {
