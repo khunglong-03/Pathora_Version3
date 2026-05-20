@@ -21,6 +21,29 @@ public sealed class GetAllBookingsQueryHandlerTests
     {
         _bookingRepository = Substitute.For<IBookingRepository>();
         _handler = new GetAllBookingsQueryHandler(_bookingRepository, _pricingPolicyRepository, _taxConfigRepository, _priceCalculator);
+        
+        // Setup default mock for price calculator
+        _priceCalculator.Calculate(Arg.Any<BookingEntity>(), Arg.Any<TourInstanceEntity>(), Arg.Any<IReadOnlyList<global::Domain.ValueObjects.PricingPolicyTier>>(), Arg.Any<TaxConfigEntity>(), Arg.Any<decimal>())
+            .Returns(callInfo =>
+            {
+                var booking = callInfo.Arg<BookingEntity>();
+                var paidAmount = callInfo.Arg<decimal>();
+                return new BookingPriceBreakdown(
+                    AdultUnitPrice: 500_000m,
+                    ChildUnitPrice: 300_000m,
+                    InfantUnitPrice: 0m,
+                    AdultSubtotal: 1_000_000m,
+                    ChildSubtotal: 0m,
+                    InfantSubtotal: 0m,
+                    Subtotal: 1_000_000m,
+                    TaxRate: 0.1m,
+                    TaxAmount: 100_000m,
+                    VisaServiceFeeTotal: 0m,
+                    TotalAmount: 1_100_000m,
+                    PaidAmount: paidAmount,
+                    RemainingBalance: 1_100_000m - paidAmount
+                );
+            });
     }
 
     [Fact]
@@ -56,7 +79,7 @@ public sealed class GetAllBookingsQueryHandlerTests
         Assert.Equal(bookingId, item.Id);
         Assert.Equal("Nguyen Van A", item.CustomerName);
         Assert.Equal("Ha Long Bay Tour", item.TourName);
-        Assert.Equal(5000m, item.TotalPrice);
+        Assert.Equal(1_100_000m, item.TotalPrice); // From mock breakdown.TotalAmount
         Assert.Equal("Confirmed", item.Status);
         Assert.Equal(1, listResult.Value.TotalCount);
     }

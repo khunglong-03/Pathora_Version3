@@ -19,6 +19,29 @@ public sealed class GetAllBookingsQueryHandlerTests
     public GetAllBookingsQueryHandlerTests()
     {
         _handler = new GetAllBookingsQueryHandler(_bookingRepository, _pricingPolicyRepository, _taxConfigRepository, _priceCalculator);
+        
+        // Setup default mock for price calculator
+        _priceCalculator.Calculate(Arg.Any<BookingEntity>(), Arg.Any<TourInstanceEntity>(), Arg.Any<IReadOnlyList<global::Domain.ValueObjects.PricingPolicyTier>>(), Arg.Any<TaxConfigEntity>(), Arg.Any<decimal>())
+            .Returns(callInfo =>
+            {
+                var booking = callInfo.Arg<BookingEntity>();
+                var paidAmount = callInfo.Arg<decimal>();
+                return new BookingPriceBreakdown(
+                    AdultUnitPrice: 500_000m,
+                    ChildUnitPrice: 300_000m,
+                    InfantUnitPrice: 0m,
+                    AdultSubtotal: 1_000_000m,
+                    ChildSubtotal: 0m,
+                    InfantSubtotal: 0m,
+                    Subtotal: 1_000_000m,
+                    TaxRate: 0.1m,
+                    TaxAmount: 100_000m,
+                    VisaServiceFeeTotal: 0m,
+                    TotalAmount: 1_100_000m,
+                    PaidAmount: paidAmount,
+                    RemainingBalance: 1_100_000m - paidAmount
+                );
+            });
     }
 
     [Fact]
@@ -157,11 +180,12 @@ public sealed class GetAllBookingsQueryHandlerTests
             Guid.NewGuid(), "Test Customer", "+84123456789", 2, 1000000m, PaymentMethod.VnPay, true, "TEST");
         booking.CustomerEmail = "test@example.com";
 
-        // Set up TourInstance navigation property (handler accesses b.TourInstance.TourName)
+        // Set up TourInstance navigation property (handler accesses b.TourInstance.TourName and StartDate)
         var tourInstance = new TourInstanceEntity
         {
             Id = Guid.NewGuid(),
-            TourName = "Test Tour Instance"
+            TourName = "Test Tour Instance",
+            StartDate = DateTimeOffset.UtcNow.AddDays(30)
         };
         booking.TourInstance = tourInstance;
 
