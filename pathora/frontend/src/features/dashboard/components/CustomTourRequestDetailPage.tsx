@@ -199,6 +199,7 @@ export default function CustomTourRequestDetailPage({
         setActionSuccess("Đã yêu cầu điều chỉnh. Tour Operator sẽ chỉnh sửa lịch trình.");
       }
       setShowRejectModal(false);
+      setShowAdjustModal(false);
       setRejectReason("");
       setReloadToken((v) => v + 1);
     } catch (error: unknown) {
@@ -796,7 +797,14 @@ export default function CustomTourRequestDetailPage({
 
                 {/* Nút 2: Yêu cầu điều chỉnh */}
                 <button
-                  onClick={() => { setShowAdjustModal(true); setShowRejectModal(false); }}
+                  onClick={() => {
+                    if (isPendingManagerReview) {
+                      setShowAdjustModal(true);
+                      setShowRejectModal(false);
+                    } else {
+                      void handleRequestAdjustment();
+                    }
+                  }}
                   disabled={actionLoading !== null || !canApproveOrAdjust}
                   title={!canApproveOrAdjust ? "Đang chờ Tour Operator chỉnh sửa lịch trình" : undefined}
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-[1.5rem] border border-orange-200 bg-white text-orange-600 text-base font-semibold transition-all hover:bg-orange-50 hover:border-orange-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
