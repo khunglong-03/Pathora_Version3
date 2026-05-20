@@ -16,8 +16,8 @@ import { isAxiosError } from "axios";
 /* ── Status constants (matching backend TourInstanceStatus enum) ── */
 const STATUS_DRAFT = "Draft";
 const STATUS_PENDING_MANAGER_REVIEW = "PendingManagerReview";
-const STATUS_PENDING_ADJUSTMENT = 9;  // PendingAdjustment
-const STATUS_CANCELLED = 6;           // Cancelled
+const STATUS_PENDING_ADJUSTMENT = "PendingAdjustment";  // PendingAdjustment
+const STATUS_CANCELLED = "Cancelled";           // Cancelled
 
 /* ── Animation Variants ───────────────────────────────────── */
 const itemVariants = {
