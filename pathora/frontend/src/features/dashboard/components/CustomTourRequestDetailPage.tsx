@@ -142,14 +142,20 @@ export default function CustomTourRequestDetailPage({
     setActionError(null);
     setActionSuccess(null);
     try {
-      console.log('[handleReject] Attempting to cancel tour:', { id, status: data?.status, statusValue: STATUS_CANCELLED });
-      await tourInstanceService.changeStatus(id, STATUS_CANCELLED);
-      setActionSuccess("Tour đã bị huỷ.");
+      if (role === "manager" && statusLower === STATUS_PENDING_MANAGER_REVIEW.toLowerCase()) {
+        // PendingManagerReview → dùng managerRejectItinerary (giống nút Từ chối bên Tour Instances)
+        // Endpoint này cho phép transition hợp lệ từ PendingManagerReview
+        await tourInstanceService.managerRejectItinerary(id, rejectReason.trim() || "Huỷ tour");
+        setActionSuccess("Tour đã bị huỷ.");
+      } else {
+        // Draft → changeStatus Cancelled
+        await tourInstanceService.changeStatus(id, STATUS_CANCELLED);
+        setActionSuccess("Tour đã bị huỷ.");
+      }
       setShowRejectModal(false);
       setRejectReason("");
       setReloadToken((v) => v + 1);
     } catch (error: unknown) {
-      console.error('[handleReject] Error:', error);
       if (isAxiosError(error) && error.response?.status === 401) {
         setActionError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để thực hiện thao tác này.");
       } else {
@@ -159,7 +165,7 @@ export default function CustomTourRequestDetailPage({
     } finally {
       setActionLoading(null);
     }
-  }, [id, data?.status]);
+  }, [id, role, statusLower, rejectReason]);
 
   // Handler for review approval (PendingManagerReview → PendingCustomerApproval)
   const handleManagerApproveItinerary = useCallback(async () => {
