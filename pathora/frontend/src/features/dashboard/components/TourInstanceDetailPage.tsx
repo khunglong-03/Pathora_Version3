@@ -220,8 +220,8 @@ function ManagerReviewPanel({ instanceId, onAction, wantsCustomization }: { inst
         </div>
       )}
 
-      {/* Note textarea - only show for custom tours */}
-      {wantsCustomization && (
+      {/* Note textarea - only show for custom tours, hidden after action taken */}
+      {wantsCustomization && !success && (
         <div>
           <label htmlFor="manager-review-note" className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block mb-2">
             Ghi chú điều chỉnh (bắt buộc khi yêu cầu điều chỉnh)
@@ -237,45 +237,47 @@ function ManagerReviewPanel({ instanceId, onAction, wantsCustomization }: { inst
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex gap-3">
-        <button
-          onClick={handleApprove}
-          disabled={loading !== null}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400"
-        >
-          {loading === "approve" ? (
-            <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
+      {/* Actions — hidden once an action has been taken successfully */}
+      {!success && (
+        <div className="flex gap-3">
+          <button
+            onClick={handleApprove}
+            disabled={loading !== null}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400"
+          >
+            {loading === "approve" ? (
+              <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
+            ) : (
+              <><Icon icon="heroicons:check-circle" className="size-4" /> Duyệt lịch trình</>
+            )}
+          </button>
+          {wantsCustomization ? (
+            <button
+              onClick={handleReject}
+              disabled={loading !== null}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-orange-200 bg-white text-orange-600 text-sm font-semibold transition-all hover:bg-orange-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200"
+            >
+              {loading === "reject" ? (
+                <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
+              ) : (
+                <><Icon icon="heroicons:arrow-uturn-left" className="size-4" /> Yêu cầu điều chỉnh</>
+              )}
+            </button>
           ) : (
-            <><Icon icon="heroicons:check-circle" className="size-4" /> Duyệt lịch trình</>
+            <button
+              onClick={handleReject}
+              disabled={loading !== null}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-red-200 bg-white text-red-600 text-sm font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200"
+            >
+              {loading === "reject" ? (
+                <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
+              ) : (
+                <><Icon icon="heroicons:x-circle" className="size-4" /> Từ chối</>
+              )}
+            </button>
           )}
-        </button>
-        {wantsCustomization ? (
-          <button
-            onClick={handleReject}
-            disabled={loading !== null}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-orange-200 bg-white text-orange-600 text-sm font-semibold transition-all hover:bg-orange-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200"
-          >
-            {loading === "reject" ? (
-              <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
-            ) : (
-              <><Icon icon="heroicons:arrow-uturn-left" className="size-4" /> Yêu cầu điều chỉnh</>
-            )}
-          </button>
-        ) : (
-          <button
-            onClick={handleReject}
-            disabled={loading !== null}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-red-200 bg-white text-red-600 text-sm font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200"
-          >
-            {loading === "reject" ? (
-              <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
-            ) : (
-              <><Icon icon="heroicons:x-circle" className="size-4" /> Từ chối</>
-            )}
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </article>
   );
 }

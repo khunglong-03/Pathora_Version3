@@ -117,7 +117,12 @@ public sealed class ManagerRejectPrivateTourCommandHandler(
 
         try
         {
-            instance.ManagerRejectItinerary(request.Reason, user.Id ?? string.Empty);
+            // wantsCustomization=false: không có Operator nào chỉnh sửa → Cancel luôn.
+            // wantsCustomization=true: trả về Operator để điều chỉnh → PendingAdjustment.
+            if (!instance.WantsCustomization)
+                instance.Cancel(request.Reason, user.Id ?? string.Empty);
+            else
+                instance.ManagerRejectItinerary(request.Reason, user.Id ?? string.Empty);
         }
         catch (ArgumentException ex)
         {

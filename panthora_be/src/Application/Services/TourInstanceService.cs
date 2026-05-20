@@ -1341,7 +1341,15 @@ public class TourInstanceService(
         var entity = await _tourInstanceRepository.FindById(id);
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
-        try { entity.ManagerRejectItinerary(reason, _user.Id ?? string.Empty); }
+        try
+        {
+            // wantsCustomization=false: không có Operator nào chỉnh sửa → Cancel luôn.
+            // wantsCustomization=true: trả về Operator để điều chỉnh → PendingAdjustment.
+            if (!entity.WantsCustomization)
+                entity.Cancel(reason, _user.Id ?? string.Empty);
+            else
+                entity.ManagerRejectItinerary(reason, _user.Id ?? string.Empty);
+        }
         catch (InvalidOperationException ex) { return Error.Validation("TourInstance.InvalidTransition", ex.Message); }
         catch (ArgumentException ex) { return Error.Validation("TourInstance.InvalidArgument", ex.Message); }
         await _tourInstanceRepository.Update(entity);
