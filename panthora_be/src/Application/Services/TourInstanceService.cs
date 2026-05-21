@@ -1700,28 +1700,10 @@ public class TourInstanceService(
             return new PaginatedList<TourInstanceVm>(0, [], request.PageNumber, request.PageSize);
         }
 
+        // If the user is an Admin or Manager, and they are viewing Custom Tour Requests (wantsCustomization = true),
+        // we bypass the principalId scoping so they can see all custom requests for review.
         var isAdminOrManager = _user.Roles != null && (_user.Roles.Contains("Admin") || _user.Roles.Contains("Manager"));
-        
-        // Determine effective principal ID for scoping:
-        // 1. Admin/Manager viewing custom requests (wantsCustomization = true) → see all (null)
-        // 2. Tour Operator viewing public tours (wantsCustomization = false) → see all public tours (null)
-        // 3. Otherwise → scope to user's managed tours/instances (principalId)
-        Guid? effectivePrincipalId = null;
-        if (isAdminOrManager && request.WantsCustomization == true)
-        {
-            // Admin/Manager can see all custom tour requests
-            effectivePrincipalId = null;
-        }
-        else if (request.WantsCustomization == false)
-        {
-            // Public tours: all users (including tour operators) can see all public tours
-            effectivePrincipalId = null;
-        }
-        else
-        {
-            // Private/custom tours or no filter: scope to user's managed tours
-            effectivePrincipalId = principalId;
-        }
+        Guid? effectivePrincipalId = (isAdminOrManager && request.WantsCustomization == true) ? null : principalId;
 
         var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, request.WantsCustomization, effectivePrincipalId);
         var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, request.WantsCustomization, effectivePrincipalId);
