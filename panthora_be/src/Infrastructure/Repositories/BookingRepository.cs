@@ -86,14 +86,10 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .AsNoTracking()
             .Include(b => b.TourInstance)
             .Include(b => b.User)
-            .Include(b => b.PaymentTransactions)
             .AsSplitQuery();
 
-        // Refund tracking only applies to cancelled bookings
         if (refundStatus.HasValue)
-        {
-            query = query.Where(b => b.Status == BookingStatus.Cancelled && b.RefundStatus == refundStatus.Value);
-        }
+            query = query.Where(b => b.RefundStatus == refundStatus.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
@@ -141,17 +137,13 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .AsNoTracking()
             .Include(b => b.TourInstance)
             .Include(b => b.User)
-            .Include(b => b.PaymentTransactions)
             .Where(b => !b.TourInstance.IsDeleted
                         && (allowedTourIds.Contains(b.TourInstance.TourId)
                             || allowedInstanceIds.Contains(b.TourInstanceId)))
             .AsSplitQuery();
 
-        // Refund tracking only applies to cancelled bookings
         if (refundStatus.HasValue)
-        {
-            query = query.Where(b => b.Status == BookingStatus.Cancelled && b.RefundStatus == refundStatus.Value);
-        }
+            query = query.Where(b => b.RefundStatus == refundStatus.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
