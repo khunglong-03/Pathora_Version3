@@ -3188,7 +3188,7 @@
       "refunded": "Đã Hoàn Tiền",
       "fromLastMonth": "từ tháng trước",
       "transactions": "giao dịch",
-      "syncedFromBackend": "Đồng bộ từ backend"
+      "syncedFromBackend": "Theo giao dịch đã ghi nhận"
     },
     "filter": {
       "all": "Tất cả"
@@ -3222,6 +3222,9 @@
       "title": "Không thể tải đặt chỗ",
       "fallback": "Không thể tải dữ liệu đặt chỗ. Vui lòng thử lại.",
       "loadFailed": "Không thể tải danh sách đặt chỗ"
+    },
+    "pagination": {
+      "page": "Trang"
     }
   },
   "taxConfig": {

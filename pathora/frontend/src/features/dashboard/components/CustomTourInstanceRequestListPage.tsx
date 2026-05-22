@@ -45,6 +45,10 @@ const TOUR_OPERATOR_VISIBLE_STATUSES = [
   "PendingAdjustment",
   "PendingManagerReview",
 ];
+const MANAGER_VISIBLE_STATUSES = [
+  "Draft",
+  "PendingManagerReview",
+];
 
 /* ══════════════════════════════════════════════════════════════
    TourInstanceListPage - Main Export
@@ -91,16 +95,14 @@ export function CustomTourInstanceRequestListPage({
       ]
     : [
         { value: "all", label: "Tất cả" },
-        { value: "draft", label: "Bản nháp (Draft)" },
+        { value: "draft", label: "Người dùng mới yêu cầu" },
         { value: "pendingmanagerreview", label: "Chờ Quản lý duyệt" },
-        { value: "pendingcustomerapproval", label: "Chờ Khách hàng chốt" },
-        { value: "pendingadjustment", label: "Cần điều chỉnh" },
-        { value: "confirmed", label: "Đã xác nhận" },
-        { value: "cancelled", label: "Đã huỷ" },
       ];
-  const requestStatuses = role === "tour-operator" && statusFilter === "all"
-    ? TOUR_OPERATOR_VISIBLE_STATUSES
-    : undefined;
+  const requestStatuses = statusFilter !== "all"
+    ? undefined
+    : role === "tour-operator"
+      ? TOUR_OPERATOR_VISIBLE_STATUSES
+      : MANAGER_VISIBLE_STATUSES;
 
   /* ── Fetch instances ─────────────────────────────────────── */
   useEffect(() => {

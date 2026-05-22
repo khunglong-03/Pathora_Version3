@@ -7,8 +7,11 @@ import type { BookingsDataState } from "./BookingsPageData";
 export function useBookingsData(t: TFunction) {
   const [dataState, setDataState] = useState<BookingsDataState>("loading");
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const pageSize = 20;
 
   useEffect(() => {
     let active = true;
@@ -17,18 +20,20 @@ export function useBookingsData(t: TFunction) {
       setDataState("loading");
       setErrorMessage(null);
       try {
-        const result = await adminService.getBookings();
+        const result = await adminService.getBookingsPage({ page: currentPage, pageSize });
         if (!active) return;
-        if (!result || result.length === 0) {
+        setTotalCount(result.totalCount);
+        if (!result.items || result.items.length === 0) {
           setBookings([]);
           setDataState("empty");
         } else {
-          setBookings(result);
+          setBookings(result.items);
           setDataState("ready");
         }
       } catch (err) {
         if (!active) return;
         setBookings([]);
+        setTotalCount(0);
         setDataState("error");
         setErrorMessage(
           err instanceof Error ? err.message : t("bookings.error.loadFailed"),
@@ -38,7 +43,7 @@ export function useBookingsData(t: TFunction) {
 
     void loadBookings();
     return () => { active = false; };
-  }, [reloadToken, t]);
+  }, [currentPage, pageSize, reloadToken, t]);
 
   const isLoading = dataState === "loading";
   const isError = dataState === "error";
@@ -58,10 +63,18 @@ export function useBookingsData(t: TFunction) {
   const retryLoading = () => setReloadToken((v) => v + 1);
 
   const confirmedPercent = bookings.length > 0 ? Math.round((confirmedCount / bookings.length) * 100) : 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  const goToPreviousPage = () => setCurrentPage((page) => Math.max(1, page - 1));
+  const goToNextPage = () => setCurrentPage((page) => Math.min(totalPages, page + 1));
 
   return {
     dataState,
     bookings,
+    totalCount,
+    currentPage,
+    pageSize,
+    totalPages,
     errorMessage,
     isLoading,
     isError,
@@ -71,5 +84,7 @@ export function useBookingsData(t: TFunction) {
     confirmedCount,
     confirmedPercent,
     retryLoading,
+    goToPreviousPage,
+    goToNextPage,
   };
 }

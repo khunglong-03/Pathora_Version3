@@ -57,6 +57,7 @@ export function buildStatCards(
   t: (key: string) => string,
   isEmpty: boolean,
   bookings: AdminBooking[],
+  totalCount: number,
   confirmedCount: number,
   confirmedPercent: number,
   totalRevenue: number,
@@ -64,7 +65,7 @@ export function buildStatCards(
   return [
     {
       label: t("bookings.stat.totalBookings"),
-      value: isEmpty ? "0" : String(bookings.length),
+      value: isEmpty ? "0" : String(totalCount),
       accent: CSS.textMuted,
       accentMuted: CSS.surfaceRaise,
       accentBorder: CSS.border,

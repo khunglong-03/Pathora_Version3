@@ -11,9 +11,22 @@ import { formatCurrency } from "@/utils/format";
 interface BookingsTableProps {
   bookings: AdminBooking[];
   t: (key: string) => string;
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  onPreviousPage: () => void;
+  onNextPage: () => void;
 }
 
-export function BookingsTable({ bookings, t }: BookingsTableProps) {
+export function BookingsTable({
+  bookings,
+  t,
+  totalCount,
+  currentPage,
+  totalPages,
+  onPreviousPage,
+  onNextPage,
+}: BookingsTableProps) {
   const columns = [
     "bookings.column.booking",
     "bookings.column.customer",
@@ -28,7 +41,7 @@ export function BookingsTable({ bookings, t }: BookingsTableProps) {
     <Card bodyClass="p-0 border-0 shadow-none overflow-hidden" className="border-0 shadow-none">
       <div className="px-6 pt-5 pb-3" style={{ borderBottom: `1px solid ${CSS.borderSub}` }}>
         <p className="text-xs font-medium uppercase tracking-widest" style={{ color: CSS.textMuted }}>
-          {t("bookings.tableLabel")} &middot; {bookings.length}
+          {t("bookings.tableLabel")} &middot; {totalCount}
         </p>
       </div>
 
@@ -91,6 +104,29 @@ export function BookingsTable({ bookings, t }: BookingsTableProps) {
             </div>
           </motion.div>
         ))}
+      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4" style={{ borderTop: `1px solid ${CSS.borderSub}` }}>
+        <p className="text-sm" style={{ color: CSS.textMuted }}>
+          {t("bookings.pagination.page")} {currentPage}/{totalPages}
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={onPreviousPage}
+            className="px-4 py-2 rounded-xl text-sm font-medium border disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+            style={{ borderColor: CSS.border, color: CSS.textSecondary, backgroundColor: CSS.surface }}
+          >
+            {t("common.previous")}
+          </button>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={onNextPage}
+            className="px-4 py-2 rounded-xl text-sm font-medium border disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+            style={{ borderColor: CSS.border, color: CSS.textSecondary, backgroundColor: CSS.surface }}
+          >
+            {t("common.next")}
+          </button>
+        </div>
       </div>
     </Card>
   );

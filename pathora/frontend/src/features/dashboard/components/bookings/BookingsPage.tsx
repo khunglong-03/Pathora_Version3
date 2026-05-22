@@ -23,17 +23,23 @@ export default function BookingsPage() {
     isEmpty,
     canShowData,
     bookings,
+    totalCount,
+    currentPage,
+    totalPages,
     errorMessage,
     totalRevenue,
     confirmedCount,
     confirmedPercent,
     retryLoading,
+    goToPreviousPage,
+    goToNextPage,
   } = useBookingsData(t);
 
   const statCards = buildStatCards(
     t,
     isEmpty,
     bookings,
+    totalCount,
     confirmedCount,
     confirmedPercent,
     totalRevenue
@@ -147,7 +153,15 @@ export default function BookingsPage() {
             ) : (
               <Reveal delay={2}>
                 <CardShell className="p-[1px]">
-                  <BookingsTable bookings={bookings} t={t} />
+                  <BookingsTable
+                    bookings={bookings}
+                    t={t}
+                    totalCount={totalCount}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPreviousPage={goToPreviousPage}
+                    onNextPage={goToNextPage}
+                  />
                 </CardShell>
               </Reveal>
             )}

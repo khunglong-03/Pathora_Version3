@@ -3190,7 +3190,7 @@
       "refunded": "Refunded",
       "fromLastMonth": "from last month",
       "transactions": "transactions",
-      "syncedFromBackend": "Synced from backend"
+      "syncedFromBackend": "Based on recorded transactions"
     },
     "filter": {
       "all": "All"
@@ -3224,6 +3224,9 @@
       "title": "Could not load bookings",
       "fallback": "Unable to load booking data. Please try again.",
       "loadFailed": "Failed to load bookings list"
+    },
+    "pagination": {
+      "page": "Page"
     }
   },
   "tourOperator": {
