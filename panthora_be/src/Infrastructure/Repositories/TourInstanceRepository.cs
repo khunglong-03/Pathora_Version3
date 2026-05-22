@@ -102,7 +102,6 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
         if (principalId.HasValue)
         {
-            // Get list of tour operators that this manager manages
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
@@ -110,13 +109,6 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
-
-            // Also check if current user is assigned AS an operator (reverse lookup)
-            var isAssignedOperator = await _context.TourManagerAssignments
-                .AsNoTracking()
-                .AnyAsync(a => a.AssignedUserId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourOperator,
-                    cancellationToken);
 
             if (!designerIds.Contains(principalId.Value))
             {

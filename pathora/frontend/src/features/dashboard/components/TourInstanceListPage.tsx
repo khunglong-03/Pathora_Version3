@@ -214,7 +214,7 @@ export function TourInstanceListPage({
           1,
           pageSize,
           excludePast,
-          undefined // wantsCustomization - use undefined to get all tours, then filter by instanceType client-side
+          false // wantsCustomization
         );
         if (!active) return;
         if (result) {
@@ -256,7 +256,6 @@ export function TourInstanceListPage({
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     debouncedSearchText,
     statusFilter,
@@ -264,7 +263,7 @@ export function TourInstanceListPage({
     excludePast,
     pageSize,
     reloadToken,
-    // safeT is stable, no need to include in deps
+    safeT,
   ]);
 
   /* ── Fetch stats ──────────────────────────────────────────── */
