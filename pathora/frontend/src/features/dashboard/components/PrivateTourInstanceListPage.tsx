@@ -110,6 +110,7 @@ export function PrivateTourInstanceListPage() {
           pageSize,
           excludePast,
           undefined,
+          "private",
         );
         if (!active) return;
         if (result) {

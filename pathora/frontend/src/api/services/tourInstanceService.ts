@@ -276,7 +276,9 @@ export const tourInstanceService = {
     pageNumber = 1,
     pageSize = 10,
     excludePast = false,
-    wantsCustomization?: boolean
+    wantsCustomization?: boolean,
+    instanceType?: "public" | "private",
+    statuses?: string[],
   ) => {
     const params = new URLSearchParams();
     if (searchText) params.append("searchText", searchText);
@@ -285,6 +287,8 @@ export const tourInstanceService = {
     params.append("pageSize", pageSize.toString());
     if (excludePast) params.append("excludePast", "true");
     if (wantsCustomization !== undefined) params.append("wantsCustomization", wantsCustomization.toString());
+    if (instanceType) params.append("instanceType", instanceType);
+    statuses?.forEach((statusValue) => params.append("statuses", statusValue));
 
     // Backend returns PaginatedList<T> mapped as { items: [], totalCount: 0 }
     type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
@@ -356,9 +360,11 @@ export const tourInstanceService = {
     return extractResult<DynamicPricingResolutionDto>(response.data);
   },
 
-  getStats: async () => {
+  getStats: async (instanceType?: "public" | "private") => {
+    const params = new URLSearchParams();
+    if (instanceType) params.append("instanceType", instanceType);
     const response = await api.get<ServiceResponse<TourInstanceStats>>(
-      API_ENDPOINTS.TOUR_INSTANCE.GET_STATS,
+      `${API_ENDPOINTS.TOUR_INSTANCE.GET_STATS}${params.size > 0 ? `?${params.toString()}` : ""}`,
     );
     return extractResult<TourInstanceStats>(response.data);
   },

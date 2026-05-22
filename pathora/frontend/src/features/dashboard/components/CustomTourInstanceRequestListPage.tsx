@@ -41,6 +41,10 @@ const itemVariants = {
 /* (TourStatusBadge imported from @/components/ui) */
 
 const AUTH_FAILURE_STATUSES = new Set([401, 403]);
+const TOUR_OPERATOR_VISIBLE_STATUSES = [
+  "PendingAdjustment",
+  "PendingManagerReview",
+];
 
 /* ══════════════════════════════════════════════════════════════
    TourInstanceListPage - Main Export
@@ -79,6 +83,24 @@ export function CustomTourInstanceRequestListPage({
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [drawerDetail, setDrawerDetail] = useState<NormalizedTourInstanceDto | null>(null);
   const [drawerLoading, setDrawerLoading] = useState(false);
+  const statusOptions = role === "tour-operator"
+    ? [
+        { value: "all", label: "Tất cả" },
+        { value: "pendingadjustment", label: "Cần điều chỉnh" },
+        { value: "pendingmanagerreview", label: "Chờ Quản lý duyệt" },
+      ]
+    : [
+        { value: "all", label: "Tất cả" },
+        { value: "draft", label: "Bản nháp (Draft)" },
+        { value: "pendingmanagerreview", label: "Chờ Quản lý duyệt" },
+        { value: "pendingcustomerapproval", label: "Chờ Khách hàng chốt" },
+        { value: "pendingadjustment", label: "Cần điều chỉnh" },
+        { value: "confirmed", label: "Đã xác nhận" },
+        { value: "cancelled", label: "Đã huỷ" },
+      ];
+  const requestStatuses = role === "tour-operator" && statusFilter === "all"
+    ? TOUR_OPERATOR_VISIBLE_STATUSES
+    : undefined;
 
   /* ── Fetch instances ─────────────────────────────────────── */
   useEffect(() => {
@@ -100,25 +122,22 @@ export function CustomTourInstanceRequestListPage({
       try {
         setDataState("loading");
         setErrorMessage(null);
-        setCurrentPage(1);
         const result = await tourInstanceService.getAllInstances(
           debouncedSearchText || undefined,
           statusFilter,
-          1,
+          currentPage,
           pageSize,
           excludePast,
-          true // wantsCustomization
+          undefined,
+          "private",
+          requestStatuses,
         );
         if (!active) return;
         if (result) {
-          const allInstances = result.data ?? [];
-          // Force visibility to private since this is custom tour requests
-          const filteredInstances = allInstances.filter(
-            (inst) => inst.instanceType?.toLowerCase() === "private"
-          );
+          const filteredInstances = result.data ?? [];
 
           setInstances(filteredInstances);
-          setTotalItems(filteredInstances.length);
+          setTotalItems(result.total ?? filteredInstances.length);
           if (!filteredInstances || filteredInstances.length === 0) {
             setDataState("empty");
           } else {
@@ -153,8 +172,10 @@ export function CustomTourInstanceRequestListPage({
     debouncedSearchText,
     statusFilter,
     excludePast,
+    currentPage,
     pageSize,
     reloadToken,
+    role,
     // safeT intentionally excluded: it changes on hydration (false→true) and
     // would cause a duplicate fetch. It is only used for error display strings.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -202,7 +223,10 @@ export function CustomTourInstanceRequestListPage({
             <input
               type="text"
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => {
+                setSearchText(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder={safeT(
                 "placeholder.searchByTitleLocationCountry",
                 "Search scheduled instances...",
@@ -215,7 +239,10 @@ export function CustomTourInstanceRequestListPage({
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  onClick={() => setSearchText("")}
+                  onClick={() => {
+                    setSearchText("");
+                    setCurrentPage(1);
+                  }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-stone-200 text-stone-500 hover:bg-stone-300 hover:text-stone-700 rounded-full transition-colors">
                   <Icon icon="heroicons:x-mark" className="size-4" />
                 </motion.button>
@@ -227,15 +254,14 @@ export function CustomTourInstanceRequestListPage({
             <div className="relative flex-1 md:flex-none min-w-[140px]">
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
-                <option value="all">Tất cả</option>
-                <option value="draft">Bản nháp (Draft)</option>
-                <option value="pendingmanagerreview">Chờ Quản lý duyệt</option>
-                <option value="pendingcustomerapproval">Chờ Khách hàng chốt</option>
-                <option value="pendingadjustment">Cần điều chỉnh</option>
-                <option value="confirmed">Đã xác nhận</option>
-                <option value="cancelled">Đã huỷ</option>
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
               </select>
               <Icon
                 icon="heroicons:chevron-down"
@@ -253,7 +279,10 @@ export function CustomTourInstanceRequestListPage({
               <input 
                 type="checkbox" 
                 checked={excludePast} 
-                onChange={(e) => setExcludePast(e.target.checked)} 
+                onChange={(e) => {
+                  setExcludePast(e.target.checked);
+                  setCurrentPage(1);
+                }}
                 className="size-4 rounded border-stone-300 text-amber-500 focus:ring-amber-500/20 transition-colors"
                />
               {safeT("tourInstance.filter.excludePast", "Ẩn tour đã qua")}

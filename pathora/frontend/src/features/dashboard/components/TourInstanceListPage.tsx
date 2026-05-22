@@ -186,7 +186,7 @@ export function TourInstanceListPage({
   const debouncedSearchText = useDebounce(searchText, 300);
   const [statusFilter, setStatusFilter] = useState("all");
   // If instanceTypeFilter prop is provided, it overrides and locks the visibility dropdown
-  const [visibilityFilter, setVisibilityFilter] = useState(instanceTypeFilter ?? "all");
+  const [visibilityFilter, setVisibilityFilter] = useState(instanceTypeFilter ?? (role === "manager" ? "public" : "all"));
   const [excludePast, setExcludePast] = useState(true);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -214,21 +214,16 @@ export function TourInstanceListPage({
           1,
           pageSize,
           excludePast,
-          false // wantsCustomization
+          false, // wantsCustomization
+          visibilityFilter === "all" ? undefined : visibilityFilter,
         );
         if (!active) return;
         if (result) {
           const allInstances = result.data ?? [];
-          const filteredInstances =
-            visibilityFilter === "all"
-              ? allInstances
-              : allInstances.filter(
-                  (inst) =>
-                    inst.instanceType?.toLowerCase() === visibilityFilter,
-                );
+          const filteredInstances = allInstances;
 
           setInstances(filteredInstances);
-          setTotalItems(filteredInstances.length);
+          setTotalItems(result.total ?? filteredInstances.length);
           if (!filteredInstances || filteredInstances.length === 0) {
             setDataState("empty");
           } else {
@@ -271,7 +266,8 @@ export function TourInstanceListPage({
     let statsActive = true;
     const doFetchStats = async () => {
       try {
-        const result = await tourInstanceService.getStats();
+        const statsInstanceType = visibilityFilter === "all" ? undefined : visibilityFilter;
+        const result = await tourInstanceService.getStats(statsInstanceType);
         if (!statsActive) return;
         if (result) setStats(result);
       } catch {
@@ -282,7 +278,7 @@ export function TourInstanceListPage({
     return () => {
       statsActive = false;
     };
-  }, [reloadToken]);
+  }, [reloadToken, visibilityFilter]);
 
   /* ── Pagination ───────────────────────────────────────────── */
   const totalPages = Math.ceil(totalItems / pageSize);

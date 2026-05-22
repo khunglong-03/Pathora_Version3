@@ -10,6 +10,7 @@ using global::Domain.Enums;
 using global::Domain.UnitOfWork;
 using global::NSubstitute;
 using global::Xunit;
+using global::ErrorOr;
 
 namespace Domain.Specs.Application.Features.Public.Commands;
 
