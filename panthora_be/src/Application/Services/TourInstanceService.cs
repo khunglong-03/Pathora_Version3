@@ -1945,22 +1945,41 @@ public class TourInstanceService(
         if (request.Price.HasValue)
             activity.Price = request.Price.Value;
 
-        if (activity.ActivityType == TourDayActivityType.Accommodation
-            && (request.RoomType.HasValue || request.RoomCount.HasValue))
+        if (activity.ActivityType == TourDayActivityType.Accommodation)
         {
             var nextRoomType = request.RoomType ?? activity.Accommodation?.RoomType;
             var nextQuantity = request.RoomCount ?? activity.Accommodation?.Quantity ?? 1;
+
+            var nextStartTime = activity.StartTime;
+            var nextEndTime = activity.EndTime;
+
+            DateTimeOffset? checkInTime = nextStartTime.HasValue
+                ? new DateTimeOffset(instanceDay.ActualDate.ToDateTime(nextStartTime.Value), TimeSpan.Zero)
+                : null;
+            DateTimeOffset? checkOutTime = nextEndTime.HasValue
+                ? new DateTimeOffset(instanceDay.ActualDate.ToDateTime(nextEndTime.Value), TimeSpan.Zero)
+                : null;
+
+            if (checkInTime.HasValue && checkOutTime.HasValue && checkOutTime.Value < checkInTime.Value)
+            {
+                checkOutTime = checkOutTime.Value.AddDays(1);
+            }
+
             if (activity.Accommodation is null)
             {
                 activity.Accommodation = TourInstancePlanAccommodationEntity.Create(
                     tourInstanceDayActivityId: activity.Id,
                     roomType: nextRoomType,
-                    quantity: nextQuantity);
+                    quantity: nextQuantity,
+                    checkInTime: checkInTime,
+                    checkOutTime: checkOutTime);
             }
             else
             {
                 activity.Accommodation.RoomType = nextRoomType;
                 activity.Accommodation.Quantity = nextQuantity;
+                activity.Accommodation.CheckInTime = checkInTime;
+                activity.Accommodation.CheckOutTime = checkOutTime;
             }
         }
 
@@ -2094,12 +2113,26 @@ public class TourInstanceService(
                     _user.Id ?? "system");
             }
         }
-        else if (request.ActivityType == TourDayActivityType.Accommodation && request.RoomType.HasValue)
+        else if (request.ActivityType == TourDayActivityType.Accommodation)
         {
+            DateTimeOffset? checkInTime = request.StartTime.HasValue
+                ? new DateTimeOffset(day.ActualDate.ToDateTime(request.StartTime.Value), TimeSpan.Zero)
+                : null;
+            DateTimeOffset? checkOutTime = request.EndTime.HasValue
+                ? new DateTimeOffset(day.ActualDate.ToDateTime(request.EndTime.Value), TimeSpan.Zero)
+                : null;
+
+            if (checkInTime.HasValue && checkOutTime.HasValue && checkOutTime.Value < checkInTime.Value)
+            {
+                checkOutTime = checkOutTime.Value.AddDays(1);
+            }
+
             activity.Accommodation = TourInstancePlanAccommodationEntity.Create(
                 tourInstanceDayActivityId: activity.Id,
                 roomType: request.RoomType,
-                quantity: request.RoomCount ?? 1);
+                quantity: request.RoomCount ?? 1,
+                checkInTime: checkInTime,
+                checkOutTime: checkOutTime);
         }
 
         // Use AddAsync (via repo) to explicitly mark the entry as Added — adding to the
@@ -2139,7 +2172,17 @@ public class TourInstanceService(
     private async Task RecalculatePrivateTourFinalPriceAsync(Guid instanceId, TourInstanceEntity? loadedInstance = null)
     {
         var instance = loadedInstance ?? await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId);
-        if (instance == null || instance.InstanceType != TourType.Private) return;
+        if (instance == null) return;
+
+        if (instance.InstanceType != TourType.Private)
+        {
+            await _tourInstanceRepository.Update(instance);
+            if (_unitOfWork != null)
+            {
+                await _unitOfWork.SaveChangeAsync();
+            }
+            return;
+        }
 
         // OriginalBasePrice is the immutable per-person snapshot set at creation time
         // (kept for historical reference). The displayed BasePrice for a private custom

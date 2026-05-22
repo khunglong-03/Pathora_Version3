@@ -555,6 +555,8 @@ export interface TourInstancePlanAccommodationDto {
   id: string;
   roomType: string;
   quantity: number;
+  checkInTime?: string | null;
+  checkOutTime?: string | null;
   roomBlocksTotal?: number;
   supplierId?: string | null;
   supplierName?: string | null;

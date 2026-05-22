@@ -47,6 +47,8 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.Id), opt => opt.MapFrom(src => src.Id))
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.RoomType), opt => opt.MapFrom(src => src.RoomType.ToString()))
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.Quantity), opt => opt.MapFrom(src => src.Quantity))
+            .ForCtorParam(nameof(TourInstancePlanAccommodationDto.CheckInTime), opt => opt.MapFrom(src => src.CheckInTime))
+            .ForCtorParam(nameof(TourInstancePlanAccommodationDto.CheckOutTime), opt => opt.MapFrom(src => src.CheckOutTime))
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.SupplierId), opt => opt.MapFrom(src => src.SupplierId))
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.SupplierName), opt => opt.MapFrom(src => src.Supplier != null ? src.Supplier.Name : null))
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.SupplierApprovalStatus), opt => opt.MapFrom(src => src.SupplierApprovalStatus.ToString()))
@@ -74,6 +76,8 @@ public sealed class TourInstanceProfile : Profile
                         src.Accommodation.Id,
                         (src.Accommodation.RoomType ?? default(RoomType)).ToString(),
                         src.Accommodation.Quantity,
+                        src.Accommodation.CheckInTime,
+                        src.Accommodation.CheckOutTime,
                         src.Accommodation.SupplierId,
                         src.Accommodation.Supplier != null ? src.Accommodation.Supplier.Name : null,
                         src.Accommodation.SupplierApprovalStatus.ToString(),

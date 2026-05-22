@@ -46,7 +46,7 @@ public sealed class CreateTourInstanceActivityCommandValidator : AbstractValidat
         RuleFor(x => x.InstanceId).NotEmpty().WithMessage(ValidationMessages.TourInstanceIdRequired);
         RuleFor(x => x.DayId).NotEmpty().WithMessage("Day ID is required.");
         RuleFor(x => x.Title).NotEmpty().WithMessage("Title is required.");
-        When(x => x.StartTime.HasValue && x.EndTime.HasValue, () =>
+        When(x => x.StartTime.HasValue && x.EndTime.HasValue && x.ActivityType != TourDayActivityType.Accommodation, () =>
         {
             RuleFor(x => x)
                 .Must(x => x.StartTime!.Value < x.EndTime!.Value)

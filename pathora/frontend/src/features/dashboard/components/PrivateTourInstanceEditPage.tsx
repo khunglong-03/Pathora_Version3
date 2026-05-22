@@ -589,7 +589,7 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh, read
     }
     const isDuplicateDate = (days ?? []).some((d) => {
       if (!d.actualDate) return false;
-      const existing = new Date(d.actualDate).toISOString().split("T")[0];
+      const existing = d.actualDate.split("T")[0];
       return existing === newDayDate;
     });
     if (isDuplicateDate) {
@@ -606,7 +606,7 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh, read
       toast.error("Vui lòng nhập tên hoạt động đầu tiên cho ngày này");
       return;
     }
-    if (actStartTime && actEndTime && actStartTime >= actEndTime) {
+    if (!isActAccommodation && actStartTime && actEndTime && actStartTime >= actEndTime) {
       toast.error("Giờ kết thúc phải sau giờ bắt đầu");
       return;
     }
@@ -934,7 +934,7 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
     }
     const dup = (siblingDays ?? []).some((d) => {
       if (d.id === day.id || !d.actualDate) return false;
-      return new Date(d.actualDate).toISOString().split("T")[0] === editDate;
+      return d.actualDate.split("T")[0] === editDate;
     });
     if (dup) {
       toast.error("Đã có một ngày khác với ngày diễn ra này trong lịch trình");
@@ -1174,14 +1174,14 @@ function ActivityForm({ instanceId, dayId, dayDate, initialData, dayActivities, 
   const [title, setTitle] = useState(initialData?.title || "");
   const [actType, setActType] = useState(initialData?.activityType || "0");
   
-  let defaultStartTime = extractTimeOnly(initialData?.startTime) || "";
+  let defaultStartTime = extractTimeOnly(initialData?.accommodation?.checkInTime) || extractTimeOnly(initialData?.startTime) || "";
   if (!isEditing && dayActivities && dayActivities.length > 0) {
     const lastAct = dayActivities[dayActivities.length - 1];
     defaultStartTime = extractTimeOnly(lastAct.endTime) || extractTimeOnly(lastAct.startTime) || "";
   }
 
   const [startTime, setStartTime] = useState(defaultStartTime);
-  const [endTime, setEndTime] = useState(extractTimeOnly(initialData?.endTime) || "");
+  const [endTime, setEndTime] = useState(extractTimeOnly(initialData?.accommodation?.checkOutTime) || extractTimeOnly(initialData?.endTime) || "");
   const [price, setPrice] = useState(initialData?.price != null ? String(initialData.price) : "");
   const [note, setNote] = useState(initialData?.note || "");
   const [saving, setSaving] = useState(false);
@@ -1235,7 +1235,7 @@ function ActivityForm({ instanceId, dayId, dayDate, initialData, dayActivities, 
       return;
     }
 
-    if (startTime && endTime && startTime >= endTime) {
+    if (!isAccommodation && startTime && endTime && startTime >= endTime) {
       toast.error("Giờ kết thúc phải sau giờ bắt đầu");
       return;
     }
@@ -1247,10 +1247,13 @@ function ActivityForm({ instanceId, dayId, dayDate, initialData, dayActivities, 
 
       if (currentIndex > 0) {
         const prevAct = dayActivities[currentIndex - 1];
-        const prevTime = extractTimeOnly(prevAct.endTime) || extractTimeOnly(prevAct.startTime);
-        if (prevTime && prevTime > startTime) {
-          toast.error(`Giờ bắt đầu phải sau hoặc bằng thời gian của hoạt động trước đó (${prevTime})`);
-          return;
+        const isPrevAccommodation = prevAct.activityType === "Accommodation" || prevAct.activityType === "8";
+        if (!isPrevAccommodation) {
+          const prevTime = extractTimeOnly(prevAct.endTime) || extractTimeOnly(prevAct.startTime);
+          if (prevTime && prevTime > startTime) {
+            toast.error(`Giờ bắt đầu phải sau hoặc bằng thời gian của hoạt động trước đó (${prevTime})`);
+            return;
+          }
         }
       }
 
@@ -1258,7 +1261,7 @@ function ActivityForm({ instanceId, dayId, dayDate, initialData, dayActivities, 
         const nextAct = dayActivities[currentIndex + 1];
         const nextTime = extractTimeOnly(nextAct.startTime);
         const myEndTime = endTime || startTime;
-        if (nextTime && nextTime < myEndTime) {
+        if (!isAccommodation && nextTime && nextTime < myEndTime) {
           toast.error(`Thời gian kết thúc phải trước hoặc bằng giờ bắt đầu của hoạt động sau (${nextTime})`);
           return;
         }

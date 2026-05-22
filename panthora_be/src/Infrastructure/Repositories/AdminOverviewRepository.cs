@@ -13,14 +13,56 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
     private static readonly CultureInfo DateCulture = CultureInfo.InvariantCulture;
     private readonly AppDbContext _context = context;
 
-    public async Task<AdminOverviewReport> GetOverview(CancellationToken cancellationToken = default)
+    public async Task<AdminOverviewReport> GetOverview(Guid? managerId = null, CancellationToken cancellationToken = default)
     {
-        var stats = await BuildDashboardStats(cancellationToken);
-        var customers = await BuildCustomers(cancellationToken);
-        var insurances = await BuildInsurances(cancellationToken);
-        var visaApplications = await BuildVisaApplications(cancellationToken);
+        List<Guid>? tourInstanceIds = null;
+        List<Guid>? classificationIds = null;
 
-        var payments = await BuildPayments(cancellationToken);
+        if (managerId.HasValue)
+        {
+            // Step 1: Get all TourOperator IDs managed by this Manager
+            var designerIds = await _context.TourManagerAssignments
+                .AsNoTracking()
+                .Where(a => a.TourManagerId == managerId.Value
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
+                            && a.AssignedUserId != null)
+                .Select(a => a.AssignedUserId!.Value)
+                .ToListAsync(cancellationToken);
+
+            // Include the manager themselves so their own data is shown
+            if (!designerIds.Contains(managerId.Value))
+            {
+                designerIds.Add(managerId.Value);
+            }
+
+            // Step 2: Get all Tour IDs owned by those designers
+            var tourIds = await _context.Tours
+                .AsNoTracking()
+                .Where(t => !t.IsDeleted && t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty))
+                .Select(t => t.Id)
+                .ToListAsync(cancellationToken);
+
+            // Step 3: Get all TourInstance IDs from those tours
+            tourInstanceIds = await _context.TourInstances
+                .AsNoTracking()
+                .Where(ti => !ti.IsDeleted && tourIds.Contains(ti.TourId))
+                .Select(ti => ti.Id)
+                .ToListAsync(cancellationToken);
+
+            // Step 4: Get Classification IDs linked to those tours
+            classificationIds = await _context.Tours
+                .AsNoTracking()
+                .Where(t => tourIds.Contains(t.Id))
+                .SelectMany(t => t.Classifications.Select(c => c.Id))
+                .Distinct()
+                .ToListAsync(cancellationToken);
+        }
+
+        var stats = await BuildDashboardStats(tourInstanceIds, cancellationToken);
+        var customers = await BuildCustomers(tourInstanceIds, cancellationToken);
+        var insurances = await BuildInsurances(classificationIds, cancellationToken);
+        var visaApplications = await BuildVisaApplications(tourInstanceIds, cancellationToken);
+        var payments = await BuildPayments(tourInstanceIds, cancellationToken);
 
         return new AdminOverviewReport(
             stats, 
@@ -30,44 +72,53 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
             visaApplications);
     }
 
-    private async Task<AdminDashboardStatsReport> BuildDashboardStats(CancellationToken cancellationToken)
+    private async Task<AdminDashboardStatsReport> BuildDashboardStats(List<Guid>? tourInstanceIds, CancellationToken cancellationToken)
     {
-        var totalRevenue =
-            //await _context.CustomerPayments
-            //.AsNoTracking()
-            //.SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 
-            0m;
+        var totalRevenue = 0m;
 
-        var totalBookings = await _context.Bookings
-            .AsNoTracking()
-            .CountAsync(cancellationToken);
+        var bookingsQuery = _context.Bookings.AsNoTracking();
+        var tourInstancesQuery = _context.TourInstances.AsNoTracking();
+        var tourRequestsQuery = _context.TourRequests.AsNoTracking();
 
-        var cancelledBookings = await _context.Bookings
-            .AsNoTracking()
-            .CountAsync(x => x.Status == BookingStatus.Cancelled, cancellationToken);
+        if (tourInstanceIds != null)
+        {
+            bookingsQuery = bookingsQuery.Where(x => tourInstanceIds.Contains(x.TourInstanceId));
+            tourInstancesQuery = tourInstancesQuery.Where(x => tourInstanceIds.Contains(x.Id));
+            tourRequestsQuery = tourRequestsQuery.Where(x => x.TourInstanceId != null && tourInstanceIds.Contains(x.TourInstanceId.Value));
+        }
 
-        var activeTours = await _context.TourInstances
-            .AsNoTracking()
-            .CountAsync(
-                x => !x.IsDeleted
-                    && x.Status != TourInstanceStatus.Cancelled
-                    && x.Status != TourInstanceStatus.Completed,
-                cancellationToken);
+        var totalBookings = await bookingsQuery.CountAsync(cancellationToken);
 
-        var totalCustomers = await _context.Users
-            .AsNoTracking()
-            .CountAsync(x => !x.IsDeleted, cancellationToken);
+        var cancelledBookings = await bookingsQuery.CountAsync(x => x.Status == BookingStatus.Cancelled, cancellationToken);
 
-        var approvedVisaCount = await _context.TourRequests
-            .AsNoTracking()
-            .CountAsync(x => x.Status == TourRequestStatus.Approved, cancellationToken);
+        var activeTours = await tourInstancesQuery.CountAsync(
+            x => !x.IsDeleted
+                && x.Status != TourInstanceStatus.Cancelled
+                && x.Status != TourInstanceStatus.Completed,
+            cancellationToken);
 
-        var finalizedVisaCount = await _context.TourRequests
-            .AsNoTracking()
-            .CountAsync(
-                x => x.Status == TourRequestStatus.Approved
-                    || x.Status == TourRequestStatus.Rejected,
-                cancellationToken);
+        int totalCustomers;
+        if (tourInstanceIds != null)
+        {
+            totalCustomers = await bookingsQuery
+                .Where(x => x.UserId.HasValue)
+                .Select(x => x.UserId!.Value)
+                .Distinct()
+                .CountAsync(cancellationToken);
+        }
+        else
+        {
+            totalCustomers = await _context.Users
+                .AsNoTracking()
+                .CountAsync(x => !x.IsDeleted, cancellationToken);
+        }
+
+        var approvedVisaCount = await tourRequestsQuery.CountAsync(x => x.Status == TourRequestStatus.Approved, cancellationToken);
+
+        var finalizedVisaCount = await tourRequestsQuery.CountAsync(
+            x => x.Status == TourRequestStatus.Approved
+                || x.Status == TourRequestStatus.Rejected,
+            cancellationToken);
 
         var cancellationRate = totalBookings == 0
             ? 0m
@@ -86,11 +137,15 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
             VisaApprovalRate: visaApprovalRate);
     }
 
-    private async Task<List<AdminCustomerReport>> BuildCustomers(CancellationToken cancellationToken)
+    private async Task<List<AdminCustomerReport>> BuildCustomers(List<Guid>? tourInstanceIds, CancellationToken cancellationToken)
     {
-        var bookingSummaries = await _context.Bookings
-            .AsNoTracking()
-            .Where(x => x.UserId.HasValue)
+        var bookingsQuery = _context.Bookings.AsNoTracking().Where(x => x.UserId.HasValue);
+        if (tourInstanceIds != null)
+        {
+            bookingsQuery = bookingsQuery.Where(x => tourInstanceIds.Contains(x.TourInstanceId));
+        }
+
+        var bookingSummaries = await bookingsQuery
             .GroupBy(x => x.UserId!.Value)
             .Select(g => new CustomerBookingSummary(
                 g.Key,
@@ -100,9 +155,14 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
 
         var bookingSummaryMap = bookingSummaries.ToDictionary(x => x.UserId);
 
-        var users = await _context.Users
-            .AsNoTracking()
-            .Where(x => !x.IsDeleted)
+        var usersQuery = _context.Users.AsNoTracking().Where(x => !x.IsDeleted);
+        if (tourInstanceIds != null)
+        {
+            var userIds = bookingSummaries.Select(x => x.UserId).ToList();
+            usersQuery = usersQuery.Where(x => userIds.Contains(x.Id));
+        }
+
+        var users = await usersQuery
             .OrderByDescending(x => x.CreatedOnUtc)
             .Take(200)
             .Select(x => new UserSummary(
@@ -139,10 +199,15 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
             .ToList();
     }
 
-    private async Task<List<AdminPaymentReport>> BuildPayments(CancellationToken cancellationToken)
+    private async Task<List<AdminPaymentReport>> BuildPayments(List<Guid>? tourInstanceIds, CancellationToken cancellationToken)
     {
-        var paymentRows = await _context.PaymentTransactions
-            .AsNoTracking()
+        var paymentsQuery = _context.PaymentTransactions.AsNoTracking();
+        if (tourInstanceIds != null)
+        {
+            paymentsQuery = paymentsQuery.Where(x => tourInstanceIds.Contains(x.Booking.TourInstanceId));
+        }
+
+        var paymentRows = await paymentsQuery
             .Include(x => x.Booking)
                 .ThenInclude(b => b.TourInstance)
             .OrderByDescending(x => x.CreatedAt)
@@ -204,10 +269,15 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         string TourName,
         string? TourTitle);
 
-    private async Task<List<AdminInsuranceReport>> BuildInsurances(CancellationToken cancellationToken)
+    private async Task<List<AdminInsuranceReport>> BuildInsurances(List<Guid>? classificationIds, CancellationToken cancellationToken)
     {
-        var insuranceRows = await _context.TourInsurances
-            .AsNoTracking()
+        var insurancesQuery = _context.TourInsurances.AsNoTracking();
+        if (classificationIds != null)
+        {
+            insurancesQuery = insurancesQuery.Where(x => classificationIds.Contains(x.TourClassificationId));
+        }
+
+        var insuranceRows = await insurancesQuery
             .Include(x => x.TourClassification)
             .OrderByDescending(x => x.CreatedOnUtc)
             .Take(200)
@@ -239,10 +309,17 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
             .ToList();
     }
 
-    private async Task<List<AdminVisaApplicationReport>> BuildVisaApplications(CancellationToken cancellationToken)
+    private async Task<List<AdminVisaApplicationReport>> BuildVisaApplications(List<Guid>? tourInstanceIds, CancellationToken cancellationToken)
     {
-        var visaRows = await _context.VisaApplications
-            .AsNoTracking()
+        var visaQuery = _context.VisaApplications.AsNoTracking();
+        if (tourInstanceIds != null)
+        {
+            visaQuery = visaQuery.Where(x => x.BookingParticipant != null 
+                                             && x.BookingParticipant.Booking != null 
+                                             && tourInstanceIds.Contains(x.BookingParticipant.Booking.TourInstanceId));
+        }
+
+        var visaRows = await visaQuery
             .Include(x => x.BookingParticipant)
             .Include(x => x.Passport)
             .OrderByDescending(x => x.CreatedOnUtc)

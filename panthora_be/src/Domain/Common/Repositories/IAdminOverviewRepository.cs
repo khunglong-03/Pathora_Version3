@@ -4,5 +4,5 @@ namespace Domain.Common.Repositories;
 
 public interface IAdminOverviewRepository
 {
-    Task<AdminOverviewReport> GetOverview(CancellationToken cancellationToken = default);
+    Task<AdminOverviewReport> GetOverview(Guid? managerId = null, CancellationToken cancellationToken = default);
 }
