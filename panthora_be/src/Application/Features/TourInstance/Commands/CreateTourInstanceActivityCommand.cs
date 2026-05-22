@@ -32,7 +32,9 @@ public sealed record CreateTourInstanceActivityCommand(
     [property: JsonPropertyName("requestedSeatCount")] int? RequestedSeatCount = null,
     [property: JsonPropertyName("externalTransportReference")] string? ExternalTransportReference = null,
     [property: JsonPropertyName("roomType")] RoomType? RoomType = null,
-    [property: JsonPropertyName("roomCount")] int? RoomCount = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
+    [property: JsonPropertyName("roomCount")] int? RoomCount = null,
+    [property: JsonPropertyName("fromLocationName")] string? FromLocationName = null,
+    [property: JsonPropertyName("toLocationName")] string? ToLocationName = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
 }

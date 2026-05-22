@@ -9,9 +9,10 @@ export default async function TourOperatorLayout({ children }: { children: React
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value;
   const refreshToken = cookieStore.get("refresh_token")?.value;
+  const authStatus = cookieStore.get("auth_status")?.value;
   const authRolesRaw = cookieStore.get("auth_roles")?.value;
 
-  const authenticated = Boolean(accessToken || refreshToken);
+  const authenticated = Boolean(authStatus || accessToken || refreshToken);
   let roles: string[] = [];
   if (authRolesRaw) {
     try {

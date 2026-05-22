@@ -52,4 +52,71 @@ public sealed class TourInstanceDayActivityEntityTests
         Assert.Equal(ProviderApprovalStatus.Rejected, activity.TransportationApprovalStatus);
         Assert.Equal("vehicle unavailable", activity.TransportationApprovalNote);
     }
+
+    [Fact]
+    public void UpdateTransportPlan_WhenExternalFlight_ShouldSyncStartTimeAndEndTimeFromDepartureAndArrival()
+    {
+        // Arrange
+        var activity = TourInstanceDayActivityEntity.Create(
+            Guid.NewGuid(),
+            1,
+            TourDayActivityType.Transportation,
+            "Flight Hanoi to HCMC",
+            "tester");
+
+        var departure = new DateTimeOffset(2026, 5, 28, 8, 30, 0, TimeSpan.Zero);
+        var arrival = new DateTimeOffset(2026, 5, 28, 10, 45, 0, TimeSpan.Zero);
+
+        // Act
+        activity.UpdateTransportPlan(
+            TransportationType.Flight,
+            "Vietnam Airlines VN245",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            departure,
+            arrival,
+            null,
+            null,
+            "VN245",
+            "tester");
+
+        // Assert
+        Assert.NotNull(activity.StartTime);
+        Assert.NotNull(activity.EndTime);
+        Assert.Equal(new TimeOnly(8, 30), activity.StartTime);
+        Assert.Equal(new TimeOnly(10, 45), activity.EndTime);
+    }
+
+    [Fact]
+    public void UpdateTransportPlan_WhenGroundTransport_ShouldNotSyncStartTimeAndEndTimeAndClearExternalFields()
+    {
+        // Arrange
+        var activity = TourInstanceDayActivityEntity.Create(
+            Guid.NewGuid(),
+            1,
+            TourDayActivityType.Transportation,
+            "Bus transfer",
+            "tester",
+            startTime: new TimeOnly(14, 0),
+            endTime: new TimeOnly(15, 30));
+
+        // Act
+        activity.UpdateTransportPlan(
+            TransportationType.Bus,
+            "Bus 29 seats",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            null,
+            null,
+            VehicleType.Coach,
+            29,
+            null,
+            "tester");
+
+        // Assert
+        Assert.Equal(new TimeOnly(14, 0), activity.StartTime);
+        Assert.Equal(new TimeOnly(15, 30), activity.EndTime);
+        Assert.Null(activity.DepartureTime);
+        Assert.Null(activity.ArrivalTime);
+    }
 }

@@ -1864,6 +1864,57 @@ public class TourInstanceService(
         return customDay.Id;
     }
 
+    private async Task<TourPlanLocationEntity?> ResolveLocationAsync(Guid? locationId, string? locationName, Guid tourId)
+    {
+        var hasId = locationId.HasValue && locationId != Guid.Empty;
+        var hasName = !string.IsNullOrWhiteSpace(locationName);
+        if (!hasId && !hasName)
+        {
+            return null;
+        }
+
+        if (hasId)
+        {
+            var existingLocation = await _tourRepository.FindLocationByIdAsync(locationId!.Value);
+            if (existingLocation != null)
+            {
+                existingLocation.TourId = tourId;
+                return existingLocation;
+            }
+            var stub = TourPlanLocationEntity.Create(
+                locationName ?? "Referenced Location",
+                LocationType.Other,
+                _user.Id ?? string.Empty,
+                tourId);
+            _unitOfWork?.MarkAsAdded(stub);
+            return stub;
+        }
+
+        var tour = await _tourRepository.FindByIdForUpdate(tourId);
+        if (tour != null)
+        {
+            var existingByName = tour.PlanLocations.FirstOrDefault(l => 
+                !l.IsDeleted && 
+                l.LocationName.Trim().Equals(locationName!.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (existingByName != null)
+            {
+                return existingByName;
+            }
+        }
+
+        var location = TourPlanLocationEntity.Create(
+            locationName!.Trim(),
+            LocationType.Other,
+            _user.Id ?? string.Empty,
+            tourId);
+        if (tour != null)
+        {
+            tour.PlanLocations.Add(location);
+        }
+        _unitOfWork?.MarkAsAdded(location);
+        return location;
+    }
+
     public async Task<ErrorOr<TourInstanceDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request)
     {
         var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId);
@@ -1925,11 +1976,35 @@ public class TourInstanceService(
                     TourInstanceTransportErrors.CannotChangeTransportGroupWithSupplierAssignedDescription.En);
             }
 
+            var tourId = instance.TourId;
+            var fromLocId = activity.FromLocationId;
+            var toLocId = activity.ToLocationId;
+
+            if (request.FromLocationId.HasValue || !string.IsNullOrWhiteSpace(request.FromLocationName))
+            {
+                var resolvedFrom = await ResolveLocationAsync(request.FromLocationId, request.FromLocationName, tourId);
+                fromLocId = resolvedFrom?.Id;
+            }
+            else if (request.FromLocationId == Guid.Empty)
+            {
+                fromLocId = null;
+            }
+
+            if (request.ToLocationId.HasValue || !string.IsNullOrWhiteSpace(request.ToLocationName))
+            {
+                var resolvedTo = await ResolveLocationAsync(request.ToLocationId, request.ToLocationName, tourId);
+                toLocId = resolvedTo?.Id;
+            }
+            else if (request.ToLocationId == Guid.Empty)
+            {
+                toLocId = null;
+            }
+
             activity.UpdateTransportPlan(
                 request.TransportationType,
                 request.TransportationName ?? activity.TransportationName,
-                request.FromLocationId ?? activity.FromLocationId,
-                request.ToLocationId ?? activity.ToLocationId,
+                fromLocId,
+                toLocId,
                 request.DepartureTime,
                 request.ArrivalTime,
                 request.RequestedVehicleType,
@@ -1963,6 +2038,25 @@ public class TourInstanceService(
 
         int order = day.Activities.Count > 0 ? day.Activities.Max(a => a.Order) + 1 : 1;
 
+        Guid? fromLocId = null;
+        Guid? toLocId = null;
+
+        if (request.ActivityType == TourDayActivityType.Transportation)
+        {
+            var tourId = instance.TourId;
+            if (request.FromLocationId.HasValue || !string.IsNullOrWhiteSpace(request.FromLocationName))
+            {
+                var resolvedFrom = await ResolveLocationAsync(request.FromLocationId, request.FromLocationName, tourId);
+                fromLocId = resolvedFrom?.Id;
+            }
+
+            if (request.ToLocationId.HasValue || !string.IsNullOrWhiteSpace(request.ToLocationName))
+            {
+                var resolvedTo = await ResolveLocationAsync(request.ToLocationId, request.ToLocationName, tourId);
+                toLocId = resolvedTo?.Id;
+            }
+        }
+
         var activity = TourInstanceDayActivityEntity.Create(
             request.DayId,
             order,
@@ -1974,8 +2068,8 @@ public class TourInstanceService(
             request.StartTime,
             request.EndTime,
             request.IsOptional,
-            request.FromLocationId,
-            request.ToLocationId,
+            fromLocId,
+            toLocId,
             request.TransportationType,
             request.TransportationName,
             null, // durationMinutes
@@ -1990,8 +2084,8 @@ public class TourInstanceService(
                 activity.UpdateTransportPlan(
                     request.TransportationType,
                     request.TransportationName,
-                    request.FromLocationId,
-                    request.ToLocationId,
+                    fromLocId,
+                    toLocId,
                     request.DepartureTime,
                     request.ArrivalTime,
                     request.RequestedVehicleType,

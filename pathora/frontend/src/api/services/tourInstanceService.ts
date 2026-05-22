@@ -113,8 +113,11 @@ export interface CreateInstanceActivityPayload {
 
   // Transport fields
   transportationType?: number | null;
+  transportationName?: string | null;
   fromLocationId?: string | null;
   toLocationId?: string | null;
+  fromLocationName?: string | null;
+  toLocationName?: string | null;
   departureTime?: string | null;
   arrivalTime?: string | null;
   requestedVehicleType?: number | null;
@@ -137,8 +140,11 @@ export interface UpdateInstanceActivityPayload {
 
   // Transport fields
   transportationType?: number | null;
+  transportationName?: string | null;
   fromLocationId?: string | null;
   toLocationId?: string | null;
+  fromLocationName?: string | null;
+  toLocationName?: string | null;
   departureTime?: string | null;
   arrivalTime?: string | null;
   requestedVehicleType?: number | null;

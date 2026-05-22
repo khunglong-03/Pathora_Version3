@@ -120,7 +120,8 @@ describe("7.5: Unauthenticated redirect", () => {
   it("No auth cookies means unauthenticated", () => {
     const accessToken = undefined;
     const refreshToken = undefined;
-    const authenticated = Boolean(accessToken || refreshToken);
+    const authStatus = undefined;
+    const authenticated = Boolean(authStatus || accessToken || refreshToken);
     expect(authenticated).toBe(false);
   });
 
