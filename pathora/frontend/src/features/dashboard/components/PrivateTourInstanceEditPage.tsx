@@ -540,6 +540,17 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh, read
   const isActTransportation = actType === "7";
   const isActExternalTransport = isActTransportation && isExternalOnlyTransportation(actTransportFields.transportationType);
 
+  useEffect(() => {
+    if (isActExternalTransport) {
+      if (actTransportFields.departureTime !== actStartTime) {
+        setActStartTime(actTransportFields.departureTime || "");
+      }
+      if (actTransportFields.arrivalTime !== actEndTime) {
+        setActEndTime(actTransportFields.arrivalTime || "");
+      }
+    }
+  }, [isActExternalTransport, actTransportFields.departureTime, actTransportFields.arrivalTime, actStartTime, actEndTime]);
+
   const resetActivityFields = () => {
     setActTitle(""); setActType("0"); setActStartTime(""); setActEndTime(""); setActPrice(""); setActNote("");
     setActRoomType(""); setActRoomCount("1");
@@ -1179,6 +1190,18 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
 
   const isAccommodation = actType === "8" || actType === "Accommodation";
   const isTransportation = actType === "7" || actType === "Transportation";
+  const isExternalTransport = isTransportation && isExternalOnlyTransportation(transportFields.transportationType);
+
+  useEffect(() => {
+    if (isExternalTransport) {
+      if (transportFields.departureTime !== startTime) {
+        setStartTime(transportFields.departureTime || "");
+      }
+      if (transportFields.arrivalTime !== endTime) {
+        setEndTime(transportFields.arrivalTime || "");
+      }
+    }
+  }, [isExternalTransport, transportFields.departureTime, transportFields.arrivalTime, startTime, endTime]);
 
   const handleSave = async () => {
     if (!title.trim()) {

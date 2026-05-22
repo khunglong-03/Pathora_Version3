@@ -215,7 +215,7 @@ export function TourInstanceListPage({
           pageSize,
           excludePast,
           false, // wantsCustomization
-          visibilityFilter === "all" ? undefined : visibilityFilter,
+          visibilityFilter === "all" ? undefined : (visibilityFilter as "public" | "private"),
         );
         if (!active) return;
         if (result) {
@@ -266,7 +266,7 @@ export function TourInstanceListPage({
     let statsActive = true;
     const doFetchStats = async () => {
       try {
-        const statsInstanceType = visibilityFilter === "all" ? undefined : visibilityFilter;
+        const statsInstanceType = visibilityFilter === "all" ? undefined : (visibilityFilter as "public" | "private");
         const result = await tourInstanceService.getStats(statsInstanceType);
         if (!statsActive) return;
         if (result) setStats(result);
