@@ -136,7 +136,32 @@ export function CustomTourInstanceRequestListPage({
         if (result) {
           const filteredInstances = result.data ?? [];
 
-          setInstances(filteredInstances);
+          // Sort logic for tour operator role:
+          // 1. Prioritize status === "pendingadjustment" first.
+          // 2. Otherwise, preserve the original API order (which is sorted by LastModifiedOnUtc/CreatedOnUtc descending).
+          // 3. Fallback to sorting by tourInstanceCode descending.
+          let sortedInstances = filteredInstances;
+          if (role === "tour-operator") {
+            sortedInstances = [...filteredInstances].sort((a, b) => {
+              const isAdjA = a.status === "pendingadjustment";
+              const isAdjB = b.status === "pendingadjustment";
+
+              if (isAdjA && !isAdjB) return -1;
+              if (!isAdjA && isAdjB) return 1;
+
+              const indexA = filteredInstances.indexOf(a);
+              const indexB = filteredInstances.indexOf(b);
+              if (indexA !== -1 && indexB !== -1) {
+                return indexA - indexB;
+              }
+
+              const codeA = a.tourInstanceCode || "";
+              const codeB = b.tourInstanceCode || "";
+              return codeB.localeCompare(codeA);
+            });
+          }
+
+          setInstances(sortedInstances);
           setTotalItems(result.total ?? filteredInstances.length);
           if (!filteredInstances || filteredInstances.length === 0) {
             setDataState("empty");
