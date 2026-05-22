@@ -281,6 +281,26 @@ export function CheckoutRequestPage() {
       const depositPercentage = Number(depositPercentageParam) || 0.3;
       const depositAmount = Math.round(basePrice * depositPercentage);
 
+      if (bookingTypeParam === "PrivateCustom") {
+        setTourInstanceBooking({
+          tourInstanceId: tourInstanceIdParam,
+          tourName: tourNameParam || "Tour Riêng",
+          startDate: startDateParam || "",
+          endDate: endDateParam || "",
+          location: locationParam || "",
+          depositPerPerson: depositAmount,
+          depositPercentage: depositPercentage,
+          bookingType: bookingTypeParam,
+          instanceType: instanceTypeParam,
+          classificationId: searchParams.get("classificationId") || undefined,
+          maxParticipation: parseInt(searchParams.get("maxParticipation") || "1", 10),
+          currentParticipation: 0,
+          basePrice: basePrice,
+        });
+        setLoadingPrice(false);
+        return;
+      }
+
       // Fetch tour instance detail to get currentParticipation
       const fetchTourInstanceDetail = async () => {
         try {

@@ -513,6 +513,68 @@ public sealed class AuthControllerTests
         Assert.Equal(expectedRedirect, redirectResult.Url);
     }
 
+    [Fact]
+    public async Task GoogleCallback_WhenReturnUrlIsAbsolute_ShouldRedirectToReturnUrlOrigin()
+    {
+        // Arrange
+        var externalLoginResponse = new ExternalLoginResponse("access-token", "refresh-token", "customer", "/");
+        var properties = new AuthenticationProperties();
+        properties.Items.Add("returnUrl", "http://localhost/some-page");
+
+        var (controller, _) = BuildControllerWithExternalLogin<ExternalLoginCommand, ExternalLoginResponse>(
+            externalLoginResponse,
+            "/api/auth/google-callback",
+            AuthenticateResult.Success(
+                new AuthenticationTicket(
+                    new ClaimsPrincipal(new ClaimsIdentity(
+                    [
+                        new Claim(ClaimTypes.NameIdentifier, "google-id-123"),
+                        new Claim(ClaimTypes.Email, "customer@example.com"),
+                        new Claim(ClaimTypes.Name, "Customer User")
+                    ], "TestAuth")),
+                    properties,
+                    CookieAuthenticationDefaults.AuthenticationScheme)));
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Cors:AllowedOrigins:0"] = "http://localhost:3001"
+            })
+            .Build();
+
+        controller.ControllerContext.HttpContext.Request.Scheme = "http";
+
+        // Act
+        var actionResult = await controller.GoogleCallback(configuration);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectResult>(actionResult);
+        Assert.Equal("http://localhost/auth/callback?returnUrl=http%3A%2F%2Flocalhost%2Fsome-page", redirectResult.Url);
+    }
+
+    [Fact]
+    public void GoogleLogin_WhenGoogleNotConfiguredAndReturnUrlIsAbsolute_ShouldRedirectToReturnUrlOrigin()
+    {
+        // Arrange
+        var (controller, _) = BuildController<GetTabsQuery, List<TabVm>>(
+            new List<TabVm>(),
+            "/api/auth/google-login");
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Cors:AllowedOrigins:0"] = "http://localhost:3001"
+            })
+            .Build();
+
+        // Act
+        var actionResult = controller.GoogleLogin(configuration, "http://localhost/some-page");
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectResult>(actionResult);
+        Assert.Equal("http://localhost/auth/callback?error=google_auth_not_configured", redirectResult.Url);
+    }
+
+
     private static (AuthController Controller, ExternalLoginProbe<TCommand, TResponse> Probe) BuildControllerWithExternalLogin<TCommand, TResponse>(
         ErrorOr<TResponse> response,
         string path,

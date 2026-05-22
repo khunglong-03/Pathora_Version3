@@ -29,13 +29,13 @@ internal static class DependencyInjection
             })
             .AddCookie(IdentityConstants.ExternalScheme, options =>
             {
-                options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             })
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
-                options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             });
 
         var googleClientId = configuration["Authentication:Google:ClientId"];
@@ -51,14 +51,13 @@ internal static class DependencyInjection
                 options.Scope.Add("profile");
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
-                // Fix "Correlation failed" on production: the correlation cookie
-                // must survive the cross-origin redirect Google → backend callback.
-                // Behind a reverse proxy (HTTPS), browsers silently drop cookies
-                // without SameSite=None + Secure.
+                // The correlation cookie must survive the cross-origin redirect
+                // Google → backend callback. SameAsRequest adapts automatically:
+                // Secure + SameSite=None over HTTPS, non-Secure + Lax over HTTP.
                 options.CorrelationCookie = new CookieBuilder
                 {
-                    SameSite = SameSiteMode.None,
-                    SecurePolicy = CookieSecurePolicy.Always,
+                    SameSite = SameSiteMode.Lax,
+                    SecurePolicy = CookieSecurePolicy.SameAsRequest,
                     HttpOnly = true,
                     IsEssential = true
                 };
