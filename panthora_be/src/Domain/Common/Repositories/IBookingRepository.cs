@@ -19,4 +19,5 @@ public interface IBookingRepository
     Task<BookingEntity?> GetByPaymentTransactionCodeAsync(string transactionCode, CancellationToken cancellationToken = default);
     Task<(List<BookingEntity> Items, int TotalCount)> GetPagedBookingsForUserAsync(string userIdStr, string? statusFilter, int page, int pageSize, CancellationToken cancellationToken = default);
     Task<BookingEntity?> GetByParticipantIdAsync(Guid participantId, CancellationToken cancellationToken = default);
+    Task<bool> HasActiveCustomTourRequestAsync(Guid? userId, string? email, Guid tourId, CancellationToken cancellationToken = default);
 }

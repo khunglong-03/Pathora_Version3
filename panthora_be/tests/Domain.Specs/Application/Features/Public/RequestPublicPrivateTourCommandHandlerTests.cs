@@ -110,6 +110,32 @@ public sealed class RequestPublicPrivateTourCommandHandlerTests
 
         _user.Id.Returns((string?)null);
 
+        var breakdown = new BookingPriceBreakdown(
+            AdultUnitPrice: 1_000_000m,
+            ChildUnitPrice: 0m,
+            InfantUnitPrice: 0m,
+            AdultSubtotal: 2_000_000m,
+            ChildSubtotal: 0m,
+            InfantSubtotal: 0m,
+            Subtotal: 2_000_000m,
+            TaxRate: 0m,
+            TaxAmount: 0m,
+            VisaServiceFeeTotal: 0m,
+            TotalAmount: 2_000_000m,
+            PaidAmount: 0m,
+            RemainingBalance: 2_000_000m);
+
+        _priceCalculator.Calculate(
+            Arg.Any<int>(),
+            Arg.Any<int>(),
+            Arg.Any<int>(),
+            Arg.Any<decimal>(),
+            Arg.Any<System.Collections.Generic.IReadOnlyList<global::Domain.ValueObjects.PricingPolicyTier>?>(),
+            Arg.Any<TaxConfigEntity?>(),
+            Arg.Any<decimal>(),
+            Arg.Any<decimal>())
+            .Returns(breakdown);
+
         BookingEntity? captured = null;
         await _bookingRepository.AddAsync(
             Arg.Do<BookingEntity>(b => captured = b),
@@ -150,5 +176,45 @@ public sealed class RequestPublicPrivateTourCommandHandlerTests
                 && c.InstanceType == TourType.Private
                 && c.Title == "Private — Ha Long"
                 && c.MaxParticipation == 8));
+    }
+
+    [Fact]
+    public async Task Handle_WhenHasActiveCustomTourRequest_ReturnsValidationMessage()
+    {
+        var tourId = Guid.NewGuid();
+        var classificationId = Guid.NewGuid();
+        var email = "customer@example.com";
+
+        _bookingRepository.HasActiveCustomTourRequestAsync(
+            Arg.Any<Guid?>(),
+            Arg.Any<string>(),
+            tourId,
+            Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        var cmd = new RequestPublicPrivateTourCommand(
+            tourId,
+            classificationId,
+            DateTimeOffset.UtcNow.AddDays(15),
+            DateTimeOffset.UtcNow.AddDays(20),
+            8,
+            "Nguyen A",
+            "+84 912345678",
+            email,
+            2,
+            0,
+            0,
+            PaymentMethod.BankTransfer,
+            true,
+            true,
+            null);
+
+        var result = await CreateHandler().Handle(cmd, CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Equal(ErrorType.Validation, result.FirstError.Type);
+        Assert.Equal("Booking.DuplicateCustomRequest", result.FirstError.Code);
+        Assert.Equal("Bạn đã có một tour như vậy đang được xét duyệt.", result.FirstError.Description);
+        await _tourInstanceService.DidNotReceive().CreatePublicPrivateDraftAsync(Arg.Any<CreateTourInstanceCommand>());
     }
 }

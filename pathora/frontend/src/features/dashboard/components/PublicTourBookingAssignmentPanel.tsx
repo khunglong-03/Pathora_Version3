@@ -1046,17 +1046,17 @@ function AccommodationBookingCard({
       </div>
 
       {isPublicOverview && hasSupplierAssigned && (
-        <motion
+        <div
           className="mx-6 mb-6 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-sm text-stone-600 lg:mx-8"
         >
           <p>
             {t(
               "tourInstance.bookingHotel.publicOverviewHint",
               "Tour public dùng chung loại phòng của tour. Quay lại trang chi tiết tour và dùng cột «Gán KS» trong bảng booking để gán số phòng — tổng không vượt quá {{limit}} phòng.",
-              { limit: activity.quantity || tourRoomCap },
+              { limit: activity.quantity || (activity.roomBlocksTotal > 0 ? activity.roomBlocksTotal : activity.quantity) },
             )}
           </p>
-        </motion>
+        </div>
       )}
 
       {/* ── BOTTOM: Per-booking list (private tour only) ── */}

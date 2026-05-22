@@ -3815,6 +3815,7 @@
       "privateCustomPaymentReceived": "Đã nhận thanh toán phần cơ bản. Bạn có thể tiếp tục đồng thiết kế lịch trình khi quay lại.",
       "privateCustomCoDesignNextSteps": "Khoản thanh toán cơ bản đã được ghi nhận. Mở mục đặt chỗ để xem lịch trình nháp và ghi chú theo từng ngày cho điều hành tour.",
       "privateCustomTransactionError": "Không thể khởi tạo chuyển khoản cho tour riêng này. Vui lòng thử lại hoặc liên hệ hỗ trợ.",
+      "duplicateCustomRequest": "Bạn đã có một tour như vậy đang được xét duyệt.",
       "privateGateMessage": "Lịch trình tour chưa được Manager duyệt. Bạn sẽ nhận thông báo khi có thể thanh toán.",
       "privateGateBadge": "Chờ duyệt",
       "privateTopUpPageTitle": "Hoàn tất thanh toán bổ sung",

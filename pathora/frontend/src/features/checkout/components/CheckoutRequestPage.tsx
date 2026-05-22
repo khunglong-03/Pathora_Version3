@@ -218,6 +218,7 @@ export function CheckoutRequestPage() {
   /* ── Get booking ID or tour instance info from URL ───── */
   const bookingIdParam = searchParams.get("bookingId");
   const tourInstanceIdParam = searchParams.get("tourInstanceId");
+  const tourIdParam = searchParams.get("tourId") || tourInstanceIdParam;
   const checkoutFlowParam = searchParams.get("flow");
   const transactionCodeParam = searchParams.get("transactionCode");
   const isPrivateCustomCheckout = true; // Always true for checkout-request
@@ -245,6 +246,8 @@ export function CheckoutRequestPage() {
   const bookingTypeParam = searchParams.get("bookingType") || "InstanceJoin";
   const instanceTypeParam = searchParams.get("instanceType") || "public";
   const thumbnailUrlParam = searchParams.get("thumbnailUrl");
+  const classificationIdParam = searchParams.get("classificationId") || undefined;
+  const maxParticipationParam = searchParams.get("maxParticipation") || "1";
 
   /* ── State for tour instance booking ─────────────────── */
   const [tourInstanceBooking, setTourInstanceBooking] = useState<{
@@ -271,19 +274,16 @@ export function CheckoutRequestPage() {
     return Math.max(0, max - current);
   }, [tourInstanceBooking]);
 
-  // Calculate total participants
-  const totalParticipants = numberAdult + numberChild + numberInfant;
-
   /* ── Initialize tour instance booking from URL params ──── */
   useEffect(() => {
-    if (tourInstanceIdParam) {
+    if (tourIdParam) {
       const basePrice = Number(basePriceParam) || 0;
       const depositPercentage = Number(depositPercentageParam) || 0.3;
       const depositAmount = Math.round(basePrice * depositPercentage);
 
       if (bookingTypeParam === "PrivateCustom") {
         setTourInstanceBooking({
-          tourInstanceId: tourInstanceIdParam,
+          tourInstanceId: tourIdParam,
           tourName: tourNameParam || "Tour Riêng",
           startDate: startDateParam || "",
           endDate: endDateParam || "",
@@ -292,8 +292,8 @@ export function CheckoutRequestPage() {
           depositPercentage: depositPercentage,
           bookingType: bookingTypeParam,
           instanceType: instanceTypeParam,
-          classificationId: searchParams.get("classificationId") || undefined,
-          maxParticipation: parseInt(searchParams.get("maxParticipation") || "1", 10),
+          classificationId: classificationIdParam,
+          maxParticipation: parseInt(maxParticipationParam, 10),
           currentParticipation: 0,
           basePrice: basePrice,
         });
@@ -305,10 +305,10 @@ export function CheckoutRequestPage() {
       const fetchTourInstanceDetail = async () => {
         try {
           const { tourInstanceService } = await import("@/api/services/tourInstanceService");
-          const detail = await tourInstanceService.getInstanceDetail(tourInstanceIdParam);
+          const detail = await tourInstanceService.getInstanceDetail(tourIdParam);
           
           setTourInstanceBooking({
-            tourInstanceId: tourInstanceIdParam,
+            tourInstanceId: tourIdParam,
             tourName: tourNameParam || "Tour Riêng",
             startDate: startDateParam || "",
             endDate: endDateParam || "",
@@ -317,8 +317,8 @@ export function CheckoutRequestPage() {
             depositPercentage: depositPercentage,
             bookingType: bookingTypeParam,
             instanceType: instanceTypeParam,
-            classificationId: searchParams.get("classificationId") || undefined,
-            maxParticipation: detail.maxParticipation || parseInt(searchParams.get("maxParticipation") || "1", 10),
+            classificationId: classificationIdParam,
+            maxParticipation: detail.maxParticipation || parseInt(maxParticipationParam, 10),
             currentParticipation: detail.currentParticipation || 0,
             basePrice: basePrice,
           });
@@ -326,7 +326,7 @@ export function CheckoutRequestPage() {
           console.error("Failed to fetch tour instance detail:", error);
           // Fallback to URL params
           setTourInstanceBooking({
-            tourInstanceId: tourInstanceIdParam,
+            tourInstanceId: tourIdParam,
             tourName: tourNameParam || "Tour Riêng",
             startDate: startDateParam || "",
             endDate: endDateParam || "",
@@ -335,8 +335,8 @@ export function CheckoutRequestPage() {
             depositPercentage: depositPercentage,
             bookingType: bookingTypeParam,
             instanceType: instanceTypeParam,
-            classificationId: searchParams.get("classificationId") || undefined,
-            maxParticipation: parseInt(searchParams.get("maxParticipation") || "1", 10),
+            classificationId: classificationIdParam,
+            maxParticipation: parseInt(maxParticipationParam, 10),
             currentParticipation: 0,
             basePrice: basePrice,
           });
@@ -347,10 +347,10 @@ export function CheckoutRequestPage() {
 
       fetchTourInstanceDetail();
     }
-  }, [tourInstanceIdParam, tourNameParam, startDateParam, endDateParam, locationParam, depositPerPersonParam, basePriceParam, depositPercentageParam, bookingTypeParam, instanceTypeParam]);
+  }, [tourIdParam, tourNameParam, startDateParam, endDateParam, locationParam, depositPerPersonParam, basePriceParam, depositPercentageParam, bookingTypeParam, instanceTypeParam, classificationIdParam, maxParticipationParam]);
 
   /* ── Derived booking-id checkout (API price) vs tour-instance URL checkout ── */
-  const isBookingIdPriceFetch = Boolean(bookingIdParam && !tourInstanceIdParam);
+  const isBookingIdPriceFetch = Boolean(bookingIdParam && !tourIdParam);
 
   /* ── Fetch checkout price from API ────────────────────── */
   useEffect(() => {
@@ -442,13 +442,16 @@ export function CheckoutRequestPage() {
     setNumberInfant(parseInt(searchParams.get("infants") || "0", 10));
   }, [searchParams]);
 
+  // Calculate total participants
+  const totalParticipants = numberAdult + numberChild + numberInfant;
+
   const adultPriceParam = searchParams.get("adultPrice");
   const childPriceParam = searchParams.get("childPrice");
   const infantPriceParam = searchParams.get("infantPrice");
 
   // Build a CheckoutPriceResponse from URL params when there's no API response (tour instance direct checkout)
   const computedCheckoutPrice: CheckoutPriceResponse | null = React.useMemo(() => {
-    if (tourInstanceIdParam) {
+    if (tourIdParam) {
       const basePrice = Number(basePriceParam) || 0;
       const depositPct = Number(depositPercentageParam) || 0.3;
       const adultPrice = adultPriceParam ? Number(adultPriceParam) : basePrice;
@@ -479,7 +482,7 @@ export function CheckoutRequestPage() {
 
       return {
         bookingId: "",
-        tourInstanceId: tourInstanceIdParam,
+        tourInstanceId: tourIdParam,
         tourName: tourNameParam ? decodeURIComponent(tourNameParam) : "Tour Riêng",
         tourCode: "",
         thumbnailUrl: thumbnailUrlParam ? decodeURIComponent(thumbnailUrlParam) : undefined,
@@ -507,7 +510,7 @@ export function CheckoutRequestPage() {
     }
     return null;
   }, [
-    tourInstanceIdParam, tourNameParam, basePriceParam, depositPercentageParam,
+    tourIdParam, tourNameParam, basePriceParam, depositPercentageParam,
     startDateParam, endDateParam, locationParam,
     numberAdult, numberChild, numberInfant,
     adultPriceParam, childPriceParam, infantPriceParam,
@@ -518,7 +521,7 @@ export function CheckoutRequestPage() {
   const bookingId = effectivePrice?.bookingId ?? "";
   const hasPrice = !!(checkoutPrice ?? computedCheckoutPrice);
   const hasTourInstanceBooking = !!tourInstanceBooking;
-  const needsBookingCreation = !bookingId && tourInstanceIdParam;
+  const needsBookingCreation = !bookingId && Boolean(tourIdParam);
   const hasCustomerInfo = Boolean(customerName.trim() && customerPhone.trim());
   const totalPrice = effectivePrice?.totalPrice ?? 0;
   const depositAmount = effectivePrice?.depositAmount ?? 0;
@@ -643,12 +646,11 @@ export function CheckoutRequestPage() {
       // Step 1: Create booking if needed (when coming from tour detail page)
       if (needsBookingCreation && tourInstanceBooking) {
         if (tourInstanceBooking.bookingType === "PrivateCustom") {
-          const totalPax = numberAdult + numberChild + numberInfant;
           const bookingResult = await import("@/api/services/tourService").then((m) => m.tourService.requestPrivateTour(tourInstanceBooking.tourInstanceId, {
             classificationId: tourInstanceBooking.classificationId || "",
             startDate: new Date(tourInstanceBooking.startDate).toISOString(),
             endDate: new Date(tourInstanceBooking.endDate).toISOString(),
-            maxParticipation: Math.max(tourInstanceBooking.maxParticipation || 1, totalPax),
+            maxParticipation: Math.max(tourInstanceBooking.maxParticipation || 1, totalParticipants),
             customerName: customerName.trim(),
             customerPhone: customerPhone.trim(),
             customerEmail: customerEmail.trim() || undefined,
@@ -736,6 +738,11 @@ export function CheckoutRequestPage() {
         errorMessage = t(
           "landing.checkout.missingBookingId",
           "Không tìm thấy thông tin đặt tour. Vui lòng quay lại trang chi tiết tour và thử lại.",
+        );
+      } else if (handledError.code === "Booking.DuplicateCustomRequest") {
+        errorMessage = t(
+          "landing.checkout.duplicateCustomRequest",
+          "Bạn đã có một tour như vậy đang được xét duyệt.",
         );
       } else if (handledError.validationErrors && Object.keys(handledError.validationErrors).length > 0) {
         // Flatten validation errors into a single string

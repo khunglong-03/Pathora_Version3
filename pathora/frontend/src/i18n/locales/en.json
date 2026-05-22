@@ -3828,6 +3828,7 @@
       "privateCustomPaymentReceived": "Base payment received. You can continue with itinerary co-design when you return.",
       "privateCustomCoDesignNextSteps": "Your base payment is on file. Open your booking to review the draft itinerary and leave day-by-day notes for your tour operator.",
       "privateCustomTransactionError": "We could not start bank transfer for this private tour. Check your connection and try again, or contact support.",
+      "duplicateCustomRequest": "You already have a tour like this under review.",
       "privateGateMessage": "The tour itinerary has not been approved by the Manager yet. You will be notified when payment is available.",
       "privateGateBadge": "Awaiting approval",
       "privateTopUpPageTitle": "Complete top-up payment",
