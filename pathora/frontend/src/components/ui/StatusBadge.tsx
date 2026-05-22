@@ -86,6 +86,7 @@ export function PaymentStatusBadge({ status }: { status: string }) {
     pending: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Pending" },
     refunded: { bg: "var(--danger-muted)", text: "var(--danger)", label: "Refunded" },
     failed: { bg: "var(--danger-muted)", text: "var(--danger)", label: "Failed" },
+    cancelled: { bg: "var(--danger-muted)", text: "var(--danger)", label: "Cancelled" },
     paid: { bg: "var(--success-muted)", text: "var(--success)", label: "Paid" },
   };
   const config = map[lower] ?? map.pending;

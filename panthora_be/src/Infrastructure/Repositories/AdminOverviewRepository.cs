@@ -63,11 +63,13 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         var insurances = await BuildInsurances(classificationIds, cancellationToken);
         var visaApplications = await BuildVisaApplications(tourInstanceIds, cancellationToken);
         var payments = await BuildPayments(tourInstanceIds, cancellationToken);
+        var paymentStats = await BuildPaymentStats(tourInstanceIds, cancellationToken);
 
         return new AdminOverviewReport(
             stats, 
             customers, 
-            payments, 
+            payments,
+            paymentStats,
             insurances, 
             visaApplications);
     }
@@ -247,11 +249,41 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
             TransactionStatus.Completed => "completed",
             TransactionStatus.Pending => "pending",
             TransactionStatus.Processing => "pending",
-            TransactionStatus.Failed => "refunded",
-            TransactionStatus.Cancelled => "refunded",
+            TransactionStatus.Failed => "failed",
+            TransactionStatus.Cancelled => "cancelled",
             TransactionStatus.Refunded => "refunded",
             _ => "pending"
         };
+    }
+
+    private async Task<AdminPaymentStatsReport> BuildPaymentStats(List<Guid>? tourInstanceIds, CancellationToken cancellationToken)
+    {
+        var query = _context.PaymentTransactions.AsNoTracking();
+        if (tourInstanceIds != null)
+        {
+            query = query.Where(x => tourInstanceIds.Contains(x.Booking.TourInstanceId));
+        }
+
+        var totalRevenue = await query
+            .Where(x => x.Status == TransactionStatus.Completed)
+            .SumAsync(x => x.PaidAmount ?? x.Amount, cancellationToken);
+
+        var pendingAmount = await query
+            .Where(x => x.Status == TransactionStatus.Pending || x.Status == TransactionStatus.Processing)
+            .SumAsync(x => x.PaidAmount ?? x.Amount, cancellationToken);
+
+        var completedCount = await query.CountAsync(x => x.Status == TransactionStatus.Completed, cancellationToken);
+        var pendingCount = await query.CountAsync(
+            x => x.Status == TransactionStatus.Pending || x.Status == TransactionStatus.Processing,
+            cancellationToken);
+        var refundedCount = await query.CountAsync(x => x.Status == TransactionStatus.Refunded, cancellationToken);
+
+        return new AdminPaymentStatsReport(
+            totalRevenue,
+            pendingAmount,
+            completedCount,
+            pendingCount,
+            refundedCount);
     }
 
     private sealed record PaymentRow(

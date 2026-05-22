@@ -29,6 +29,14 @@ export interface AdminPayment {
   date: string;
 }
 
+export interface AdminPaymentStats {
+  totalRevenue: number;
+  pendingAmount: number;
+  completedCount: number;
+  pendingCount: number;
+  refundedCount: number;
+}
+
 export interface AdminInsurance {
   id: string;
   booking: string;
@@ -57,6 +65,7 @@ export interface AdminOverview {
   stats: AdminDashboardStats;
   customers: AdminCustomer[];
   payments: AdminPayment[];
+  paymentStats?: AdminPaymentStats;
   insurances: AdminInsurance[];
   visaApplications: AdminVisaApplication[];
 }

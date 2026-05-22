@@ -66,8 +66,10 @@ export function PaymentsPage() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const isManager = pathname?.startsWith("/manager");
+  const pageSize = 10;
 
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [dataState, setDataState] = useState<PaymentsDataState>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -120,9 +122,18 @@ export function PaymentsPage() {
     statusFilter === "all"
       ? payments
       : payments.filter((payment) => payment.status === statusFilter);
+  const totalPages = Math.max(1, Math.ceil(filteredPayments.length / pageSize));
+  const paginatedPayments = filteredPayments.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
   const paymentRowKeys = useMemo(() => {
-    return buildPaymentRowKeys(filteredPayments);
-  }, [filteredPayments]);
+    return buildPaymentRowKeys(paginatedPayments);
+  }, [paginatedPayments]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
 
   const totalRevenue = payments
     .filter((p) => p.status === "completed")
@@ -132,6 +143,12 @@ export function PaymentsPage() {
     .reduce((sum, p) => sum + p.amount, 0);
   const completedCount = payments.filter((p) => p.status === "completed").length;
   const refundedCount = payments.filter((p) => p.status === "refunded").length;
+  const paymentStats = overview?.paymentStats;
+  const displayTotalRevenue = paymentStats?.totalRevenue ?? totalRevenue;
+  const displayPendingAmount = paymentStats?.pendingAmount ?? pendingAmount;
+  const displayCompletedCount = paymentStats?.completedCount ?? completedCount;
+  const displayPendingCount = paymentStats?.pendingCount ?? payments.filter((p) => p.status === "pending").length;
+  const displayRefundedCount = paymentStats?.refundedCount ?? refundedCount;
 
   const retryLoading = () => {
     setReloadToken((value) => value + 1);
@@ -197,9 +214,9 @@ export function PaymentsPage() {
             <motion.div variants={itemVariants} className="lg:col-span-5">
               <StatCard
                 label={t("payments.stat.totalRevenue", "Total Revenue")}
-                value={`${totalRevenue.toLocaleString()} ₫`}
-                change={`+12.5% ${t("payments.stat.fromLastMonth", "from last month")}`}
-                changeType="positive"
+                value={`${displayTotalRevenue.toLocaleString()} ₫`}
+                change={t("payments.stat.syncedFromBackend", "Synced from backend")}
+                changeType="neutral"
                 icon="heroicons:banknotes"
                 iconBg="bg-green-50"
                 iconColor="text-green-600"
@@ -209,8 +226,8 @@ export function PaymentsPage() {
             <motion.div variants={itemVariants} className="lg:col-span-3">
               <StatCard
                 label={t("payments.stat.pendingPayments", "Pending Payments")}
-                value={`${pendingAmount.toLocaleString()} ₫`}
-                change={`${payments.filter((p) => p.status === "pending").length} ${t("payments.stat.transactions", "transactions")}`}
+                value={`${displayPendingAmount.toLocaleString()} ₫`}
+                change={`${displayPendingCount} ${t("payments.stat.transactions", "transactions")}`}
                 changeType="neutral"
                 icon="heroicons:clock"
                 iconBg="bg-amber-50"
@@ -221,7 +238,7 @@ export function PaymentsPage() {
             <motion.div variants={itemVariants} className="lg:col-span-2">
               <StatCard
                 label={t("payments.stat.completed", "Completed")}
-                value={completedCount.toString()}
+                value={displayCompletedCount.toString()}
                 change={t("payments.stat.syncedFromBackend", "Synced from backend")}
                 changeType="positive"
                 icon="heroicons:check-circle"
@@ -233,7 +250,7 @@ export function PaymentsPage() {
             <motion.div variants={itemVariants} className="lg:col-span-2">
               <StatCard
                 label={t("payments.stat.refunded", "Refunded")}
-                value={refundedCount.toString()}
+                value={displayRefundedCount.toString()}
                 change={t("payments.stat.syncedFromBackend", "Synced from backend")}
                 changeType="negative"
                 icon="heroicons:arrow-uturn-left"
@@ -255,7 +272,10 @@ export function PaymentsPage() {
             {["all", "completed", "pending", "refunded"].map((status) => (
               <button
                 key={status}
-                onClick={() => setStatusFilter(status)}
+                onClick={() => {
+                  setStatusFilter(status);
+                  setCurrentPage(1);
+                }}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 ${statusFilter === status ? "bg-orange-500 text-white shadow-sm shadow-orange-500/20" : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50 hover:border-stone-300"}`}
               >
                 {status === "all" ? t("payments.filter.all", "All") : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -320,7 +340,7 @@ export function PaymentsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-100 bg-white">
-                      {filteredPayments.map((payment, index) => (
+                      {paginatedPayments.map((payment, index) => (
                         <tr key={paymentRowKeys[index]} className="hover:bg-stone-50 transition-colors">
                           <td className="px-6 py-3"><span className="font-mono text-sm text-stone-600">{payment.id}</span></td>
                           <td className="px-6 py-3"><span className="text-sm text-stone-900">{payment.booking}</span></td>
@@ -347,6 +367,34 @@ export function PaymentsPage() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4 border-t border-stone-100 bg-white">
+                  <p className="text-sm text-stone-500">
+                    {t("payments.pagination.summary", "Showing {{start}}-{{end}} of {{total}} payments", {
+                      start: filteredPayments.length === 0 ? 0 : (currentPage - 1) * pageSize + 1,
+                      end: Math.min(currentPage * pageSize, filteredPayments.length),
+                      total: filteredPayments.length,
+                    })}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      className="px-4 py-2 rounded-xl text-sm font-medium text-stone-600 border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+                    >
+                      {t("common.previous", "Previous")}
+                    </button>
+                    <span className="text-sm font-medium text-stone-600 min-w-20 text-center">
+                      {currentPage}/{totalPages}
+                    </span>
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                      className="px-4 py-2 rounded-xl text-sm font-medium text-stone-600 border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+                    >
+                      {t("common.next", "Next")}
+                    </button>
+                  </div>
                 </div>
               </Card>
             </motion.div>
