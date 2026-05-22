@@ -17,10 +17,13 @@ export const ADMIN_ROUTE_PREFIXES = [
 ] as const;
 
 export const MANAGER_ROUTE_PREFIXES = [
+  "/manager",
   "/dashboard",
   "/tour-management",
   "/tour-instances",
-  "/manager/staff-schedule",
+  "/tour-requests",
+  "/pricing-policies",
+  "/tax-configs",
 ] as const;
 
 type RoleWithName = Pick<UserRoleVm, "name">;
