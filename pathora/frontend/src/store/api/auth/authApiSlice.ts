@@ -257,15 +257,16 @@ export const authApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Auth"],
       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
-        // Clear client state immediately (optimistic), regardless of server result
-        removeCookie("access_token");
-        removeCookie("refresh_token");
-        clearAuthSessionCookies();
-        dispatch(logOut());
         try {
           await queryFulfilled;
         } catch {
           // server-side revocation failed but client is already logged out
+        } finally {
+          // Clear client state after the server request completes
+          removeCookie("access_token");
+          removeCookie("refresh_token");
+          clearAuthSessionCookies();
+          dispatch(logOut());
         }
       },
     }),

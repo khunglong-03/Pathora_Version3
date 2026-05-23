@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { usePathname } from "next/navigation";
@@ -129,9 +129,7 @@ export function PaymentsPage() {
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
-  const paymentRowKeys = useMemo(() => {
-    return buildPaymentRowKeys(paginatedPayments);
-  }, [paginatedPayments]);
+  const paymentRowKeys = buildPaymentRowKeys(paginatedPayments);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages));
@@ -143,6 +141,9 @@ export function PaymentsPage() {
   const pendingAmount = payments
     .filter((p) => p.status === "pending")
     .reduce((sum, p) => sum + p.amount, 0);
+  const refundedAmount = payments
+    .filter((p) => p.status === "refunded")
+    .reduce((sum, p) => sum + p.amount, 0);
   const completedCount = payments.filter((p) => p.status === "completed").length;
   const refundedCount = payments.filter((p) => p.status === "refunded").length;
   const paymentStats = overview?.paymentStats;
@@ -151,6 +152,16 @@ export function PaymentsPage() {
   const displayCompletedCount = paymentStats?.completedCount ?? completedCount;
   const displayPendingCount = paymentStats?.pendingCount ?? payments.filter((p) => p.status === "pending").length;
   const displayRefundedCount = paymentStats?.refundedCount ?? refundedCount;
+
+  const getLocalizedMethod = (method: string) => {
+    const lower = method.toLowerCase();
+    if (lower.includes("qr")) return t("bookings.bookingDetail.methodQRCode", "Mã QR");
+    if (lower.includes("cash")) return t("bookings.bookingDetail.methodCash", "Tiền Mặt");
+    if (lower.includes("bank") || lower.includes("transfer")) {
+      return t("bookings.bookingDetail.methodBankTransfer", "Chuyển Khoản");
+    }
+    return method;
+  };
 
   const retryLoading = () => {
     setReloadToken((value) => value + 1);
@@ -217,8 +228,8 @@ export function PaymentsPage() {
             initial="hidden"
             animate="show"
           >
-            {/* Total Revenue — featured, wide 5 cols */}
-            <motion.div variants={itemVariants} className="lg:col-span-6">
+            {/* Total Revenue — 3 cols */}
+            <motion.div variants={itemVariants} className="lg:col-span-3">
               <StatCard
                 label={t("payments.stat.totalRevenue", "Total Revenue")}
                 value={`${displayTotalRevenue.toLocaleString()} ₫`}
@@ -245,7 +256,7 @@ export function PaymentsPage() {
             <motion.div variants={itemVariants} className="lg:col-span-3">
               <StatCard
                 label={t("payments.stat.completed", "Completed")}
-                value={displayCompletedCount.toString()}
+                value={`${displayCompletedCount} ${t("payments.stat.transactions", "transactions")}`}
                 change={t("payments.stat.syncedFromBackend", "Synced from backend")}
                 changeType="positive"
                 icon="heroicons:check-circle"
@@ -254,11 +265,11 @@ export function PaymentsPage() {
                 accentBorder="border-green-300"
               />
             </motion.div>
-            <motion.div variants={itemVariants} className="lg:col-span-4 lg:col-start-9">
+            <motion.div variants={itemVariants} className="lg:col-span-3">
               <StatCard
                 label={t("payments.stat.refunded", "Refunded")}
-                value={displayRefundedCount.toString()}
-                change={t("payments.stat.syncedFromBackend", "Synced from backend")}
+                value={`${refundedAmount.toLocaleString()} ₫`}
+                change={`${displayRefundedCount} ${t("payments.stat.transactions", "transactions")}`}
                 changeType="negative"
                 icon="heroicons:arrow-uturn-left"
                 iconBg="bg-red-50"
@@ -353,7 +364,7 @@ export function PaymentsPage() {
                           <td className="px-6 py-3"><span className="font-mono text-sm text-stone-600">{payment.id}</span></td>
                           <td className="px-6 py-3"><span className="text-sm text-stone-900">{payment.booking}</span></td>
                           <td className="px-6 py-3"><span className="text-sm text-stone-600">{payment.customer}</span></td>
-                          <td className="px-6 py-3">
+                           <td className="px-6 py-3">
                             <span className="inline-flex items-center gap-1.5 text-sm text-stone-600">
                               <Icon
                                 icon={
@@ -365,7 +376,7 @@ export function PaymentsPage() {
                                 }
                                 className="size-4 text-stone-400"
                               />
-                              {payment.method}
+                              {getLocalizedMethod(payment.method)}
                             </span>
                           </td>
                           <td className="px-6 py-3 text-right"><span className="font-semibold text-stone-900 data-value">{payment.amount.toLocaleString()} ₫</span></td>
