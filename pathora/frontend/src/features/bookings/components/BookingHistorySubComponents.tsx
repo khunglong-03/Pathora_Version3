@@ -1,6 +1,6 @@
 import React from "react";
-import { BookingStatus, TourTier, STATUS_CONFIG, TIER_CONFIG } from "./BookingHistoryData";
-import { CheckCircle, Clock, XCircle } from "@phosphor-icons/react";
+import { BookingStatus, TourTier } from "./BookingHistoryData";
+import { CheckCircle, Clock, XCircle, Prohibit, Info } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
 
 interface StatusOverlayProps {
@@ -9,30 +9,45 @@ interface StatusOverlayProps {
 }
 
 export function StatusOverlay({ status, label }: StatusOverlayProps) {
-  // Normalize status to match config keys (which are lowercase)
   const normalizedStatus = (status || "pending").toString().toLowerCase();
   
-  // Provide a safe fallback if status is not explicitly defined in config
-  const cfg = STATUS_CONFIG[normalizedStatus as BookingStatus] || {
-    bg: "bg-slate-100",
-    text: "text-slate-600",
-    icon: "heroicons:information-circle",
-    iconColor: "text-slate-600"
-  };
-  
   let StatusIcon = CheckCircle;
-  if (normalizedStatus.includes("pending")) {
+  let colorClasses = "bg-stone-50 text-stone-600 border-stone-200/50";
+  let iconColor = "text-stone-500";
+
+  if (normalizedStatus.includes("confirmed") || normalizedStatus.includes("approved")) {
+    StatusIcon = CheckCircle;
+    colorClasses = "bg-emerald-50/90 text-emerald-700 border-emerald-500/20 shadow-[0_2px_8px_rgba(16,185,129,0.04)]";
+    iconColor = "text-emerald-600";
+  } else if (normalizedStatus.includes("completed")) {
+    StatusIcon = CheckCircle;
+    colorClasses = "bg-blue-50/90 text-blue-700 border-blue-500/20 shadow-[0_2px_8px_rgba(59,130,246,0.04)]";
+    iconColor = "text-blue-600";
+  } else if (normalizedStatus.includes("pending")) {
     StatusIcon = Clock;
-  } else if (normalizedStatus.includes("cancel") || normalizedStatus.includes("reject")) {
+    colorClasses = "bg-amber-50/90 text-amber-700 border-amber-500/20 shadow-[0_2px_8px_rgba(245,158,11,0.04)]";
+    iconColor = "text-amber-600";
+  } else if (normalizedStatus.includes("cancel")) {
+    StatusIcon = Prohibit;
+    colorClasses = "bg-stone-100 text-stone-500 border-stone-200/60";
+    iconColor = "text-stone-400";
+  } else if (normalizedStatus.includes("reject")) {
     StatusIcon = XCircle;
+    colorClasses = "bg-rose-50/90 text-rose-700 border-rose-500/20 shadow-[0_2px_8px_rgba(239,68,68,0.04)]";
+    iconColor = "text-rose-600";
+  } else {
+    StatusIcon = Info;
   }
 
   return (
     <span
-      className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider", cfg.bg, cfg.text)}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all backdrop-blur-xs",
+        colorClasses
+      )}
     >
-      <StatusIcon weight="fill" className={cn("size-3.5", cfg.iconColor)} />
-      {label}
+      <StatusIcon weight="bold" className={cn("size-3.5", iconColor)} />
+      <span suppressHydrationWarning>{label}</span>
     </span>
   );
 }
@@ -43,12 +58,22 @@ interface TierBadgeProps {
 }
 
 export function TierBadge({ tier, label }: TierBadgeProps) {
-  const cfg = TIER_CONFIG[tier];
+  let tierClasses = "bg-stone-50 border-stone-200/50 text-stone-600";
+  
+  if (tier === "luxury") {
+    tierClasses = "bg-amber-50/90 border-amber-500/20 text-amber-700 shadow-[0_2px_6px_rgba(245,158,11,0.02)]";
+  } else if (tier === "premium") {
+    tierClasses = "bg-amber-50/90 border-amber-500/20 text-[#C9873A] shadow-[0_2px_6px_rgba(201,135,58,0.02)]";
+  }
+
   return (
     <span
-      className={cn("rounded-full border border-current/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest", cfg.bg, cfg.text)}
+      className={cn(
+        "inline-flex items-center rounded-md border px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.18em] transition-all",
+        tierClasses
+      )}
     >
-      {label}
+      <span suppressHydrationWarning>{label}</span>
     </span>
   );
 }

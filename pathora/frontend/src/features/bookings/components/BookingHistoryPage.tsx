@@ -121,35 +121,43 @@ export function BookingHistoryPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className={cn("overflow-hidden rounded-[2.5rem] border border-slate-200/50 bg-white shadow-sm")}
+                    className={cn("overflow-hidden rounded-[2rem] border border-stone-200/50 bg-white p-5 shadow-[0_15px_30px_-10px_rgba(28,25,23,0.03)]")}
                   >
-                    <div className={cn("v-stack gap-6 p-4 lg:p-6")}>
-                      <div className={cn("h-56 w-full animate-pulse rounded-[1.5rem] bg-slate-100 sm:h-64")} />
-                      <div className={cn("v-stack spacer justify-between py-2")}>
-                        <div className={cn("h-stack mb-6 justify-between gap-4")}>
-                          <div className={cn("v-stack w-full gap-3")}>
-                            <div className="h-8 bg-slate-100 rounded-lg w-3/4 animate-pulse" />
-                            <div className="h-5 bg-slate-100 rounded-md w-1/4 animate-pulse" />
+                    <div className={cn("flex flex-col gap-6 lg:flex-row lg:items-stretch")}>
+                      {/* Image Skeleton */}
+                      <div className={cn("relative min-h-[220px] w-full shrink-0 animate-pulse rounded-[1.5rem] bg-stone-100 lg:w-[240px]")} />
+                      
+                      {/* Content Skeleton */}
+                      <div className={cn("flex flex-col justify-between flex-1 py-1")}>
+                        {/* Header row skeleton */}
+                        <div className={cn("flex flex-col justify-between gap-4 mb-6 sm:flex-row sm:items-start")}>
+                          <div className={cn("space-y-3 w-full")}>
+                            <div className="h-6 bg-stone-100 rounded-lg w-3/4 animate-pulse" />
+                            <div className="h-4 bg-stone-100 rounded-md w-1/3 animate-pulse" />
                           </div>
-                          <div className="h-16 bg-slate-50 rounded-2xl w-32 shrink-0 animate-pulse" />
+                          <div className="h-14 bg-stone-50 rounded-2xl w-32 shrink-0 animate-pulse border border-stone-200/30" />
                         </div>
-                        <div className={cn("mb-8 grid grid-cols-2 gap-4")}>
+
+                        {/* Info grid skeleton */}
+                        <div className={cn("mb-6 grid grid-cols-2 gap-4 border-t border-stone-100/70 pt-5")}>
                           {[1, 2, 3, 4].map(j => (
-                            <div key={j} className={cn("h-stack gap-3")}>
-                              <div className={cn("size-8 shrink-0 animate-pulse rounded-lg bg-slate-100")} />
-                              <div className={cn("v-stack w-full gap-2")}>
-                                <div className="h-3 bg-slate-100 rounded w-12 animate-pulse" />
-                                <div className="h-4 bg-slate-100 rounded w-24 animate-pulse" />
+                            <div key={j} className={cn("flex items-start gap-3")}>
+                              <div className={cn("size-8 shrink-0 animate-pulse rounded-lg bg-stone-100")} />
+                              <div className={cn("space-y-1.5 w-full")}>
+                                <div className="h-2.5 bg-stone-100 rounded w-8 animate-pulse" />
+                                <div className="h-3.5 bg-stone-100 rounded w-20 animate-pulse" />
                               </div>
                             </div>
                           ))}
                         </div>
-                        <div className={cn("h-stack items-end justify-between border-t border-slate-100 pt-6")}>
-                          <div className={cn("v-stack gap-2")}>
-                            <div className="h-3 bg-slate-100 rounded w-16 animate-pulse" />
-                            <div className="h-8 bg-slate-100 rounded w-32 animate-pulse" />
+
+                        {/* Footer skeleton */}
+                        <div className={cn("flex flex-col justify-between gap-6 border-t border-dashed border-stone-100 pt-5 sm:flex-row sm:items-end")}>
+                          <div className={cn("space-y-2")}>
+                            <div className="h-2.5 bg-stone-100 rounded w-16 animate-pulse" />
+                            <div className="h-7 bg-stone-100 rounded-lg w-28 animate-pulse" />
                           </div>
-                          <div className="h-10 bg-slate-100 rounded-xl w-10 animate-pulse" />
+                          <div className="h-10 bg-stone-100 rounded-xl w-36 animate-pulse" />
                         </div>
                       </div>
                     </div>
