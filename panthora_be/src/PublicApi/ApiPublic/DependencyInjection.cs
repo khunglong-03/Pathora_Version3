@@ -78,6 +78,7 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(10);
         });
         services.AddScoped<Application.Services.IPaymentNotificationBroadcaster, ApiInternalPaymentNotificationBroadcaster>();
+        services.AddScoped<Application.Services.IBookingStatusNotificationBroadcaster, ApiPublic.Infrastructure.NoOpBookingStatusNotificationBroadcaster>();
         services.AddScoped<Application.Services.ITourInstanceNotificationBroadcaster, ApiPublic.Infrastructure.NoOpTourInstanceNotificationBroadcaster>();
 
         return services;

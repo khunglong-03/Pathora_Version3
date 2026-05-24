@@ -118,11 +118,13 @@ public sealed class RequestBookingCancellationCommandHandler(
             // Bypass manager for any status if paidAmount == 0
             if (paidAmount == 0)
             {
+                var shouldRemoveParticipant = booking.Status != BookingStatus.Pending;
+
                 booking.Cancel(request.Reason, performedBy);
 
                 // Free up participant slots
                 var tourInstance = booking.TourInstance;
-                if (tourInstance is not null)
+                if (tourInstance is not null && shouldRemoveParticipant)
                 {
                     var totalParticipants = booking.NumberAdult + booking.NumberChild + booking.NumberInfant;
                     if (totalParticipants > 0)
