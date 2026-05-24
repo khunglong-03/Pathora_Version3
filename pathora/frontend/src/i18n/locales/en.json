@@ -1083,6 +1083,7 @@
   },
   "error_response": {
     "DEFAULT_ERROR": "An error occurred, please try again later",
+    "Booking.DuplicateCustomRequest": "You already have a similar custom request under review.",
     "NETWORK_ERROR": "Network error, please check your internet connection",
     "TIMEOUT_ERROR": "Request timed out, please try again.",
     "BAD_REQUEST": "Invalid request",
@@ -4075,7 +4076,22 @@
       "addParticipants": "Add Participants",
       "visaStatus": "Visa Status",
       "invoice": "Download Invoice",
-      "viewDetails": "View Details"
+      "viewDetails": "View Details",
+      "cancelModal": {
+        "title": "Confirm Cancellation",
+        "unpaidWarning": "You have not made any payment for this booking. Cancellation will be processed immediately.",
+        "paidAmount": "Paid Amount:",
+        "fee": "Fee ({{percent}}%):",
+        "estimatedRefund": "Estimated Refund:",
+        "reasonLabel": "Reason for cancellation",
+        "reasonPlaceholder": "Reason for cancellation",
+        "reasonRequired": "Reason for cancellation *",
+        "cancelBtn": "Cancel",
+        "confirmBtn": "Confirm",
+        "requestingBtn": "Requesting...",
+        "loadingEstimate": "Loading estimate...",
+        "loadError": "Could not load estimate. Please try again."
+      }
     },
     "bookingDetail": {
       "statusConfirmed": "Confirmed",

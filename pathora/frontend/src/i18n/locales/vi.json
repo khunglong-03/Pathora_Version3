@@ -1083,6 +1083,7 @@
   },
   "error_response": {
     "DEFAULT_ERROR": "Đã xảy ra lỗi, vui lòng thử lại sau",
+    "Booking.DuplicateCustomRequest": "Bạn đã có một tour như vậy đang được xét duyệt.",
     "NETWORK_ERROR": "Lỗi kết nối mạng, vui lòng kiểm tra kết nối internet",
     "TIMEOUT_ERROR": "Yêu cầu đã hết thời gian chờ, vui lòng thử lại.",
     "BAD_REQUEST": "Yêu cầu không hợp lệ",
@@ -4055,7 +4056,22 @@
       "addParticipants": "Thêm Khách",
       "visaStatus": "Tình Trạng Visa",
       "invoice": "Tải Hóa Đơn",
-      "viewDetails": "Xem Chi Tiết"
+      "viewDetails": "Xem Chi Tiết",
+      "cancelModal": {
+        "title": "Xác Nhận Hủy Đơn",
+        "unpaidWarning": "Bạn chưa thực hiện thanh toán cho đơn đặt tour này. Thao tác huỷ sẽ được xử lý ngay lập tức.",
+        "paidAmount": "Số tiền đã trả:",
+        "fee": "Phí hủy ({{percent}}%):",
+        "estimatedRefund": "Tiền hoàn dự kiến:",
+        "reasonLabel": "Lý do hủy đơn",
+        "reasonPlaceholder": "Nhập lý do hủy đơn...",
+        "reasonRequired": "Lý do hủy đơn *",
+        "cancelBtn": "Hủy",
+        "confirmBtn": "Xác nhận",
+        "requestingBtn": "Đang xử lý...",
+        "loadingEstimate": "Đang tải thông tin hủy...",
+        "loadError": "Không thể tải thông tin hủy. Vui lòng thử lại."
+      }
     },
     "bookingDetail": {
       "statusConfirmed": "Đã Xác Nhận",

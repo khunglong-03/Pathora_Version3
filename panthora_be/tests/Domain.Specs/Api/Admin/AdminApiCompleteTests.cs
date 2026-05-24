@@ -36,10 +36,18 @@ public sealed class AdminApiCompleteTests
             CancellationRate: 5.0m,
             VisaApprovalRate: 95.0m
         );
+        var paymentStats = new AdminPaymentStatsReport(
+            TotalRevenue: 50000m,
+            PendingAmount: 0m,
+            CompletedCount: 250,
+            PendingCount: 0,
+            RefundedCount: 0
+        );
         var overview = new AdminOverviewReport(
             Stats: stats,
             Customers: [],
             Payments: [],
+            PaymentStats: paymentStats,
             Insurances: [],
             VisaApplications: []
         );

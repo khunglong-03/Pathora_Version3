@@ -739,7 +739,10 @@ export function CheckoutRequestPage() {
           "landing.checkout.missingBookingId",
           "Không tìm thấy thông tin đặt tour. Vui lòng quay lại trang chi tiết tour và thử lại.",
         );
-      } else if (handledError.code === "Booking.DuplicateCustomRequest") {
+      } else if (
+        handledError.code === "Booking.DuplicateCustomRequest" ||
+        handledError.message === "Booking.DuplicateCustomRequest"
+      ) {
         errorMessage = t(
           "landing.checkout.duplicateCustomRequest",
           "Bạn đã có một tour như vậy đang được xét duyệt.",

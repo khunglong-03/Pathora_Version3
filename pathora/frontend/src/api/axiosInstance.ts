@@ -51,6 +51,7 @@ export interface ApiErrorResponse {
 
 export interface CustomAxiosRequestConfig extends AxiosRequestConfig {
   baseURL?: string;
+  skipErrorToast?: boolean;
 }
 
 const axiosInstance: AxiosInstance = axios.create({

@@ -296,6 +296,7 @@ export const tourService = {
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.PUBLIC_TOUR.REQUEST_PRIVATE(tourId),
       payload,
+      { skipErrorToast: true },
     );
     const raw = extractResult<unknown>(response.data);
     return normalizeCheckoutPriceResponse(raw);

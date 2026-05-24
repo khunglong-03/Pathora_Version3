@@ -15,6 +15,7 @@ import { refreshAccessToken } from "./tokenRefreshCoordinator";
 export interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   __retryCount?: number;
   __isAuthRequest?: boolean;
+  skipErrorToast?: boolean;
 }
 
 export interface ResponseErrorDependencies {
@@ -75,7 +76,9 @@ export const handleResponseError = async (
   }
 
   const errorToast = resolveErrorToast(error);
-  deps.showError(errorToast.key, errorToast.details);
+  if (!originalConfig?.skipErrorToast) {
+    deps.showError(errorToast.key, errorToast.details);
+  }
 
   if (error.response?.status === 401) {
     deps.onUnauthorized();

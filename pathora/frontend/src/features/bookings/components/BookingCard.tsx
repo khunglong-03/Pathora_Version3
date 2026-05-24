@@ -50,7 +50,7 @@ export function BookingCard({
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ 
         y: -4,
-        shadow: "0 30px 60px -15px rgba(28,25,23,0.08)"
+        boxShadow: "0 30px 60px -15px rgba(28,25,23,0.08)"
       }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
       className={cn(

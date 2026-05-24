@@ -24,6 +24,7 @@ public sealed class GetAdminOverviewQueryHandlerTests
             Stats: new AdminDashboardStatsReport(0, 0, 0, 0, 0, 0),
             Customers: [],
             Payments: [],
+            PaymentStats: new AdminPaymentStatsReport(0, 0, 0, 0, 0),
             Insurances: [],
             VisaApplications: []
         );
@@ -48,6 +49,7 @@ public sealed class GetAdminOverviewQueryHandlerTests
             Stats: new AdminDashboardStatsReport(0, 0, 0, 0, 0, 0),
             Customers: [],
             Payments: [],
+            PaymentStats: new AdminPaymentStatsReport(0, 0, 0, 0, 0),
             Insurances: [],
             VisaApplications: []
         );

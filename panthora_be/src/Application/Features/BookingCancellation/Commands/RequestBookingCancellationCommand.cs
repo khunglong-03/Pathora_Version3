@@ -44,6 +44,9 @@ public sealed class RequestBookingCancellationCommandHandler(
     IBookingRepository bookingRepository,
     IBookingCancellationRequestRepository cancellationRequestRepository,
     ICancellationPolicyRepository cancellationPolicyRepository,
+    ITourInstanceRepository tourInstanceRepository,
+    IBookingTourGuideRepository bookingTourGuideRepository,
+    ISupplierPayableRepository supplierPayableRepository,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser,
     ILogger<RequestBookingCancellationCommandHandler> logger)
@@ -112,10 +115,39 @@ public sealed class RequestBookingCancellationCommandHandler(
             // Calculate paid amount inside tx
             var paidAmount = CalculatePaidAmount(booking);
 
-            // Bypass manager for Pending + paidAmount == 0
-            if (booking.Status == BookingStatus.Pending && paidAmount == 0)
+            // Bypass manager for any status if paidAmount == 0
+            if (paidAmount == 0)
             {
                 booking.Cancel(request.Reason, performedBy);
+
+                // Free up participant slots
+                var tourInstance = booking.TourInstance;
+                if (tourInstance is not null)
+                {
+                    var totalParticipants = booking.NumberAdult + booking.NumberChild + booking.NumberInfant;
+                    if (totalParticipants > 0)
+                    {
+                        tourInstance.RemoveParticipant(totalParticipants);
+                        await tourInstanceRepository.Update(tourInstance, cancellationToken);
+                    }
+                }
+
+                // Cleanup BookingTourGuide assignments
+                var tourGuides = await bookingTourGuideRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
+                foreach (var guide in tourGuides)
+                {
+                    guide.Cancel(performedBy);
+                    bookingTourGuideRepository.Update(guide);
+                }
+
+                // Cleanup SupplierPayables
+                var payables = await supplierPayableRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
+                foreach (var payable in payables)
+                {
+                    payable.Cancel(performedBy);
+                    supplierPayableRepository.Update(payable);
+                }
+
                 await bookingRepository.UpdateWithoutSaveAsync(booking);
                 await unitOfWork.SaveChangeAsync(cancellationToken);
                 result = new RequestBookingCancellationResult(Guid.Empty, "DirectCancel", 0);
