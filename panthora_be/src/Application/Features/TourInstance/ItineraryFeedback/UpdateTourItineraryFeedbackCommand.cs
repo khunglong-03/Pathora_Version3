@@ -7,6 +7,9 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
+using Contracts.Interfaces;
+using Application.Common;
+
 namespace Application.Features.TourInstance.ItineraryFeedback;
 
 public sealed record UpdateTourItineraryFeedbackCommand(
@@ -14,7 +17,10 @@ public sealed record UpdateTourItineraryFeedbackCommand(
     [property: JsonPropertyName("tourInstanceDayId")] Guid TourInstanceDayId,
     [property: JsonPropertyName("feedbackId")] Guid FeedbackId,
     [property: JsonPropertyName("content")] string Content)
-    : IRequest<ErrorOr<TourItineraryFeedbackDto>>;
+    : IRequest<ErrorOr<TourItineraryFeedbackDto>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{TourInstanceId}"];
+}
 
 public sealed class UpdateTourItineraryFeedbackCommandValidator : AbstractValidator<UpdateTourItineraryFeedbackCommand>
 {

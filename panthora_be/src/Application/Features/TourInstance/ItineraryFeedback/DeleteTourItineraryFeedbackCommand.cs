@@ -7,13 +7,19 @@ using FluentValidation;
 using MediatR;
 using System.Text.Json.Serialization;
 
+using Contracts.Interfaces;
+using Application.Common;
+
 namespace Application.Features.TourInstance.ItineraryFeedback;
 
 public sealed record DeleteTourItineraryFeedbackCommand(
     [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
     [property: JsonPropertyName("tourInstanceDayId")] Guid TourInstanceDayId,
     [property: JsonPropertyName("feedbackId")] Guid FeedbackId)
-    : IRequest<ErrorOr<Deleted>>;
+    : IRequest<ErrorOr<Deleted>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{TourInstanceId}"];
+}
 
 public sealed class DeleteTourItineraryFeedbackCommandValidator : AbstractValidator<DeleteTourItineraryFeedbackCommand>
 {

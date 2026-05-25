@@ -8,12 +8,18 @@ using FluentValidation;
 using MediatR;
 using System.Text.Json.Serialization;
 
+using Contracts.Interfaces;
+using Application.Common;
+
 namespace Application.Features.TourInstance.ItineraryFeedback;
 
 public sealed record ApplyPrivateTourSettlementCommand(
     [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
     [property: JsonPropertyName("bookingId")] Guid BookingId)
-    : IRequest<ErrorOr<PrivateTourSettlementResultDto>>;
+    : IRequest<ErrorOr<PrivateTourSettlementResultDto>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{TourInstanceId}"];
+}
 
 public sealed class ApplyPrivateTourSettlementCommandValidator : AbstractValidator<ApplyPrivateTourSettlementCommand>
 {

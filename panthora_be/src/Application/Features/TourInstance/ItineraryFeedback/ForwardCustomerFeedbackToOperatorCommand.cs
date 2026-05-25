@@ -6,6 +6,9 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
+using Contracts.Interfaces;
+using Application.Common;
+
 namespace Application.Features.TourInstance.ItineraryFeedback;
 
 public sealed record ForwardCustomerFeedbackToOperatorCommand(
@@ -13,7 +16,10 @@ public sealed record ForwardCustomerFeedbackToOperatorCommand(
     [property: JsonPropertyName("tourInstanceDayId")] Guid TourInstanceDayId,
     [property: JsonPropertyName("feedbackId")] Guid FeedbackId,
     [property: JsonPropertyName("rowVersion")] string RowVersion)
-    : IRequest<ErrorOr<Success>>;
+    : IRequest<ErrorOr<Success>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{TourInstanceId}"];
+}
 
 public sealed class ForwardCustomerFeedbackToOperatorCommandHandler(
     ITourItineraryFeedbackRepository feedbackRepository,
