@@ -53,11 +53,11 @@ public sealed class TourItineraryFeedbackIntegrationTests
 
         var feedback = TourItineraryFeedbackEntity.Create(
             instanceId, dayId, "Needs pool", true, userId.ToString());
-        
+
         var fieldInfo = typeof(TourItineraryFeedbackEntity).GetProperty(nameof(TourItineraryFeedbackEntity.Id));
         fieldInfo?.SetValue(feedback, feedbackId);
         feedback.RowVersion = [1, 2, 3];
-        
+
         _feedbackRepo.GetByIdAsync(feedbackId, Arg.Any<CancellationToken>())
             .Returns(feedback);
 
@@ -133,7 +133,7 @@ public sealed class TourItineraryFeedbackIntegrationTests
         // Feedback in Pending state (not OperatorResponded)
         var feedback = TourItineraryFeedbackEntity.Create(
             instanceId, dayId, "Needs pool", true, userId.ToString());
-        
+
         var fieldInfo = typeof(TourItineraryFeedbackEntity).GetProperty(nameof(TourItineraryFeedbackEntity.Id));
         fieldInfo?.SetValue(feedback, feedbackId);
         feedback.RowVersion = [1, 2, 3];
@@ -224,7 +224,7 @@ public sealed class TourItineraryFeedbackIntegrationTests
 
         var myPendingFeedback = TourItineraryFeedbackEntity.Create(instanceId, dayId, "My issue", true, customerId.ToString());
         myPendingFeedback.RowVersion = [1, 2, 3];
-        
+
         var operatorRespondedFeedback = TourItineraryFeedbackEntity.Create(instanceId, dayId, "Another issue", true, Guid.NewGuid().ToString());
         operatorRespondedFeedback.RowVersion = [1, 2, 3];
         operatorRespondedFeedback.Forward(Guid.NewGuid());

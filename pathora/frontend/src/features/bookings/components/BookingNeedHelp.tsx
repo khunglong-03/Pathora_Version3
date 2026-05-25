@@ -9,7 +9,7 @@ export function BookingNeedHelp() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5, type: "spring", stiffness: 100, damping: 20 }}
-      className="rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group bg-slate-900 border border-slate-800"
+      className="rounded-2xl p-8 lg:p-10 shadow-xl relative overflow-hidden group bg-slate-900 border border-slate-800"
     >
       <motion.div 
         animate={{ scale: [1, 1.2, 1] }}
@@ -19,7 +19,7 @@ export function BookingNeedHelp() {
       
       <div className="relative z-10">
         <div className="h-stack items-center gap-4 mb-4">
-          <div className="center size-12 rounded-[1rem] bg-white/10 text-white backdrop-blur-md border border-white/20">
+          <div className="center size-12 rounded-xl bg-white/10 text-white backdrop-blur-md border border-white/20">
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
@@ -38,9 +38,9 @@ export function BookingNeedHelp() {
           <motion.a
             whileHover={{ scale: 1.02, x: 5 }}
             href="tel:+1234567890"
-            className="h-stack items-center gap-4 bg-white/5 rounded-[1.5rem] p-5 hover:bg-white/10 transition-colors border border-white/5 backdrop-blur-sm"
+            className="h-stack items-center gap-4 bg-white/5 rounded-xl p-5 hover:bg-white/10 transition-colors border border-white/5 backdrop-blur-sm"
           >
-            <div className="center size-12 rounded-[1rem] bg-white/10 text-white shrink-0 border border-white/10">
+            <div className="center size-12 rounded-lg bg-white/10 text-white shrink-0 border border-white/10">
               <Phone weight="fill" className="size-5" />
             </div>
             <div>
@@ -55,9 +55,9 @@ export function BookingNeedHelp() {
           <motion.a
             whileHover={{ scale: 1.02, x: 5 }}
             href="mailto:support@pathora.com"
-            className="h-stack items-center gap-4 bg-white/5 rounded-[1.5rem] p-5 hover:bg-white/10 transition-colors border border-white/5 backdrop-blur-sm"
+            className="h-stack items-center gap-4 bg-white/5 rounded-xl p-5 hover:bg-white/10 transition-colors border border-white/5 backdrop-blur-sm"
           >
-            <div className="center size-12 rounded-[1rem] bg-white/10 text-white shrink-0 border border-white/10">
+            <div className="center size-12 rounded-lg bg-white/10 text-white shrink-0 border border-white/10">
               <EnvelopeSimple weight="fill" className="size-5" />
             </div>
             <div>

@@ -42,7 +42,7 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
             return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
 
         var bookings = new List<BookingEntity>();
-       
+
         if (isTourOperator)
         {
             var tour = await tourRepository.FindById(tourInstance.TourId, asNoTracking: true, cancellationToken);
@@ -65,9 +65,9 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
             bookings = bookings.Where(b =>
                 b.Status == Domain.Enums.BookingStatus.Paid ||
                 b.Status == Domain.Enums.BookingStatus.Deposited
-            ).ToList(); 
+            ).ToList();
         }
-        if (isTourGuide) 
+        if (isTourGuide)
         {
             bookings = bookings.Where(b =>
                 b.Status == Domain.Enums.BookingStatus.Paid
@@ -81,16 +81,16 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
             var breakdown = priceCalculator.Calculate(b, b.TourInstance, pricingPolicy?.Tiers, activeTaxConfig, paidAmount);
 
             return new AdminBookingListResponse(
-                b.Id, 
-                b.CustomerName, 
-                b.TourInstance.TourName, 
+                b.Id,
+                b.CustomerName,
+                b.TourInstance.TourName,
                 b.TourInstance.StartDate,
-                breakdown.TotalAmount, 
-                b.Status.ToString(), 
-                b.NumberAdult, 
-                b.NumberChild, 
+                breakdown.TotalAmount,
+                b.Status.ToString(),
+                b.NumberAdult,
+                b.NumberChild,
                 b.NumberInfant,
-                Subtotal: breakdown.Subtotal, 
+                Subtotal: breakdown.Subtotal,
                 TaxAmount: breakdown.TaxAmount,
                 TotalAmount: breakdown.TotalAmount, RemainingBalance: breakdown.RemainingBalance
             );

@@ -69,7 +69,7 @@ public class GetCustomerVisaRequirementsQueryHandlerTests
         result.IsError.Should().BeFalse();
         result.Value.Participants.Should().HaveCount(3);
         result.Value.Participants.Should().AllSatisfy(p => p.RequiresVisa.Should().BeTrue());
-        
+
         var missingDobDto = result.Value.Participants.First(p => p.FullName == "No DOB");
         missingDobDto.MissingDateOfBirth.Should().BeTrue();
     }
@@ -82,7 +82,7 @@ public class GetCustomerVisaRequirementsQueryHandlerTests
 
         var tourInstance = TourInstanceEntity.Create(Guid.NewGuid(), Guid.NewGuid(), "Title", "Name", "Code", "Class", TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 10, 1000m, "TEST");
         var booking = BookingEntity.Create(tourInstance.Id, "Customer", "123", 1, 1000m, PaymentMethod.VnPay, true, "TEST", Guid.NewGuid());
-        
+
         _bookingRepoMock.GetByIdWithDetailsAsync(booking.Id, Arg.Any<CancellationToken>())
             .Returns(booking);
 

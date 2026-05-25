@@ -101,19 +101,19 @@ public sealed class AdminOverviewRepositoryTests
         // Assert
         Assert.NotNull(overview);
         Assert.NotNull(overview.PaymentStats);
-        
+
         // TotalRevenue: Should be 1000000m (tx1), not 1700000m (tx1 + tx2) and not 300000m
         Assert.Equal(1000000m, overview.PaymentStats.TotalRevenue);
-        
+
         // PendingAmount: Should be 1500000m (tx3)
         Assert.Equal(1500000m, overview.PaymentStats.PendingAmount);
-        
+
         // CompletedCount: Should be 1 (tx1), excluding tx2 (Refund)
         Assert.Equal(1, overview.PaymentStats.CompletedCount);
-        
+
         // PendingCount: Should be 1 (tx3)
         Assert.Equal(1, overview.PaymentStats.PendingCount);
-        
+
         // RefundedCount: Should be 1 (tx2)
         Assert.Equal(1, overview.PaymentStats.RefundedCount);
 

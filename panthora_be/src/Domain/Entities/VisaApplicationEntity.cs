@@ -90,9 +90,9 @@ public class VisaApplicationEntity : Aggregate<Guid>
         ServiceFeeQuotedAt = DateTimeOffset.UtcNow;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
-        
+
         AddDomainEvent(new VisaServiceFeeQuotedEvent(Id, fee, performedBy));
-        
+
         return true;
     }
 
@@ -142,21 +142,21 @@ public class VisaApplicationEntity : Aggregate<Guid>
     {
         if (Status != VisaStatus.Rejected)
             throw new InvalidOperationException("Chỉ có thể nộp lại đơn đã bị từ chối.");
-            
+
         var oldStatus = Status;
         Status = VisaStatus.Pending;
         RefusalReason = null;
         if (visaFileUrl != null)
             VisaFileUrl = visaFileUrl;
-            
+
         if (Visa != null)
         {
             Visa.Update(performedBy: performedBy, status: VisaStatus.Pending);
         }
-        
+
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
-        
+
         AddDomainEvent(new VisaApplicationStatusChangedEvent(Id, oldStatus, Status, performedBy));
     }
 }

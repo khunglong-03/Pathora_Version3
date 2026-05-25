@@ -1,3 +1,6 @@
+import { TourTier, CustomerTicketDto, CustomerRoomAssignmentDto, CustomerDayStatusDto, CustomerTicketImageDto } from "@/types/booking";
+export type { TourTier };
+
 /* ── Types ─────────────────────────────────────────────────── */
 export type BookingStatus =
   | "confirmed"
@@ -11,7 +14,6 @@ export type BookingStatus =
   | "deposited"
   | "pending_adjustment";
 
-export type TourTier = "standard" | "luxury" | "premium";
 export type PaymentStatus = "paid" | "partial" | "unpaid";
 export type PaymentMethod = "qr_code" | "cash" | "bank_transfer";
 
@@ -56,6 +58,10 @@ export interface BookingDetail {
   visaServiceFeeTotal?: number;
   cancellationRequest?: any;
   cancellationRequests?: any[];
+  tickets?: CustomerTicketDto[];
+  roomAssignments?: CustomerRoomAssignmentDto[];
+  dayStatuses?: CustomerDayStatusDto[];
+  ticketImages?: CustomerTicketImageDto[];
 }
 
 /* ── Status config ─────────────────────────────────────────── */

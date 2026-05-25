@@ -31,7 +31,7 @@ public sealed class VisaEmailNotificationHandler(
             try
             {
                 var customerName = application.BookingParticipant.Booking.User?.FullName ?? "Customer";
-                
+
                 var approvedMail = new VisaApplicationApprovedMail(
                     CustomerName: customerName,
                     ParticipantName: application.BookingParticipant.FullName,
@@ -58,7 +58,7 @@ public sealed class VisaEmailNotificationHandler(
             try
             {
                 var customerName = application.BookingParticipant.Booking.User?.FullName ?? "Customer";
-                
+
                 var rejectedMail = new VisaApplicationRejectedMail(
                     CustomerName: customerName,
                     ParticipantName: application.BookingParticipant.FullName,
@@ -100,7 +100,7 @@ public sealed class VisaEmailNotificationHandler(
         {
             var customerName = application.BookingParticipant.Booking.User?.FullName ?? "Customer";
             var feeStr = notification.Fee.ToString("N0");
-            
+
             var quoteMail = new VisaServiceFeeQuotedMail(
                 CustomerName: customerName,
                 ParticipantName: application.BookingParticipant.FullName,

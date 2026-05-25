@@ -109,7 +109,7 @@ public sealed class SetAccommodationRequirementsCommandHandlerTests
         var supplierId = Guid.NewGuid();
         var instance = CreateInstanceWithAccommodationActivity(instanceId, activityId);
         var activity = instance.InstanceDays[0].Activities[0];
-        
+
         // Initialize existing accommodation with Approved status
         activity.Accommodation = TourInstancePlanAccommodationEntity.Create(
             activityId,
@@ -125,7 +125,7 @@ public sealed class SetAccommodationRequirementsCommandHandlerTests
             .Returns(instance);
 
         var handler = CreateHandler();
-        
+
         // Change quantity to 2, keep same supplier and room type
         var result = await handler.Handle(
             new SetAccommodationRequirementsCommand(instanceId, activityId, supplierId, "Standard", 2),
@@ -133,7 +133,7 @@ public sealed class SetAccommodationRequirementsCommandHandlerTests
 
         result.IsError.Should().BeFalse();
         activity.Accommodation.Quantity.Should().Be(2);
-        
+
         // The bug: If status is still Approved, this will fail! It SHOULD be Pending.
         activity.Accommodation.SupplierApprovalStatus.Should().Be(ProviderApprovalStatus.Pending);
     }
@@ -145,13 +145,13 @@ public sealed class SetAccommodationRequirementsCommandHandlerTests
         var activityId = Guid.NewGuid();
         var instance = CreateInstanceWithAccommodationActivity(instanceId, activityId);
         var activity = instance.InstanceDays[0].Activities[0];
-        
+
         _tourInstanceRepository
             .FindByIdWithInstanceDaysForUpdate(instanceId, Arg.Any<CancellationToken>())
             .Returns(instance);
 
         var handler = CreateHandler();
-        
+
         // Command with null SupplierId
         var result = await handler.Handle(
             new SetAccommodationRequirementsCommand(instanceId, activityId, null, "Standard", 2),

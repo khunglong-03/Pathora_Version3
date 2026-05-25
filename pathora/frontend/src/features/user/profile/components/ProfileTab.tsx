@@ -24,13 +24,13 @@ interface ProfileTabProps {
 function ProfileTabSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
-      <div className="h-6 w-56 rounded bg-slate-100" />
-      <div className="h-24 w-24 rounded-full bg-slate-100" />
+      <div className="h-6 w-56 rounded bg-stone-100" />
+      <div className="h-24 w-24 rounded-full bg-stone-100" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="h-10 rounded-xl bg-slate-100" />
-        <div className="h-10 rounded-xl bg-slate-100" />
-        <div className="md:col-span-2 h-10 rounded-xl bg-slate-100" />
-        <div className="h-10 rounded-xl bg-slate-100" />
+        <div className="h-10 rounded-xl bg-stone-100" />
+        <div className="h-10 rounded-xl bg-stone-100" />
+        <div className="md:col-span-2 h-10 rounded-xl bg-stone-100" />
+        <div className="h-10 rounded-xl bg-stone-100" />
       </div>
     </div>
   );
@@ -130,9 +130,9 @@ export function ProfileTab({ user, isLoading, isUpdating, onUpdate }: ProfileTab
 
   return (
     <form onSubmit={handleSave} className="space-y-6">
-      <div className="pb-4 border-b border-slate-100">
-        <h2 className="text-xl font-semibold tracking-tight text-slate-900">{t("common.profilePage.profileSectionTitle") || "Thông tin cá nhân"}</h2>
-        <p className="text-sm mt-1 text-slate-500">
+      <div className="pb-4 border-b border-stone-100/80">
+        <h2 className="text-xl font-bold tracking-tight text-stone-900">{t("common.profilePage.profileSectionTitle") || "Thông tin cá nhân"}</h2>
+        <p className="text-sm mt-1 text-stone-500 font-medium">
           {t("common.profilePage.profileSectionDesc") || "Cập nhật họ tên, số điện thoại và địa chỉ của bạn"}
         </p>
       </div>
@@ -147,58 +147,58 @@ export function ProfileTab({ user, isLoading, isUpdating, onUpdate }: ProfileTab
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-semibold mb-2 text-slate-700">{t("common.auth.fullName") || "Họ và tên"}</label>
+          <label className="block text-sm font-semibold mb-2 text-stone-700">{t("common.auth.fullName") || "Họ và tên"}</label>
           <input
             type="text"
             value={profileData.fullName}
             onChange={(e) => setProfileData((prev) => ({ ...prev, fullName: e.target.value }))}
-            className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none ${
+            className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none text-stone-900 ${
               fullNameError 
                 ? "border-red-500 ring-4 ring-red-50" 
-                : "border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-4 focus:ring-slate-100"
+                : "border-stone-200 hover:border-stone-300 focus:border-stone-900 focus:ring-4 focus:ring-stone-100"
             }`}
           />
           {fullNameError ? <p className="text-xs mt-1.5 font-medium text-red-500">{fullNameError}</p> : null}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-2 text-slate-700">{t("common.auth.phoneNumber") || "Số điện thoại"}</label>
+          <label className="block text-sm font-semibold mb-2 text-stone-700">{t("common.auth.phoneNumber") || "Số điện thoại"}</label>
           <input
             type="tel"
             value={profileData.phoneNumber}
             onChange={(e) => setProfileData((prev) => ({ ...prev, phoneNumber: e.target.value }))}
             placeholder="0912345678"
-            className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none ${
+            className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none text-stone-900 ${
               phoneError 
                 ? "border-red-500 ring-4 ring-red-50" 
-                : "border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-4 focus:ring-slate-100"
+                : "border-stone-200 hover:border-stone-300 focus:border-stone-900 focus:ring-4 focus:ring-stone-100"
             }`}
           />
           {phoneError ? <p className="text-xs mt-1.5 font-medium text-red-500">{phoneError}</p> : null}
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-semibold mb-2 text-slate-700">{t("common.auth.address") || "Địa chỉ"}</label>
+          <label className="block text-sm font-semibold mb-2 text-stone-700">{t("common.auth.address") || "Địa chỉ"}</label>
           <input
             type="text"
             value={profileData.address}
             onChange={(e) => setProfileData((prev) => ({ ...prev, address: e.target.value }))}
-            className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none ${
+            className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none text-stone-900 ${
               addressError 
                 ? "border-red-500 ring-4 ring-red-50" 
-                : "border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-4 focus:ring-slate-100"
+                : "border-stone-200 hover:border-stone-300 focus:border-stone-900 focus:ring-4 focus:ring-stone-100"
             }`}
           />
           {addressError ? <p className="text-xs mt-1.5 font-medium text-red-500">{addressError}</p> : null}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-2 text-slate-700">{t("common.email") || "Email"}</label>
+          <label className="block text-sm font-semibold mb-2 text-stone-700">{t("common.email") || "Email"}</label>
           <input
             type="email"
             value={user?.email || ""}
             disabled
-            className="w-full px-4 py-2.5 border border-slate-200 bg-slate-50 text-slate-400 rounded-xl cursor-not-allowed"
+            className="w-full px-4 py-2.5 border border-stone-200 bg-stone-50 text-stone-400 rounded-xl cursor-not-allowed"
           />
         </div>
       </div>
@@ -207,14 +207,14 @@ export function ProfileTab({ user, isLoading, isUpdating, onUpdate }: ProfileTab
         <Button
           type="submit"
           disabled={isSubmitDisabled}
-          className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl font-semibold transition-all outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${
+          className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl font-semibold transition-all outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 ${
             isSubmitDisabled
-              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98] shadow-sm"
+              ? "bg-stone-100 text-stone-400 cursor-not-allowed"
+              : "bg-stone-900 text-white hover:bg-stone-800 active:scale-[0.98] shadow-sm"
           }`}
         >
           {saveState === "saving" || isUpdating ? (
-            <div className="size-4 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
+            <div className="size-4 border-2 border-stone-400 border-t-white rounded-full animate-spin" />
           ) : (
             <FiSave className="w-4 h-4" />
           )}

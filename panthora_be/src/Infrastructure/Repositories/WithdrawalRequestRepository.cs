@@ -65,7 +65,7 @@ public sealed class WithdrawalRequestRepository(AppDbContext context) : IWithdra
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim().ToLower();
-            query = query.Where(x => 
+            query = query.Where(x =>
                 (x.User.Username != null && x.User.Username.ToLower().Contains(term)) ||
                 (x.User.FullName != null && x.User.FullName.ToLower().Contains(term)) ||
                 (x.User.Email != null && x.User.Email.ToLower().Contains(term)));
@@ -92,7 +92,7 @@ public sealed class WithdrawalRequestRepository(AppDbContext context) : IWithdra
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim().ToLower();
-            query = query.Where(x => 
+            query = query.Where(x =>
                 (x.User.Username != null && x.User.Username.ToLower().Contains(term)) ||
                 (x.User.FullName != null && x.User.FullName.ToLower().Contains(term)) ||
                 (x.User.Email != null && x.User.Email.ToLower().Contains(term)));

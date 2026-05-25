@@ -22,7 +22,7 @@ public sealed class GetBookingTicketsQueryHandler(ITourInstanceBookingTicketRepo
     public async Task<ErrorOr<List<BookingTicketDto>>> Handle(GetBookingTicketsQuery request, CancellationToken cancellationToken)
     {
         var tickets = await ticketRepository.GetByActivityIdAsync(request.ActivityId, cancellationToken);
-        
+
         return tickets.Select(t => new BookingTicketDto(
             t.BookingId,
             t.FlightNumber,

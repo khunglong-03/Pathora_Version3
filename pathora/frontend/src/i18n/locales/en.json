@@ -1503,7 +1503,43 @@
       "refunded": "Refunded",
       "notApplicable": "Not applicable"
     },
-    "refundOutstanding": "Refund amount"
+    "refundOutstanding": "Refund amount",
+    "details": {
+      "tabs": {
+        "overview": "Overview",
+        "itinerary": "Itinerary",
+        "ticketsAndStatus": "Tickets & Status"
+      },
+      "tickets": {
+        "title": "Transportation Tickets",
+        "flightNumber": "Flight/Ticket No.",
+        "departure": "Departure",
+        "arrival": "Arrival",
+        "seat": "Seat No.",
+        "eTicket": "E-Ticket PNR",
+        "seatClass": "Class",
+        "passenger": "Passenger",
+        "viewTicketImage": "View scan/QR",
+        "noTickets": "No tickets assigned for this activity.",
+        "download": "Download"
+      },
+      "rooms": {
+        "title": "Hotel Room Assignment",
+        "roomType": "Room Type",
+        "roomCount": "Rooms count",
+        "roomNumbers": "Room numbers",
+        "noRooms": "No hotel rooms assigned for this activity."
+      },
+      "timeline": {
+        "day": "Day {{day}}",
+        "status": {
+          "notStarted": "Not started",
+          "inProgress": "In progress",
+          "completed": "Completed",
+          "cancelled": "Cancelled"
+        }
+      }
+    }
   },
   "notification": {
     "title": "Notifications",
@@ -4077,6 +4113,8 @@
       "visaStatus": "Visa Status",
       "invoice": "Download Invoice",
       "viewDetails": "View Details",
+      "cancelBooking": "Cancel Booking",
+      "requestCancellation": "Request Cancellation",
       "cancelModal": {
         "title": "Confirm Cancellation",
         "unpaidWarning": "You have not made any payment for this booking. Cancellation will be processed immediately.",

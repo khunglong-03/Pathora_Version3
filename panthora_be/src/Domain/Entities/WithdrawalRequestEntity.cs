@@ -32,13 +32,13 @@ public sealed class WithdrawalRequestEntity : Entity<Guid>
     public ManagerBankAccountEntity BankAccount { get; set; } = null!;
 
     public static WithdrawalRequestEntity Create(
-        Guid userId, 
-        Guid bankAccountId, 
-        decimal amount, 
-        string bankAccountNumber, 
-        string bankCode, 
-        string bankBin, 
-        string? bankShortName, 
+        Guid userId,
+        Guid bankAccountId,
+        decimal amount,
+        string bankAccountNumber,
+        string bankCode,
+        string bankBin,
+        string? bankShortName,
         string? bankAccountName)
     {
         if (amount < 100_000m || amount > 10_000_000m)
@@ -81,7 +81,7 @@ public sealed class WithdrawalRequestEntity : Entity<Guid>
     {
         if (Status != WithdrawalStatus.Pending)
             throw new InvalidOperationException("Only pending requests can be rejected.");
-            
+
         if (string.IsNullOrWhiteSpace(reason))
             throw new ArgumentException("Rejection reason is required.", nameof(reason));
 

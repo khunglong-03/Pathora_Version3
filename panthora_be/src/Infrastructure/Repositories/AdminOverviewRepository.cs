@@ -66,11 +66,11 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         var paymentStats = await BuildPaymentStats(tourInstanceIds, cancellationToken);
 
         return new AdminOverviewReport(
-            stats, 
-            customers, 
+            stats,
+            customers,
             payments,
             paymentStats,
-            insurances, 
+            insurances,
             visaApplications);
     }
 
@@ -353,8 +353,8 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         var visaQuery = _context.VisaApplications.AsNoTracking();
         if (tourInstanceIds != null)
         {
-            visaQuery = visaQuery.Where(x => x.BookingParticipant != null 
-                                             && x.BookingParticipant.Booking != null 
+            visaQuery = visaQuery.Where(x => x.BookingParticipant != null
+                                             && x.BookingParticipant.Booking != null
                                              && tourInstanceIds.Contains(x.BookingParticipant.Booking.TourInstanceId));
         }
 

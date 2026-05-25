@@ -35,7 +35,7 @@ public sealed class CreateWithdrawalRequestCommandTests
         var userId = Guid.NewGuid();
         var bankId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
-        
+
         var bankAccount = new ManagerBankAccountEntity { Id = bankId, UserId = userId, BankAccountNumber = "123", BankCode = "VTB", BankBin = "111" };
         _bankAccountRepoMock.GetByIdAndUserIdAsync(bankId, userId, default).Returns(bankAccount);
 
@@ -60,7 +60,7 @@ public sealed class CreateWithdrawalRequestCommandTests
         var userId = Guid.NewGuid();
         var bankId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
-        
+
         var bankAccount = new ManagerBankAccountEntity { Id = bankId, UserId = userId, BankAccountNumber = "123", BankCode = "VTB", BankBin = "111" };
         _bankAccountRepoMock.GetByIdAndUserIdAsync(bankId, userId, default).Returns(bankAccount);
 

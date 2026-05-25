@@ -124,8 +124,7 @@ export function AvatarUpload({ value, fullName, disabled = false, onChange, onVa
       <div className="flex items-center gap-4">
         {/* Avatar circle */}
         <div
-          className="relative h-24 w-24 rounded-full overflow-hidden flex items-center justify-center cursor-pointer group"
-          style={{ border: `1px solid var(--border)`, backgroundColor: "var(--accent-muted)" }}
+          className="relative h-24 w-24 rounded-full overflow-hidden flex items-center justify-center cursor-pointer group bg-stone-100 border-2 border-stone-200/60"
           onClick={handleAvatarClick}
           title={t("common.profilePage.avatar.changePhoto") || "Đổi ảnh"}
         >
@@ -137,7 +136,7 @@ export function AvatarUpload({ value, fullName, disabled = false, onChange, onVa
               className="h-full w-full object-cover"
             />
           ) : (
-            <span style={{ color: "var(--accent)" }} className="text-xl font-semibold">{initials}</span>
+            <span className="text-xl font-bold text-stone-500">{initials}</span>
           )}
 
           {/* Upload overlay */}
@@ -161,10 +160,10 @@ export function AvatarUpload({ value, fullName, disabled = false, onChange, onVa
         </div>
 
         <div className="flex-1 space-y-2">
-          <p style={{ color: "var(--text-secondary)" }} className="text-sm">
+          <p className="text-sm font-medium text-stone-700">
             {t("common.profilePage.avatar.hint") || "Nhấn vào ảnh để đổi ảnh đại diện"}
           </p>
-          <p style={{ color: "var(--text-muted)" }} className="text-xs">
+          <p className="text-xs font-medium text-stone-500">
             JPEG, PNG, WebP • Tối đa 5MB
           </p>
         </div>
@@ -181,7 +180,7 @@ export function AvatarUpload({ value, fullName, disabled = false, onChange, onVa
       </div>
 
       {errorMsg ? (
-        <p style={{ color: "var(--danger)" }} className="text-xs">{errorMsg}</p>
+        <p className="text-xs font-medium text-red-500">{errorMsg}</p>
       ) : null}
     </div>
   );

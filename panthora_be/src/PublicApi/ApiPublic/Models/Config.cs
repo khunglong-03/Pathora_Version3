@@ -20,7 +20,8 @@ public class RagConfig
     public int ChunkSize { get; set; } = 800;
     public string Collection { get; set; } = "docs_basic";
 }
-public class OpenAIConfig{
+public class OpenAIConfig
+{
     public string ApiKey { get; set; } = string.Empty;
     [ConfigurationKeyName("ChatModel")]
     public string Model { get; set; } = "gpt-5.2";

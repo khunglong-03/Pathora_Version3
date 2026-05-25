@@ -58,7 +58,7 @@ public sealed class ForwardCustomerFeedbackToOperatorCommandHandler(
             feedback.Forward(userId);
             await feedbackRepository.UpdateAsync(feedback, cancellationToken);
             await unitOfWork.SaveChangeAsync(cancellationToken);
-            
+
             if (notifications != null)
             {
                 try
@@ -71,7 +71,7 @@ public sealed class ForwardCustomerFeedbackToOperatorCommandHandler(
                     logger.LogWarning(ex, "Failed to broadcast Forwarded event for feedback {FeedbackId}", feedback.Id);
                 }
             }
-            
+
             return Result.Success;
         }
         catch (InvalidOperationException)

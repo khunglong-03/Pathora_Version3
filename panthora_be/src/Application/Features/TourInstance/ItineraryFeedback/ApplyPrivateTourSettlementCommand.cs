@@ -65,7 +65,7 @@ public sealed class ApplyPrivateTourSettlementCommandHandler(
             return Error.Validation("PrivateTour.NotPrivate", "Chỉ booking tour riêng mới quyết toán Delta.");
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
-        var isGlobalManager = user.Roles.Any(r => 
+        var isGlobalManager = user.Roles.Any(r =>
             string.Equals(r, RoleConstants.TourOperator, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(r, RoleConstants.Manager, StringComparison.OrdinalIgnoreCase));
 #pragma warning disable CS0618

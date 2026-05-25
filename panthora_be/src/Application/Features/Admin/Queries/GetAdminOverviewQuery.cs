@@ -10,8 +10,8 @@ namespace Application.Features.Admin.Queries;
 
 public sealed record GetAdminOverviewQuery(Guid? ManagerId = null) : IQuery<ErrorOr<AdminOverviewReport>>, ICacheable
 {
-    public string CacheKey => ManagerId.HasValue 
-        ? $"{Common.CacheKey.Admin}:overview:manager:{ManagerId.Value}" 
+    public string CacheKey => ManagerId.HasValue
+        ? $"{Common.CacheKey.Admin}:overview:manager:{ManagerId.Value}"
         : $"{Common.CacheKey.Admin}:overview";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
 }

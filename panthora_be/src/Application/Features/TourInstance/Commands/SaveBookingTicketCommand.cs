@@ -72,7 +72,7 @@ public sealed class SaveBookingTicketCommandHandler(
                 request.SeatClass,
                 request.Note,
                 user.Id ?? "SYSTEM");
-            
+
             await ticketRepository.AddAsync(newTicket);
         }
         else

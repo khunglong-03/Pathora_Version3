@@ -25,4 +25,8 @@ public interface ITourInstanceBookingRoomAssignmentRepository : IRepository<Tour
         Guid activityId,
         Guid bookingId,
         CancellationToken cancellationToken = default);
+
+    Task<List<TourInstanceBookingRoomAssignmentEntity>> GetByBookingIdAsync(
+        Guid bookingId,
+        CancellationToken cancellationToken = default);
 }

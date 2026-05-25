@@ -2,7 +2,7 @@ using ApiPublic.Models;
 
 namespace ApiPublic.Services.Embedding;
 
-public class OllamaEmbeddingProvider(HttpClient http,AppConfig cfg):IEmbeddingProvider
+public class OllamaEmbeddingProvider(HttpClient http, AppConfig cfg) : IEmbeddingProvider
 {
     private readonly AppConfig _cfg = cfg;
     private readonly HttpClient _http = http;
@@ -10,11 +10,11 @@ public class OllamaEmbeddingProvider(HttpClient http,AppConfig cfg):IEmbeddingPr
     public async Task<float[]> EmbedAsync(string text, CancellationToken ct = default)
     {
         var body = new { model = _cfg.Ollama.EmbeddingModel, input = text };
-        var resp=await _http.PostAsJsonAsync("api/embeddings",body, ct);
+        var resp = await _http.PostAsJsonAsync("api/embeddings", body, ct);
         var json = await resp.Content.ReadFromJsonAsync<OllamaEmbeddingResponse>(cancellationToken: ct)
             ?? throw new InvalidOperationException("Ollama embedding response was empty.");
         var vec = json.Embedding;
-        _dim??= vec.Length;
+        _dim ??= vec.Length;
         return vec;
     }
 

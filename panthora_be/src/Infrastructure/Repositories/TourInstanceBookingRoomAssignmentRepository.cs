@@ -67,4 +67,11 @@ public class TourInstanceBookingRoomAssignmentRepository(AppDbContext context)
 
         return await query.SumAsync(x => (int?)x.RoomCount, cancellationToken) ?? 0;
     }
+
+    public async Task<List<TourInstanceBookingRoomAssignmentEntity>> GetByBookingIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstanceBookingRoomAssignments
+            .Where(x => x.BookingId == bookingId)
+            .ToListAsync(cancellationToken);
+    }
 }

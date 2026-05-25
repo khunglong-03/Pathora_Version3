@@ -113,11 +113,11 @@ public class PostPaymentVisaGateService : IPostPaymentVisaGateService
             _logger.LogInformation("All participants satisfied visa requirements. Completing visa gate for instance {InstanceId}.", tourInstance.Id);
             tourInstance.CompleteVisaGate("SYSTEM");
             await tourInstanceRepo.Update(tourInstance, cancellationToken);
-            
+
             try
             {
                 await unitOfWork.SaveChangeAsync(cancellationToken);
-                
+
                 _logger.LogInformation("Triggering provider assignments for instance {InstanceId} after visa gate completion.", tourInstance.Id);
                 await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, cancellationToken);
             }
@@ -136,9 +136,9 @@ public class PostPaymentVisaGateService : IPostPaymentVisaGateService
     {
         using var scope = _serviceProvider.CreateScope();
         var visaAppRepo = scope.ServiceProvider.GetRequiredService<IVisaApplicationRepository>();
-        
+
         var visaApp = await visaAppRepo.GetByServiceFeeTransactionIdAsync(transactionId, cancellationToken);
-            
+
         if (visaApp != null)
         {
             visaApp.MarkServiceFeePaid(transactionId, "SYSTEM");
@@ -146,7 +146,7 @@ public class PostPaymentVisaGateService : IPostPaymentVisaGateService
             _logger.LogInformation("Visa service fee marked as paid for VisaApplication {AppId} via transaction {TransactionId}.", visaApp.Id, transactionId);
             return true;
         }
-        
+
         _logger.LogWarning("No VisaApplication found with ServiceFeeTransactionId {TransactionId}.", transactionId);
         return false;
     }

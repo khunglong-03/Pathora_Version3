@@ -1503,7 +1503,43 @@
       "refunded": "Đã hoàn tiền",
       "notApplicable": "Không áp dụng"
     },
-    "refundOutstanding": "Số tiền cần hoàn"
+    "refundOutstanding": "Số tiền cần hoàn",
+    "details": {
+      "tabs": {
+        "overview": "Tổng Quan",
+        "itinerary": "Lịch Trình",
+        "ticketsAndStatus": "Vé & Trạng thái"
+      },
+      "tickets": {
+        "title": "Thông Tin Vé Di Chuyển",
+        "flightNumber": "Số hiệu chuyến/vé",
+        "departure": "Khởi hành",
+        "arrival": "Đến",
+        "seat": "Số ghế",
+        "eTicket": "Vé điện tử PNR",
+        "seatClass": "Hạng ghế",
+        "passenger": "Hành khách",
+        "viewTicketImage": "Xem ảnh vé/QR",
+        "noTickets": "Chưa có vé được gán cho hoạt động này.",
+        "download": "Tải xuống"
+      },
+      "rooms": {
+        "title": "Thông Tin Phòng Ở",
+        "roomType": "Loại phòng",
+        "roomCount": "Số lượng phòng",
+        "roomNumbers": "Số phòng",
+        "noRooms": "Chưa có phòng khách sạn nào được gán cho hoạt động này."
+      },
+      "timeline": {
+        "day": "Ngày {{day}}",
+        "status": {
+          "notStarted": "Chưa bắt đầu",
+          "inProgress": "Đang diễn ra",
+          "completed": "Đã hoàn thành",
+          "cancelled": "Đã hủy"
+        }
+      }
+    }
   },
   "notification": {
     "title": "Thông báo",
@@ -4057,6 +4093,8 @@
       "visaStatus": "Tình Trạng Visa",
       "invoice": "Tải Hóa Đơn",
       "viewDetails": "Xem Chi Tiết",
+      "cancelBooking": "Hủy Đặt Chỗ",
+      "requestCancellation": "Yêu Cầu Hủy Đặt Chỗ",
       "cancelModal": {
         "title": "Xác Nhận Hủy Đơn",
         "unpaidWarning": "Bạn chưa thực hiện thanh toán cho đơn đặt tour này. Thao tác huỷ sẽ được xử lý ngay lập tức.",

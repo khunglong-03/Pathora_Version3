@@ -96,7 +96,7 @@ public static class ErrorConstants
         public const string InvalidTransitionCode = "TourItineraryFeedback.InvalidTransition";
         public static readonly LocalizedMessage InvalidTransitionDescription =
             new("Chuyển đổi trạng thái không hợp lệ.", "Invalid status transition.");
-        
+
         public const string ManagerOnlyCode = "TourItineraryFeedback.ManagerOnly";
         public static readonly LocalizedMessage ManagerOnlyDescription =
             new("Chỉ Manager mới được thực hiện thao tác này.", "Only Manager can perform this action.");

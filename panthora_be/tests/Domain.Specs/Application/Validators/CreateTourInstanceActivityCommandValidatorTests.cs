@@ -15,9 +15,9 @@ public class CreateTourInstanceActivityCommandValidatorTests
         var command = new CreateTourInstanceActivityCommand(
             Guid.NewGuid(), Guid.NewGuid(), "Transport", TourDayActivityType.Transportation,
             null, null, null, null, null, false);
-            
+
         var result = _sut.TestValidate(command);
-        
+
         result.ShouldHaveValidationErrorFor(x => x.TransportationType)
               .WithErrorCode("TourInstanceActivity.TransportationTypeRequired");
     }
@@ -30,9 +30,9 @@ public class CreateTourInstanceActivityCommandValidatorTests
             null, null, null, null, null, false,
             TransportationType.Flight, null, null, null, null, null,
             VehicleType.Car, 4, null);
-            
+
         var result = _sut.TestValidate(command);
-        
+
         result.ShouldHaveValidationErrorFor(x => x.RequestedVehicleType)
               .WithErrorCode("TourInstanceActivity.GroundFieldsNotAllowedForExternal");
         result.ShouldHaveValidationErrorFor(x => x.RequestedSeatCount)
@@ -45,12 +45,12 @@ public class CreateTourInstanceActivityCommandValidatorTests
         var command = new CreateTourInstanceActivityCommand(
             Guid.NewGuid(), Guid.NewGuid(), "Transport", TourDayActivityType.Transportation,
             null, null, null, null, null, false,
-            TransportationType.Car, null, null, null, 
+            TransportationType.Car, null, null, null,
             DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1),
             null, null, "Ref123");
-            
+
         var result = _sut.TestValidate(command);
-        
+
         result.ShouldHaveValidationErrorFor(x => x.DepartureTime)
               .WithErrorCode("TourInstanceActivity.ExternalFieldsNotAllowedForGround");
         result.ShouldHaveValidationErrorFor(x => x.ArrivalTime)
@@ -65,12 +65,12 @@ public class CreateTourInstanceActivityCommandValidatorTests
         var command = new CreateTourInstanceActivityCommand(
             Guid.NewGuid(), Guid.NewGuid(), "Transport", TourDayActivityType.Transportation,
             null, null, null, null, null, false,
-            TransportationType.Flight, null, null, null, 
+            TransportationType.Flight, null, null, null,
             DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1),
             null, null, "Ref123");
-            
+
         var result = _sut.TestValidate(command);
-        
+
         result.ShouldNotHaveValidationErrorFor(x => x.TransportationType);
         result.ShouldNotHaveValidationErrorFor(x => x.RequestedVehicleType);
         result.ShouldNotHaveValidationErrorFor(x => x.DepartureTime);
@@ -82,12 +82,12 @@ public class CreateTourInstanceActivityCommandValidatorTests
         var command = new CreateTourInstanceActivityCommand(
             Guid.NewGuid(), Guid.NewGuid(), "Transport", TourDayActivityType.Transportation,
             null, null, null, null, null, false,
-            TransportationType.Car, null, null, null, 
+            TransportationType.Car, null, null, null,
             null, null,
             VehicleType.Car, 4, null);
-            
+
         var result = _sut.TestValidate(command);
-        
+
         result.ShouldNotHaveValidationErrorFor(x => x.TransportationType);
         result.ShouldNotHaveValidationErrorFor(x => x.RequestedVehicleType);
         result.ShouldNotHaveValidationErrorFor(x => x.DepartureTime);

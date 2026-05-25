@@ -125,11 +125,11 @@ public sealed class UpdateVisaApplicationStatusCommandHandler(
             var passport = entity.Passport;
             if (passport == null || !passport.ExpiresAt.HasValue || passport.ExpiresAt.Value.Date < tourInstance.StartDate.Date)
                 return Error.Validation("Visa.InvalidPassport", "Hộ chiếu chưa có hoặc đã hết hạn trước khi tour bắt đầu.");
-            
+
             // Note: Emit Event có thể add trực tiếp vào Domain Entity (Domain Event) 
             // hoặc gửi qua MediatR. Hiện tại Entity có CreateDomainEvent() không? 
             // Giả sử Update() trên entity sẽ xử lý logic domain event.
-            
+
             if (entity.IsSystemAssisted)
             {
                 if (entity.Visa != null)

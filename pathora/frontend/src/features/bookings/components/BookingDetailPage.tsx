@@ -177,6 +177,10 @@ export function BookingDetailPage() {
     visaServiceFeeTotal: booking.visaServiceFeeTotal,
     cancellationRequest: booking.cancellationRequest,
     cancellationRequests: booking.cancellationRequests,
+    tickets: booking.tickets ?? [],
+    roomAssignments: booking.roomAssignments ?? [],
+    dayStatuses: booking.dayStatuses ?? [],
+    ticketImages: booking.ticketImages ?? [],
   };
 
   const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =

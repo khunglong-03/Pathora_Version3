@@ -78,7 +78,7 @@ function PasswordInput({ id, label, value, onChange, onBlur, onFocus, show, onTo
 
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-semibold mb-2 text-slate-700">
+      <label htmlFor={id} className="block text-sm font-semibold mb-2 text-stone-700">
         {label}
       </label>
       <div className="relative">
@@ -95,17 +95,17 @@ function PasswordInput({ id, label, value, onChange, onBlur, onFocus, show, onTo
           style={{
             paddingRight: "2.5rem",
           }}
-          className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none ${
+          className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none text-stone-900 ${
             error 
               ? "border-red-500 ring-4 ring-red-50" 
-              : "border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-4 focus:ring-slate-100"
+              : "border-stone-200 hover:border-stone-300 focus:border-stone-900 focus:ring-4 focus:ring-stone-100"
           }`}
         />
         <button
           type="button"
           onClick={onToggle}
           disabled={disabled}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:!text-slate-700 transition-colors disabled:opacity-40"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:!text-stone-700 transition-colors disabled:opacity-40"
           aria-label={show ? t("common.hidePassword") || "Hide password" : t("common.showPassword") || "Show password"}
         >
           {show ? (
@@ -148,10 +148,10 @@ function StrengthMeter({ password, t }: { password: string; t: ReturnType<typeof
             {r.satisfied ? (
               <FiCheck className="w-3.5 h-3.5 flex-shrink-0 text-green-500" />
             ) : (
-              <FiX className="w-3.5 h-3.5 flex-shrink-0 text-slate-300" />
+              <FiX className="w-3.5 h-3.5 flex-shrink-0 text-stone-300" />
             )}
             <span
-              className={`text-xs ${r.satisfied ? "text-green-600" : "text-slate-400"}`}
+              className={`text-xs ${r.satisfied ? "text-green-600" : "text-stone-400"}`}
             >
               {r.label}
             </span>
@@ -169,7 +169,7 @@ function StrengthMeter({ password, t }: { password: string; t: ReturnType<typeof
               <div
                 key={segment}
                 className={`flex-1 h-1 rounded-full transition-colors duration-200 ${
-                  filled ? getStrengthBgColor(segLevel) : "bg-slate-200"
+                  filled ? getStrengthBgColor(segLevel) : "bg-stone-200"
                 }`}
               />
             );
@@ -325,12 +325,12 @@ export function PasswordTab({ isUpdating, onChangePassword }: PasswordTabProps) 
   const isSaving = submitState === "saving";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-md">
-      <div className="pb-4 border-b border-slate-100">
-        <h2 className="text-xl font-semibold tracking-tight text-slate-900">
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-2xl">
+      <div className="pb-4 border-b border-stone-100/80">
+        <h2 className="text-xl font-bold tracking-tight text-stone-900">
           {t("common.profilePage.passwordSectionTitle") || "Bảo mật tài khoản"}
         </h2>
-        <p className="text-sm mt-1 text-slate-500">
+        <p className="text-sm mt-1 text-stone-500 font-medium">
           {t("common.profilePage.passwordSectionDesc") || "Thay đổi mật khẩu thường xuyên để bảo vệ tài khoản của bạn"}
         </p>
       </div>
@@ -412,12 +412,12 @@ export function PasswordTab({ isUpdating, onChangePassword }: PasswordTabProps) 
         <button
           type="submit"
           disabled={isDisabled}
-          className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl font-semibold transition-all outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${
+          className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl font-semibold transition-all outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 ${
             isSuccess
               ? "bg-green-600 text-white shadow-sm"
               : isDisabled
-              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98] shadow-sm"
+              ? "bg-stone-100 text-stone-400 cursor-not-allowed"
+              : "bg-stone-900 text-white hover:bg-stone-800 active:scale-[0.98] shadow-sm"
           }`}
         >
           {isSaving ? (

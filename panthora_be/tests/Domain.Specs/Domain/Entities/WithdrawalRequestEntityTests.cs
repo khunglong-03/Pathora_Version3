@@ -16,14 +16,14 @@ public sealed class WithdrawalRequestEntityTests
     [Fact]
     public void Create_AmountTooLow_Throws()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => 
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
             WithdrawalRequestEntity.Create(Guid.NewGuid(), Guid.NewGuid(), 99_999m, "123", "VTB", "9704", "VietinBank", "A"));
     }
 
     [Fact]
     public void Create_AmountTooHigh_Throws()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => 
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
             WithdrawalRequestEntity.Create(Guid.NewGuid(), Guid.NewGuid(), 10_000_001m, "123", "VTB", "9704", "VietinBank", "A"));
     }
 

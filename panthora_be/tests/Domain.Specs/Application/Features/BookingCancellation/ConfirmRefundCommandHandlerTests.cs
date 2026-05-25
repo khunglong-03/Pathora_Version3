@@ -76,7 +76,7 @@ public sealed class ConfirmRefundCommandHandlerTests
         Assert.Equal(RefundStatus.Refunded, booking.RefundStatus);
 
         await _paymentTransactionRepository.Received(1).AddAsync(
-            Arg.Is<PaymentTransactionEntity>(t => 
+            Arg.Is<PaymentTransactionEntity>(t =>
                 t.BookingId == bookingId &&
                 t.Type == TransactionType.Refund &&
                 t.Amount == 500000m &&

@@ -1,5 +1,7 @@
 // Booking-related types matching backend DTOs
 
+export type TourTier = "standard" | "luxury" | "premium";
+
 // Enums matching C# enums
 export enum GenderTypeEnum {
   Male = 0,
@@ -275,6 +277,50 @@ export interface BookingDetailResponse {
   highlights?: string[];
   importantInfo?: Record<string, unknown>[];
   pendingTransactionCode?: string;
+  tickets?: CustomerTicketDto[];
+  roomAssignments?: CustomerRoomAssignmentDto[];
+  dayStatuses?: CustomerDayStatusDto[];
+  ticketImages?: CustomerTicketImageDto[];
+}
+
+export interface CustomerTicketDto {
+  id: string;
+  tourInstanceDayActivityId: string;
+  flightNumber: string | null;
+  departureAt: string | null;
+  arrivalAt: string | null;
+  seatNumbers: string | null;
+  eTicketNumbers: string | null;
+  seatClass: string | null;
+  note: string | null;
+}
+
+export interface CustomerRoomAssignmentDto {
+  id: string;
+  tourInstanceDayActivityId: string;
+  roomType: string;
+  roomCount: number;
+  roomNumbers: string | null;
+  note: string | null;
+}
+
+export interface CustomerDayStatusDto {
+  id: string;
+  tourDayId: string;
+  activityStatus: string;
+  actualStartTime: string | null;
+  actualEndTime: string | null;
+  completedAt: string | null;
+  cancellationReason: string | null;
+  note: string | null;
+}
+
+export interface CustomerTicketImageDto {
+  id: string;
+  tourInstanceDayActivityId: string;
+  publicUrl: string;
+  bookingReference: string | null;
+  note: string | null;
 }
 
 export interface BookingCancellationRequestSummaryDto {

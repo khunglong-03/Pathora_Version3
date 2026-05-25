@@ -1655,7 +1655,7 @@ public class TourInstanceService(
         }
 
         var isAdminOrManager = _user.Roles != null && (_user.Roles.Contains("Admin") || _user.Roles.Contains("Manager"));
-        
+
         // Determine effective principal ID for scoping:
         // 1. Admin/Manager viewing custom requests (wantsCustomization = true) → see all (null)
         // 2. Tour Operator viewing public tours (wantsCustomization = false) → see all public tours (null)
@@ -1893,8 +1893,8 @@ public class TourInstanceService(
         var tour = await _tourRepository.FindByIdForUpdate(tourId);
         if (tour != null)
         {
-            var existingByName = tour.PlanLocations.FirstOrDefault(l => 
-                !l.IsDeleted && 
+            var existingByName = tour.PlanLocations.FirstOrDefault(l =>
+                !l.IsDeleted &&
                 l.LocationName.Trim().Equals(locationName!.Trim(), StringComparison.OrdinalIgnoreCase));
             if (existingByName != null)
             {
@@ -2228,7 +2228,7 @@ public class TourInstanceService(
                 else
                 {
                     // Fallback: chỉ nhân đơn giản nếu thiếu dependencies (không nên xảy ra trong production)
-                    totalPrice = (instance.BasePrice * booking.NumberAdult + instance.BasePrice * booking.NumberChild * 0.75m) + instance.BasePrice*0.1m;
+                    totalPrice = (instance.BasePrice * booking.NumberAdult + instance.BasePrice * booking.NumberChild * 0.75m) + instance.BasePrice * 0.1m;
                 }
 
                 booking.TotalPrice = totalPrice;

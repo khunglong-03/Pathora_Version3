@@ -53,7 +53,7 @@ public sealed class PaymentServiceTests
             Arg.Any<decimal>()).Returns(dummyBreakdown);
     }
 
-    private PaymentService CreateService() 
+    private PaymentService CreateService()
     {
         var serviceProvider = Substitute.For<IServiceProvider>();
         var scopeFactory = Substitute.For<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>();
@@ -1172,13 +1172,13 @@ public sealed class PaymentServiceTests
         var bookingId = Guid.NewGuid();
         var transaction = CreatePendingTransaction(bookingId, amount: 50000m);
         var booking = CreatePendingBooking(bookingId);
-        
+
         var dummyInstance = TourInstanceEntity.Create(
             Guid.NewGuid(), Guid.NewGuid(), "Title", "TourName", "TC", "Class",
             TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1),
             100, 1000m, "manager");
         dummyInstance.Tour = new TourEntity { IsVisa = true };
-        
+
         typeof(BookingEntity).GetProperty("TourInstanceId")?.SetValue(booking, dummyInstance.Id);
         typeof(BookingEntity).GetProperty("BookingType")?.SetValue(booking, BookingType.PrivateCustomTourRequest);
         booking.TourInstance = dummyInstance;
@@ -1208,7 +1208,7 @@ public sealed class PaymentServiceTests
         var bookingId = Guid.NewGuid();
         var transaction = CreatePendingTransaction(bookingId, amount: 50000m);
         var booking = CreatePendingBooking(bookingId);
-        
+
         var dummyInstance = TourInstanceEntity.Create(
             Guid.NewGuid(), Guid.NewGuid(), "Title", "TourName", "TC", "Class",
             TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1),
@@ -1221,7 +1221,7 @@ public sealed class PaymentServiceTests
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
         _tourInstanceRepo.FindByIdWithTourForPaymentAsync(dummyInstance.Id, Arg.Any<CancellationToken>()).Returns(dummyInstance);
-        
+
         // Mock the trigger returning true
         _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(Arg.Any<TourInstanceEntity>(), Arg.Any<string>())
             .Returns(Task.FromResult(true));
@@ -1248,7 +1248,7 @@ public sealed class PaymentServiceTests
         var transaction = CreatePendingTransaction(bookingId, TransactionType.VisaServiceFee);
         var booking = CreatePendingBooking(bookingId);
         booking.Status = BookingStatus.Deposited;
-        
+
         var dummyInstance = TourInstanceEntity.Create(
             Guid.NewGuid(), Guid.NewGuid(), "Title", "TourName", "TC", "Class",
             TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1),
@@ -1264,7 +1264,7 @@ public sealed class PaymentServiceTests
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
         _tourInstanceRepo.FindByIdWithTourForPaymentAsync(dummyInstance.Id, Arg.Any<CancellationToken>()).Returns(dummyInstance);
-        
+
         _postPaymentVisaGateService.MarkVisaServiceFeePaidAsync(transaction.Id).Returns(Task.FromResult(true));
 
         var service = CreateService();

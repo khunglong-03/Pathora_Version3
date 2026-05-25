@@ -87,7 +87,7 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
             performedBy: currentUserId.Value.ToString(),
             minReturnDate: minReturnDate,
             visaFileUrl: request.VisaFileUrl);
-            
+
         application.Update(
             destinationCountry: request.DestinationCountry,
             performedBy: currentUserId.Value.ToString(),
@@ -107,7 +107,7 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
             issuingAuthority: request.IssuingAuthority,
             fileUrl: request.VisaFileUrl,
             status: VisaStatus.Pending);
-            
+
         application.Visa = visa;
 
         await visaApplicationRepository.AddAsync(application, cancellationToken);

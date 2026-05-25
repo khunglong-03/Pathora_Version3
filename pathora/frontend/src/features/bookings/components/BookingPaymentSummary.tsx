@@ -44,6 +44,10 @@ export function BookingPaymentSummary({
   const [requestCancellation, { isLoading: isRequesting }] =
     useRequestCancellationMutation();
 
+  const cancelLabel = (booking.paidAmount ?? 0) > 0
+    ? t("landing.bookings.requestCancellation", "Request Cancellation")
+    : t("landing.bookings.cancelBooking", "Cancel Booking");
+
   const handleConfirmCancel = async (reason: string) => {
     try {
       await requestCancellation({
@@ -293,7 +297,7 @@ export function BookingPaymentSummary({
                 className="h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] border border-red-100 bg-red-50 text-red-600 text-sm font-bold hover:bg-red-100/50 transition-colors mt-2"
               >
                 <XCircle weight="bold" className="size-5" />
-                Cancel Booking
+                {cancelLabel}
               </button>
             </motion.div>
           )}

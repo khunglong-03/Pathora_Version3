@@ -19,14 +19,14 @@ public sealed class GetWithdrawalDetailQueryHandler(
         }
 
         var withdrawal = await withdrawalRequestRepository.GetByIdWithUserAsync(request.Id, cancellationToken);
-        
+
         if (withdrawal is null)
         {
             return Error.NotFound("Withdrawal.NotFound", "Withdrawal request not found.");
         }
 
         var isAdmin = currentUser.IsInRole(RoleConstants.Admin);
-        
+
         if (withdrawal.UserId != userId && !isAdmin)
         {
             return Error.Forbidden("Withdrawal.Forbidden", "Not allowed to view this withdrawal request.");

@@ -30,7 +30,7 @@ public sealed class UserEntityDebitBalanceTests
 
         Assert.Throws<ArgumentOutOfRangeException>(() => u.DebitBalance(-1m));
     }
-    
+
     [Fact]
     public void DebitBalance_Insufficient_Throws()
     {

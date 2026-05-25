@@ -86,7 +86,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .AsNoTracking()
             .Include(b => b.TourInstance)
             .Include(b => b.User)
-            .Where(b => b.Status != BookingStatus.Cancelled 
+            .Where(b => b.Status != BookingStatus.Cancelled
                         && b.TourInstance.Status != TourInstanceStatus.Cancelled)
             .AsSplitQuery();
 
