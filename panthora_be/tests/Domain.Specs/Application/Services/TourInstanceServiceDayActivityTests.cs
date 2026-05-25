@@ -112,12 +112,12 @@ public class TourInstanceServiceDayActivityTests
     public async Task CreateActivity_ShouldReturnError_WhenInstanceNotFound()
     {
         var command = new CreateTourInstanceActivityCommand(Guid.NewGuid(), Guid.NewGuid(), "Act", global::Domain.Enums.TourDayActivityType.Sightseeing, null, null, null, null);
-        _tourInstanceRepository.FindInstanceDayById(command.InstanceId, command.DayId).Returns((TourInstanceDayEntity)null!);
+        _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(command.InstanceId).Returns((TourInstanceEntity)null!);
 
         var result = await _sut.CreateActivity(command);
 
         Assert.True(result.IsError);
-        Assert.Equal("TourInstanceDay.NotFound", result.FirstError.Code);
+        Assert.Equal("TourInstance.NotFound", result.FirstError.Code);
     }
 
     [Fact]
@@ -127,7 +127,8 @@ public class TourInstanceServiceDayActivityTests
         var dayId = Guid.NewGuid();
         var command = new CreateTourInstanceActivityCommand(instanceId, dayId, "Act", global::Domain.Enums.TourDayActivityType.Sightseeing, null, null, null, null);
         
-        _tourInstanceRepository.FindInstanceDayById(instanceId, dayId).Returns((TourInstanceDayEntity)null!);
+        var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity>() };
+        _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
 
         var result = await _sut.CreateActivity(command);
 
@@ -141,9 +142,10 @@ public class TourInstanceServiceDayActivityTests
         var instanceId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity>() };
+        var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
         var command = new CreateTourInstanceActivityCommand(instanceId, dayId, "Act", global::Domain.Enums.TourDayActivityType.Sightseeing, null, null, null, null);
         
-        _tourInstanceRepository.FindInstanceDayById(instanceId, dayId).Returns(day);
+        _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
         _user.Id.Returns("test-user");
         _mapper.Map<TourInstanceDayActivityDto>(Arg.Any<TourInstanceDayActivityEntity>()).Returns(default(TourInstanceDayActivityDto)!);
 
@@ -159,6 +161,7 @@ public class TourInstanceServiceDayActivityTests
         var instanceId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity>() };
+        var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
         var command = new CreateTourInstanceActivityCommand(
             instanceId, dayId, "Flight to HN", global::Domain.Enums.TourDayActivityType.Transportation,
             null, null, null, null, null, false,
@@ -168,7 +171,7 @@ public class TourInstanceServiceDayActivityTests
             DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(2),
             null, null, "VN123");
         
-        _tourInstanceRepository.FindInstanceDayById(instanceId, dayId).Returns(day);
+        _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
         
         var result = await _sut.CreateActivity(command);
         
@@ -188,6 +191,7 @@ public class TourInstanceServiceDayActivityTests
         var instanceId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity>() };
+        var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
         var command = new CreateTourInstanceActivityCommand(
             instanceId, dayId, "Car to Hotel", global::Domain.Enums.TourDayActivityType.Transportation,
             null, null, null, null, null, false,
@@ -197,7 +201,7 @@ public class TourInstanceServiceDayActivityTests
             null, null,
             global::Domain.Enums.VehicleType.Car, 4, null);
         
-        _tourInstanceRepository.FindInstanceDayById(instanceId, dayId).Returns(day);
+        _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
         
         var result = await _sut.CreateActivity(command);
         
@@ -283,25 +287,34 @@ public class TourInstanceServiceDayActivityTests
     [Fact]
     public async Task DeleteActivity_ShouldReturnError_WhenActivityNotFound()
     {
-        var command = new DeleteTourInstanceActivityCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-        _tourInstanceRepository.FindActivityByIdAsync(command.ActivityId).Returns((TourInstanceDayActivityEntity)null!);
+        var instanceId = Guid.NewGuid();
+        var dayId = Guid.NewGuid();
+        var command = new DeleteTourInstanceActivityCommand(instanceId, dayId, Guid.NewGuid());
+        
+        var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity>() };
+        var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
+        _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
 
         var result = await _sut.DeleteActivity(command);
 
         Assert.True(result.IsError);
         Assert.Equal("TourInstance.NotFound", result.FirstError.Code);
+        Assert.Equal("Activity not found.", result.FirstError.Description);
     }
 
     [Fact]
     public async Task DeleteActivity_ShouldSucceed_WhenValid()
     {
-        var command = new DeleteTourInstanceActivityCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-        var activity = new TourInstanceDayActivityEntity 
-        { 
-            Id = command.ActivityId,
-            TourInstanceDay = new TourInstanceDayEntity { TourInstanceId = Guid.NewGuid() }
-        };
-        _tourInstanceRepository.FindActivityByIdAsync(command.ActivityId).Returns(activity);
+        var instanceId = Guid.NewGuid();
+        var dayId = Guid.NewGuid();
+        var activityId = Guid.NewGuid();
+        var command = new DeleteTourInstanceActivityCommand(instanceId, dayId, activityId);
+        
+        var activity = new TourInstanceDayActivityEntity { Id = activityId };
+        var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity> { activity } };
+        var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
+
+        _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
 
         var result = await _sut.DeleteActivity(command);
 

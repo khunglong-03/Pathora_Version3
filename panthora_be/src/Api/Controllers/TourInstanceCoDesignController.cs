@@ -1,4 +1,5 @@
 using Api.Endpoint;
+using Application.Features.TourInstance.Commands;
 using Application.Features.TourInstance.ItineraryFeedback;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -95,8 +96,7 @@ public sealed class TourInstanceCoDesignController : BaseApiController
     [HttpPost(TourInstanceEndpoint.ManagerApproveItinerary)]
     public async Task<IActionResult> ManagerApproveItinerary(Guid id)
     {
-        var svc = HttpContext.RequestServices.GetRequiredService<Application.Services.ITourInstanceService>();
-        var result = await svc.ManagerApproveItinerary(id);
+        var result = await Sender.Send(new ManagerApprovePrivateTourCommand(id));
         return HandleResult(result);
     }
 
@@ -104,8 +104,7 @@ public sealed class TourInstanceCoDesignController : BaseApiController
     [HttpPost(TourInstanceEndpoint.ManagerRejectItinerary)]
     public async Task<IActionResult> ManagerRejectItinerary(Guid id, [FromBody] ManagerRejectItineraryBody body)
     {
-        var svc = HttpContext.RequestServices.GetRequiredService<Application.Services.ITourInstanceService>();
-        var result = await svc.ManagerRejectItinerary(id, body.Reason);
+        var result = await Sender.Send(new ManagerRejectPrivateTourCommand(id, body.Reason));
         return HandleResult(result);
     }
 }

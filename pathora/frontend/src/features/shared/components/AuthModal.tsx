@@ -314,7 +314,7 @@ const SignUpView = ({
         <button
           type="button"
           onClick={() => {
-            const currentUrl = window.location.pathname + window.location.search;
+            const currentUrl = window.location.origin + window.location.pathname + window.location.search;
             window.location.href = `${GOOGLE_LOGIN_URL}?returnUrl=${encodeURIComponent(currentUrl)}`;
           }}
           className={OUTLINE_ACTION_CLASS}>
@@ -504,7 +504,7 @@ const LoginView = ({
         <button
           type="button"
           onClick={() => {
-            const currentUrl = window.location.pathname + window.location.search;
+            const currentUrl = window.location.origin + window.location.pathname + window.location.search;
             window.location.href = `${GOOGLE_LOGIN_URL}?returnUrl=${encodeURIComponent(currentUrl)}`;
           }}
           className={OUTLINE_ACTION_CLASS}>

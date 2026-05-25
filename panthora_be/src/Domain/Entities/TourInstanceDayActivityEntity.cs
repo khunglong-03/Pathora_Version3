@@ -308,6 +308,15 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
             ArrivalTime = arrivalTime;
             ExternalTransportReference = externalTransportReference;
 
+            if (departureTime.HasValue)
+            {
+                StartTime = TimeOnly.FromDateTime(departureTime.Value.DateTime);
+            }
+            if (arrivalTime.HasValue)
+            {
+                EndTime = TimeOnly.FromDateTime(arrivalTime.Value.DateTime);
+            }
+
             // Clear Ground fields
             RequestedVehicleType = null;
             RequestedSeatCount = null;

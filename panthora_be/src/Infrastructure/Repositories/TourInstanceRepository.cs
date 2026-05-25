@@ -64,7 +64,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, bool? wantsCustomization = null, TourType? instanceType = null, Guid? principalId = null, IReadOnlyCollection<TourInstanceStatus>? statuses = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.AsNoTracking()
             .AsSplitQuery()
@@ -84,7 +84,11 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                 (t.Location != null && t.Location.ToLower().Contains(search)));
         }
 
-        if (status.HasValue)
+        if (statuses is { Count: > 0 })
+        {
+            query = query.Where(t => statuses.Contains(t.Status));
+        }
+        else if (status.HasValue)
         {
             query = query.Where(t => t.Status == status.Value);
         }
@@ -100,9 +104,13 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             query = query.Where(t => t.WantsCustomization == wantsCustomization.Value);
         }
 
+        if (instanceType.HasValue)
+        {
+            query = query.Where(t => t.InstanceType == instanceType.Value);
+        }
+
         if (principalId.HasValue)
         {
-            // Get list of tour operators that this manager manages
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
@@ -110,13 +118,6 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
-
-            // Also check if current user is assigned AS an operator (reverse lookup)
-            var isAssignedOperator = await _context.TourManagerAssignments
-                .AsNoTracking()
-                .AnyAsync(a => a.AssignedUserId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourOperator,
-                    cancellationToken);
 
             if (!designerIds.Contains(principalId.Value))
             {
@@ -138,14 +139,29 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             query = query.Where(ti => allowedTourIds.Contains(ti.TourId) || allowedInstanceIds.Contains(ti.Id));
         }
 
+        if (principalId.HasValue)
+        {
+            return await query
+                .OrderByDescending(t => t.LastModifiedOnUtc)
+                .ThenByDescending(t => _context.Set<TourInstanceManagerEntity>()
+                    .Where(m => m.UserId == principalId.Value && m.TourInstanceId == t.Id)
+                    .Select(m => (DateTimeOffset?)m.CreatedOnUtc)
+                    .Max() ?? t.CreatedOnUtc)
+                .ThenByDescending(t => t.CreatedOnUtc)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
+
         return await query
-            .OrderByDescending(t => t.CreatedOnUtc)
+            .OrderByDescending(t => t.LastModifiedOnUtc)
+            .ThenByDescending(t => t.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, bool? wantsCustomization = null, TourType? instanceType = null, Guid? principalId = null, IReadOnlyCollection<TourInstanceStatus>? statuses = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.Where(t => !t.IsDeleted);
 
@@ -158,7 +174,11 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                 (t.Location != null && t.Location.ToLower().Contains(search)));
         }
 
-        if (status.HasValue)
+        if (statuses is { Count: > 0 })
+        {
+            query = query.Where(t => statuses.Contains(t.Status));
+        }
+        else if (status.HasValue)
         {
             query = query.Where(t => t.Status == status.Value);
         }
@@ -172,6 +192,11 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         if (wantsCustomization.HasValue)
         {
             query = query.Where(t => t.WantsCustomization == wantsCustomization.Value);
+        }
+
+        if (instanceType.HasValue)
+        {
+            query = query.Where(t => t.InstanceType == instanceType.Value);
         }
 
         if (principalId.HasValue)
@@ -283,10 +308,17 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         }
     }
 
-    public async Task<(int Total, int Available, int Confirmed, int SoldOut, int Completed)> GetStats(CancellationToken cancellationToken = default)
+    public async Task<(int Total, int Available, int Confirmed, int SoldOut, int Completed)> GetStats(TourType? instanceType = null, CancellationToken cancellationToken = default)
     {
-        var statusCounts = await _context.TourInstances
-            .Where(t => !t.IsDeleted)
+        var query = _context.TourInstances
+            .Where(t => !t.IsDeleted);
+
+        if (instanceType.HasValue)
+        {
+            query = query.Where(t => t.InstanceType == instanceType.Value);
+        }
+
+        var statusCounts = await query
             .GroupBy(t => t.Status)
             .Select(g => new { Status = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);

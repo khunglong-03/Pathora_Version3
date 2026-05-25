@@ -1083,6 +1083,7 @@
   },
   "error_response": {
     "DEFAULT_ERROR": "An error occurred, please try again later",
+    "Booking.DuplicateCustomRequest": "You already have a similar custom request under review.",
     "NETWORK_ERROR": "Network error, please check your internet connection",
     "TIMEOUT_ERROR": "Request timed out, please try again.",
     "BAD_REQUEST": "Invalid request",
@@ -3190,7 +3191,7 @@
       "refunded": "Refunded",
       "fromLastMonth": "from last month",
       "transactions": "transactions",
-      "syncedFromBackend": "Synced from backend"
+      "syncedFromBackend": "Based on recorded transactions"
     },
     "filter": {
       "all": "All"
@@ -3224,6 +3225,9 @@
       "title": "Could not load bookings",
       "fallback": "Unable to load booking data. Please try again.",
       "loadFailed": "Failed to load bookings list"
+    },
+    "pagination": {
+      "page": "Page"
     }
   },
   "tourOperator": {
@@ -3828,6 +3832,7 @@
       "privateCustomPaymentReceived": "Base payment received. You can continue with itinerary co-design when you return.",
       "privateCustomCoDesignNextSteps": "Your base payment is on file. Open your booking to review the draft itinerary and leave day-by-day notes for your tour operator.",
       "privateCustomTransactionError": "We could not start bank transfer for this private tour. Check your connection and try again, or contact support.",
+      "duplicateCustomRequest": "You already have a tour like this under review.",
       "privateGateMessage": "The tour itinerary has not been approved by the Manager yet. You will be notified when payment is available.",
       "privateGateBadge": "Awaiting approval",
       "privateTopUpPageTitle": "Complete top-up payment",
@@ -4071,7 +4076,22 @@
       "addParticipants": "Add Participants",
       "visaStatus": "Visa Status",
       "invoice": "Download Invoice",
-      "viewDetails": "View Details"
+      "viewDetails": "View Details",
+      "cancelModal": {
+        "title": "Confirm Cancellation",
+        "unpaidWarning": "You have not made any payment for this booking. Cancellation will be processed immediately.",
+        "paidAmount": "Paid Amount:",
+        "fee": "Fee ({{percent}}%):",
+        "estimatedRefund": "Estimated Refund:",
+        "reasonLabel": "Reason for cancellation",
+        "reasonPlaceholder": "Reason for cancellation",
+        "reasonRequired": "Reason for cancellation *",
+        "cancelBtn": "Cancel",
+        "confirmBtn": "Confirm",
+        "requestingBtn": "Requesting...",
+        "loadingEstimate": "Loading estimate...",
+        "loadError": "Could not load estimate. Please try again."
+      }
     },
     "bookingDetail": {
       "statusConfirmed": "Confirmed",

@@ -30,16 +30,17 @@ export const containerVariants = {
 };
 
 export const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: SPRING },
+  hidden: { opacity: 0, y: 56, filter: "blur(8px)" },
+  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.85, ease: EASE_BENTO } },
 };
 
 export const rowVariants = {
-  hidden: { opacity: 0, x: -8 },
+  hidden: { opacity: 0, x: -8, filter: "blur(4px)" },
   show: (i: number) => ({
     opacity: 1,
     x: 0,
-    transition: { delay: i * 0.04, ...SPRING },
+    filter: "blur(0px)",
+    transition: { delay: i * 0.04, duration: 0.7, ease: EASE_BENTO },
   }),
 };
 

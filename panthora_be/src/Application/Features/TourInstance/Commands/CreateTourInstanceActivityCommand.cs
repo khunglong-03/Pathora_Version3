@@ -32,7 +32,9 @@ public sealed record CreateTourInstanceActivityCommand(
     [property: JsonPropertyName("requestedSeatCount")] int? RequestedSeatCount = null,
     [property: JsonPropertyName("externalTransportReference")] string? ExternalTransportReference = null,
     [property: JsonPropertyName("roomType")] RoomType? RoomType = null,
-    [property: JsonPropertyName("roomCount")] int? RoomCount = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
+    [property: JsonPropertyName("roomCount")] int? RoomCount = null,
+    [property: JsonPropertyName("fromLocationName")] string? FromLocationName = null,
+    [property: JsonPropertyName("toLocationName")] string? ToLocationName = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
 }
@@ -44,7 +46,7 @@ public sealed class CreateTourInstanceActivityCommandValidator : AbstractValidat
         RuleFor(x => x.InstanceId).NotEmpty().WithMessage(ValidationMessages.TourInstanceIdRequired);
         RuleFor(x => x.DayId).NotEmpty().WithMessage("Day ID is required.");
         RuleFor(x => x.Title).NotEmpty().WithMessage("Title is required.");
-        When(x => x.StartTime.HasValue && x.EndTime.HasValue, () =>
+        When(x => x.StartTime.HasValue && x.EndTime.HasValue && x.ActivityType != TourDayActivityType.Accommodation, () =>
         {
             RuleFor(x => x)
                 .Must(x => x.StartTime!.Value < x.EndTime!.Value)

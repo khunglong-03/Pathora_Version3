@@ -230,4 +230,66 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
                 b => b.BookingParticipants.Any(p => p.Id == participantId),
                 cancellationToken);
     }
+
+    public async Task<bool> HasActiveCustomTourRequestAsync(
+        Guid? userId,
+        string? email,
+        Guid tourId,
+        CancellationToken cancellationToken = default)
+    {
+        return await BuildActiveCustomTourRequestQuery(userId, email, tourId)
+            .AnyAsync(cancellationToken);
+    }
+
+    private IQueryable<BookingEntity> BuildActiveCustomTourRequestQuery(
+        Guid? userId,
+        string? email,
+        Guid tourId)
+    {
+        var activeTourInstanceStatuses = new[]
+        {
+            TourInstanceStatus.Draft,
+            TourInstanceStatus.PendingAdjustment,
+            TourInstanceStatus.PendingManagerReview,
+            TourInstanceStatus.PendingCustomerApproval
+        };
+
+        var activeBookingStatuses = new[]
+        {
+            BookingStatus.Pending,
+            BookingStatus.PendingAdjustment
+        };
+
+        var query = _context.Bookings
+            .AsNoTracking()
+            .Where(b => b.BookingType == BookingType.PrivateCustomTourRequest
+                        && activeBookingStatuses.Contains(b.Status)
+                        && b.TourInstance != null
+                        && b.TourInstance.TourId == tourId
+                        && activeTourInstanceStatuses.Contains(b.TourInstance.Status));
+
+        if (userId.HasValue)
+        {
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                var emailLower = email.ToLower();
+                query = query.Where(b => b.UserId == userId.Value || (b.CustomerEmail != null && b.CustomerEmail.ToLower() == emailLower));
+            }
+            else
+            {
+                query = query.Where(b => b.UserId == userId.Value);
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(email))
+        {
+            var emailLower = email.ToLower();
+            query = query.Where(b => b.CustomerEmail != null && b.CustomerEmail.ToLower() == emailLower);
+        }
+        else
+        {
+            return query.Where(_ => false);
+        }
+
+        return query;
+    }
 }

@@ -24,9 +24,11 @@ public class TourInstanceController : BaseApiController
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] bool excludePast = false,
-        [FromQuery] bool? wantsCustomization = null)
+        [FromQuery] bool? wantsCustomization = null,
+        [FromQuery] TourType? instanceType = null,
+        [FromQuery] List<TourInstanceStatus>? statuses = null)
     {
-        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize, excludePast, wantsCustomization, CurrentUserId));
+        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize, excludePast, wantsCustomization, instanceType, CurrentUserId, statuses));
         return HandleResult(result);
     }
 
@@ -71,9 +73,9 @@ public class TourInstanceController : BaseApiController
     }
 
     [HttpGet(TourInstanceEndpoint.Stats)]
-    public async Task<IActionResult> GetStats()
+    public async Task<IActionResult> GetStats([FromQuery] TourType? instanceType = null)
     {
-        var result = await Sender.Send(new GetTourInstanceStatsQuery());
+        var result = await Sender.Send(new GetTourInstanceStatsQuery(instanceType));
         return HandleResult(result);
     }
 

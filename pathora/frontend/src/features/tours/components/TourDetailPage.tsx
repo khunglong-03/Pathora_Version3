@@ -180,7 +180,9 @@ export function TourDetailPage() {
     }
 
     const params = new URLSearchParams({
-      tourInstanceId: tourId, // Using tourInstanceId param to hold tourId for the checkout page creation logic
+      tourId,
+      // Backward-compatible fallback for checkout links created before `tourId` was explicit.
+      tourInstanceId: tourId,
       tourName: tour.tourName,
       thumbnailUrl: tour.thumbnail?.publicURL || "",
       startDate: startIso,

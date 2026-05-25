@@ -323,7 +323,14 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
     public IActionResult GoogleLogin([FromServices] IConfiguration configuration, [FromQuery] string? returnUrl = null)
     {
         if (!IsGoogleConfigured(configuration))
-            return Redirect(GetFrontendUrl(configuration) + "/auth/callback?error=google_auth_not_configured");
+        {
+            var frontendUrl = GetFrontendUrl(configuration);
+            if (!string.IsNullOrEmpty(returnUrl) && Uri.TryCreate(returnUrl, UriKind.Absolute, out var returnUri))
+            {
+                frontendUrl = $"{returnUri.Scheme}://{returnUri.Authority}";
+            }
+            return Redirect(frontendUrl + "/auth/callback?error=google_auth_not_configured");
+        }
 
         var properties = new AuthenticationProperties
         {
@@ -342,8 +349,15 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
     [HttpGet(AuthEndpoint.GoogleCallback)]
     public async Task<IActionResult> GoogleCallback([FromServices] IConfiguration configuration)
     {
-        var frontendUrl = GetFrontendUrl(configuration);
         var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var returnUrl = authenticateResult.Properties?.Items.TryGetValue("returnUrl", out var url) == true ? url : null;
+        var frontendUrl = GetFrontendUrl(configuration);
+
+        if (!string.IsNullOrEmpty(returnUrl) && Uri.TryCreate(returnUrl, UriKind.Absolute, out var returnUri))
+        {
+            frontendUrl = $"{returnUri.Scheme}://{returnUri.Authority}";
+        }
+
         if (!authenticateResult.Succeeded)
             return Redirect(frontendUrl + "/auth/callback?error=google_auth_failed");
 
@@ -374,7 +388,6 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         var response = result.Value;
         AuthCookieWriter.WriteAuthCookies(Response, response, Request.IsHttps, jwtOptions.Value);
 
-        var returnUrl = authenticateResult.Properties?.Items.TryGetValue("returnUrl", out var url) == true ? url : null;
         var redirectUrl = $"{frontendUrl}/auth/callback";
         if (!string.IsNullOrEmpty(returnUrl))
         {

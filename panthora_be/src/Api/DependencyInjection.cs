@@ -289,6 +289,7 @@ public static class DependencyInjection
         services.AddSingleton<IToken, CurrentToken>();
         services.AddScoped<IPaymentNotificationService, PaymentNotificationService>();
         services.AddScoped<IPaymentNotificationBroadcaster, PaymentNotificationService>();
+        services.AddScoped<IBookingStatusNotificationBroadcaster, BookingStatusNotificationService>();
         services.AddScoped<ITourInstanceNotificationBroadcaster, TourInstanceNotificationService>();
 
         return services;

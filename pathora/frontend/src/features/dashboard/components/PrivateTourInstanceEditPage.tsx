@@ -28,6 +28,27 @@ const toDateInput = (iso?: string | null) =>
 const GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isValidGuid = (v?: string | null): boolean => !!v && GUID_REGEX.test(v.trim());
 
+const extractTimeOnly = (iso?: string | null): string => {
+  if (!iso) return "";
+  if (iso.includes("T")) {
+    const timePart = iso.split("T")[1];
+    if (timePart) {
+      return timePart.slice(0, 5);
+    }
+  }
+  if (iso.includes(":")) {
+    return iso.slice(0, 5);
+  }
+  return "";
+};
+
+const combineDateAndTime = (dayDateStr?: string | null, timeStr?: string | null): string | null => {
+  if (!timeStr) return null;
+  const dateOnly = dayDateStr ? dayDateStr.split("T")[0] : new Date().toISOString().split("T")[0];
+  const timeOnly = timeStr.includes(":") ? timeStr.slice(0, 5) : timeStr;
+  return `${dateOnly}T${timeOnly}:00Z`;
+};
+
 /* ── form shape ───────────────────────────────────────────── */
 interface EditForm {
   title: string;
@@ -540,6 +561,17 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh, read
   const isActTransportation = actType === "7";
   const isActExternalTransport = isActTransportation && isExternalOnlyTransportation(actTransportFields.transportationType);
 
+  useEffect(() => {
+    if (isActExternalTransport) {
+      if (actTransportFields.departureTime !== actStartTime) {
+        setActStartTime(actTransportFields.departureTime || "");
+      }
+      if (actTransportFields.arrivalTime !== actEndTime) {
+        setActEndTime(actTransportFields.arrivalTime || "");
+      }
+    }
+  }, [isActExternalTransport, actTransportFields.departureTime, actTransportFields.arrivalTime, actStartTime, actEndTime]);
+
   const resetActivityFields = () => {
     setActTitle(""); setActType("0"); setActStartTime(""); setActEndTime(""); setActPrice(""); setActNote("");
     setActRoomType(""); setActRoomCount("1");
@@ -557,7 +589,7 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh, read
     }
     const isDuplicateDate = (days ?? []).some((d) => {
       if (!d.actualDate) return false;
-      const existing = new Date(d.actualDate).toISOString().split("T")[0];
+      const existing = d.actualDate.split("T")[0];
       return existing === newDayDate;
     });
     if (isDuplicateDate) {
@@ -574,7 +606,7 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh, read
       toast.error("Vui lòng nhập tên hoạt động đầu tiên cho ngày này");
       return;
     }
-    if (actStartTime && actEndTime && actStartTime >= actEndTime) {
+    if (!isActAccommodation && actStartTime && actEndTime && actStartTime >= actEndTime) {
       toast.error("Giờ kết thúc phải sau giờ bắt đầu");
       return;
     }
@@ -614,8 +646,10 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh, read
               transportationName: actTransportFields.transportationName || null,
               fromLocationId: isValidGuid(actTransportFields.fromLocation) ? actTransportFields.fromLocation : null,
               toLocationId: isValidGuid(actTransportFields.toLocation) ? actTransportFields.toLocation : null,
-              departureTime: actTransportFields.departureTime ? `${actTransportFields.departureTime}:00` : null,
-              arrivalTime: actTransportFields.arrivalTime ? `${actTransportFields.arrivalTime}:00` : null,
+              fromLocationName: !isValidGuid(actTransportFields.fromLocation) ? actTransportFields.fromLocation || null : null,
+              toLocationName: !isValidGuid(actTransportFields.toLocation) ? actTransportFields.toLocation || null : null,
+              departureTime: combineDateAndTime(newDayDate, actTransportFields.departureTime),
+              arrivalTime: combineDateAndTime(newDayDate, actTransportFields.arrivalTime),
               requestedVehicleType: actTransportFields.requestedVehicleType ? Number(actTransportFields.requestedVehicleType) : null,
               requestedSeatCount: actTransportFields.requestedSeatCount ? Number(actTransportFields.requestedSeatCount) : null,
               externalTransportReference: actTransportFields.externalTransportReference || null,
@@ -900,7 +934,7 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
     }
     const dup = (siblingDays ?? []).some((d) => {
       if (d.id === day.id || !d.actualDate) return false;
-      return new Date(d.actualDate).toISOString().split("T")[0] === editDate;
+      return d.actualDate.split("T")[0] === editDate;
     });
     if (dup) {
       toast.error("Đã có một ngày khác với ngày diễn ra này trong lịch trình");
@@ -1023,7 +1057,7 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
         ) : (
           <>
             {day.activities?.map((act) => (
-              <ActivityEditor key={act.id} instanceId={instanceId} dayId={day.id} act={act} dayActivities={day.activities} onRefresh={onRefresh} readOnly={readOnly} />
+              <ActivityEditor key={act.id} instanceId={instanceId} dayId={day.id} dayDate={day.actualDate} act={act} dayActivities={day.activities} onRefresh={onRefresh} readOnly={readOnly} />
             ))}
           </>
         )}
@@ -1032,6 +1066,7 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
           <ActivityForm
             instanceId={instanceId}
             dayId={day.id}
+            dayDate={day.actualDate}
             dayActivities={day.activities}
             onCancel={() => setAddingAct(false)}
             onSuccess={() => { setAddingAct(false); onRefresh(); }}
@@ -1053,7 +1088,7 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
   );
 }
 
-function ActivityEditor({ instanceId, dayId, act, dayActivities, onRefresh, readOnly = false }: { instanceId: string, dayId: string, act: TourInstanceDayActivityDto, dayActivities?: TourInstanceDayActivityDto[], onRefresh: () => void, readOnly?: boolean }) {
+function ActivityEditor({ instanceId, dayId, dayDate, act, dayActivities, onRefresh, readOnly = false }: { instanceId: string, dayId: string, dayDate?: string | null, act: TourInstanceDayActivityDto, dayActivities?: TourInstanceDayActivityDto[], onRefresh: () => void, readOnly?: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -1075,6 +1110,7 @@ function ActivityEditor({ instanceId, dayId, act, dayActivities, onRefresh, read
       <ActivityForm 
         instanceId={instanceId} 
         dayId={dayId} 
+        dayDate={dayDate}
         initialData={act} 
         dayActivities={dayActivities}
         onCancel={() => setIsEditing(false)} 
@@ -1099,7 +1135,7 @@ function ActivityEditor({ instanceId, dayId, act, dayActivities, onRefresh, read
           <h4 className="text-sm font-bold text-slate-900">{act.title}</h4>
           {(act.startTime || act.endTime) && (
             <span className="text-[10px] font-bold text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">
-              {act.startTime?.slice(0, 5) || "--"} - {act.endTime?.slice(0, 5) || "--"}
+              {extractTimeOnly(act.startTime) || "--"} - {extractTimeOnly(act.endTime) || "--"}
             </span>
           )}
           {act.price != null && (
@@ -1125,9 +1161,10 @@ function ActivityEditor({ instanceId, dayId, act, dayActivities, onRefresh, read
   );
 }
 
-function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel, onSuccess }: { 
+function ActivityForm({ instanceId, dayId, dayDate, initialData, dayActivities, onCancel, onSuccess }: { 
   instanceId: string, 
   dayId: string, 
+  dayDate?: string | null,
   initialData?: TourInstanceDayActivityDto, 
   dayActivities?: TourInstanceDayActivityDto[],
   onCancel: () => void, 
@@ -1137,14 +1174,14 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
   const [title, setTitle] = useState(initialData?.title || "");
   const [actType, setActType] = useState(initialData?.activityType || "0");
   
-  let defaultStartTime = initialData?.startTime?.slice(0, 5) || "";
+  let defaultStartTime = extractTimeOnly(initialData?.accommodation?.checkInTime) || extractTimeOnly(initialData?.startTime) || "";
   if (!isEditing && dayActivities && dayActivities.length > 0) {
     const lastAct = dayActivities[dayActivities.length - 1];
-    defaultStartTime = lastAct.endTime?.slice(0, 5) || lastAct.startTime?.slice(0, 5) || "";
+    defaultStartTime = extractTimeOnly(lastAct.endTime) || extractTimeOnly(lastAct.startTime) || "";
   }
 
   const [startTime, setStartTime] = useState(defaultStartTime);
-  const [endTime, setEndTime] = useState(initialData?.endTime?.slice(0,5) || "");
+  const [endTime, setEndTime] = useState(extractTimeOnly(initialData?.accommodation?.checkOutTime) || extractTimeOnly(initialData?.endTime) || "");
   const [price, setPrice] = useState(initialData?.price != null ? String(initialData.price) : "");
   const [note, setNote] = useState(initialData?.note || "");
   const [saving, setSaving] = useState(false);
@@ -1171,14 +1208,26 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
     requestedSeatCount: initialData?.requestedSeatCount ? String(initialData.requestedSeatCount) : "",
     fromLocation: initialData?.fromLocation?.locationName || "",
     toLocation: initialData?.toLocation?.locationName || "",
-    departureTime: initialData?.departureTime?.slice(0, 5) || "",
-    arrivalTime: initialData?.arrivalTime?.slice(0, 5) || "",
+    departureTime: extractTimeOnly(initialData?.departureTime) || "",
+    arrivalTime: extractTimeOnly(initialData?.arrivalTime) || "",
     externalTransportReference: initialData?.externalTransportReference || "",
     transportationName: initialData?.transportationName || "",
   });
 
   const isAccommodation = actType === "8" || actType === "Accommodation";
   const isTransportation = actType === "7" || actType === "Transportation";
+  const isExternalTransport = isTransportation && isExternalOnlyTransportation(transportFields.transportationType);
+
+  useEffect(() => {
+    if (isExternalTransport) {
+      if (transportFields.departureTime !== startTime) {
+        setStartTime(transportFields.departureTime || "");
+      }
+      if (transportFields.arrivalTime !== endTime) {
+        setEndTime(transportFields.arrivalTime || "");
+      }
+    }
+  }, [isExternalTransport, transportFields.departureTime, transportFields.arrivalTime, startTime, endTime]);
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -1186,7 +1235,7 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
       return;
     }
 
-    if (startTime && endTime && startTime >= endTime) {
+    if (!isAccommodation && startTime && endTime && startTime >= endTime) {
       toast.error("Giờ kết thúc phải sau giờ bắt đầu");
       return;
     }
@@ -1198,18 +1247,21 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
 
       if (currentIndex > 0) {
         const prevAct = dayActivities[currentIndex - 1];
-        const prevTime = prevAct.endTime?.slice(0, 5) || prevAct.startTime?.slice(0, 5);
-        if (prevTime && prevTime > startTime) {
-          toast.error(`Giờ bắt đầu phải sau hoặc bằng thời gian của hoạt động trước đó (${prevTime})`);
-          return;
+        const isPrevAccommodation = prevAct.activityType === "Accommodation" || prevAct.activityType === "8";
+        if (!isPrevAccommodation) {
+          const prevTime = extractTimeOnly(prevAct.endTime) || extractTimeOnly(prevAct.startTime);
+          if (prevTime && prevTime > startTime) {
+            toast.error(`Giờ bắt đầu phải sau hoặc bằng thời gian của hoạt động trước đó (${prevTime})`);
+            return;
+          }
         }
       }
 
       if (currentIndex < dayActivities.length - 1) {
         const nextAct = dayActivities[currentIndex + 1];
-        const nextTime = nextAct.startTime?.slice(0, 5);
+        const nextTime = extractTimeOnly(nextAct.startTime);
         const myEndTime = endTime || startTime;
-        if (nextTime && nextTime < myEndTime) {
+        if (!isAccommodation && nextTime && nextTime < myEndTime) {
           toast.error(`Thời gian kết thúc phải trước hoặc bằng giờ bắt đầu của hoạt động sau (${nextTime})`);
           return;
         }
@@ -1259,8 +1311,10 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
       transportationType: Number(transportFields.transportationType),
       fromLocationId: isValidGuid(transportFields.fromLocation) ? transportFields.fromLocation : null,
       toLocationId: isValidGuid(transportFields.toLocation) ? transportFields.toLocation : null,
-      departureTime: transportFields.departureTime ? `${transportFields.departureTime}:00` : null,
-      arrivalTime: transportFields.arrivalTime ? `${transportFields.arrivalTime}:00` : null,
+      fromLocationName: !isValidGuid(transportFields.fromLocation) ? transportFields.fromLocation || null : null,
+      toLocationName: !isValidGuid(transportFields.toLocation) ? transportFields.toLocation || null : null,
+      departureTime: combineDateAndTime(dayDate, transportFields.departureTime),
+      arrivalTime: combineDateAndTime(dayDate, transportFields.arrivalTime),
       requestedVehicleType: transportFields.requestedVehicleType ? Number(transportFields.requestedVehicleType) : null,
       requestedSeatCount: transportFields.requestedSeatCount ? Number(transportFields.requestedSeatCount) : null,
       externalTransportReference: transportFields.externalTransportReference || null,

@@ -21,6 +21,7 @@ interface BookingPaymentSummaryProps {
   showPayRemaining: boolean;
   showCancelBooking: boolean;
   getPaymentStatusLabel: (s: BookingDetail["paymentStatus"]) => string;
+  onCancellationChanged?: () => void | Promise<void>;
 }
 
 export function BookingPaymentSummary({
@@ -29,6 +30,7 @@ export function BookingPaymentSummary({
   showPayRemaining,
   showCancelBooking,
   getPaymentStatusLabel,
+  onCancellationChanged,
 }: BookingPaymentSummaryProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -50,6 +52,7 @@ export function BookingPaymentSummary({
       }).unwrap();
       toast.success("Cancellation request submitted successfully.");
       setIsCancelModalOpen(false);
+      await onCancellationChanged?.();
     } catch (error: unknown) {
       const handledError = handleApiError(error);
       toast.error(handledError.message || "Failed to submit cancellation request.");

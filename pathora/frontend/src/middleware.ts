@@ -4,6 +4,7 @@ import {
   isAdminPortal,
   isLoginEntryPath,
   USER_DEFAULT_PATH,
+  isSafeNextPath,
 } from "./utils/authRouting";
 // Role names generated from role.json — single source of truth
 import { ADMIN_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, MANAGER_ROLE_NAMES, TOUROPERATOR_ROLE_NAMES, TOURGUIDE_ROLE_NAMES } from "./auth-roles";
@@ -193,6 +194,11 @@ export default function middleware(request: NextRequest) {
   }
 
   if (authenticated && isLoginEntryPath(pathname, searchParams)) {
+    const nextParam = searchParams.get("next");
+    if (nextParam && isSafeNextPath(nextParam)) {
+      return redirectTo(nextParam);
+    }
+
     if (hasAdminRole(authRoles)) {
       return redirectTo("/admin/users");
     }

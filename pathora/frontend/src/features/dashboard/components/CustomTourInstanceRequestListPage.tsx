@@ -28,11 +28,12 @@ const containerVariants = {
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 56, filter: "blur(8px)" },
   show: {
     opacity: 1,
     y: 0,
-    transition: { type: "spring" as const, stiffness: 100, damping: 20 },
+    filter: "blur(0px)",
+    transition: { duration: 0.85, ease: [0.32, 0.72, 0, 1] as const },
   },
 };
 
@@ -41,6 +42,14 @@ const itemVariants = {
 /* (TourStatusBadge imported from @/components/ui) */
 
 const AUTH_FAILURE_STATUSES = new Set([401, 403]);
+const TOUR_OPERATOR_VISIBLE_STATUSES = [
+  "PendingAdjustment",
+  "PendingManagerReview",
+];
+const MANAGER_VISIBLE_STATUSES = [
+  "Draft",
+  "PendingManagerReview",
+];
 
 /* ══════════════════════════════════════════════════════════════
    TourInstanceListPage - Main Export
@@ -79,6 +88,22 @@ export function CustomTourInstanceRequestListPage({
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [drawerDetail, setDrawerDetail] = useState<NormalizedTourInstanceDto | null>(null);
   const [drawerLoading, setDrawerLoading] = useState(false);
+  const statusOptions = role === "tour-operator"
+    ? [
+        { value: "all", label: "Tất cả" },
+        { value: "pendingadjustment", label: "Cần điều chỉnh" },
+        { value: "pendingmanagerreview", label: "Chờ Quản lý duyệt" },
+      ]
+    : [
+        { value: "all", label: "Tất cả" },
+        { value: "draft", label: "Người dùng mới yêu cầu" },
+        { value: "pendingmanagerreview", label: "Chờ Quản lý duyệt" },
+      ];
+  const requestStatuses = statusFilter !== "all"
+    ? undefined
+    : role === "tour-operator"
+      ? TOUR_OPERATOR_VISIBLE_STATUSES
+      : MANAGER_VISIBLE_STATUSES;
 
   /* ── Fetch instances ─────────────────────────────────────── */
   useEffect(() => {
@@ -100,25 +125,47 @@ export function CustomTourInstanceRequestListPage({
       try {
         setDataState("loading");
         setErrorMessage(null);
-        setCurrentPage(1);
         const result = await tourInstanceService.getAllInstances(
           debouncedSearchText || undefined,
           statusFilter,
-          1,
+          currentPage,
           pageSize,
           excludePast,
-          true // wantsCustomization
+          undefined,
+          "private",
+          requestStatuses,
         );
         if (!active) return;
         if (result) {
-          const allInstances = result.data ?? [];
-          // Force visibility to private since this is custom tour requests
-          const filteredInstances = allInstances.filter(
-            (inst) => inst.instanceType?.toLowerCase() === "private"
-          );
+          const filteredInstances = result.data ?? [];
 
-          setInstances(filteredInstances);
-          setTotalItems(filteredInstances.length);
+          // Sort logic for tour operator role:
+          // 1. Prioritize status === "pendingadjustment" first.
+          // 2. Otherwise, preserve the original API order (which is sorted by LastModifiedOnUtc/CreatedOnUtc descending).
+          // 3. Fallback to sorting by tourInstanceCode descending.
+          let sortedInstances = filteredInstances;
+          if (role === "tour-operator") {
+            sortedInstances = [...filteredInstances].sort((a, b) => {
+              const isAdjA = a.status === "pendingadjustment";
+              const isAdjB = b.status === "pendingadjustment";
+
+              if (isAdjA && !isAdjB) return -1;
+              if (!isAdjA && isAdjB) return 1;
+
+              const indexA = filteredInstances.indexOf(a);
+              const indexB = filteredInstances.indexOf(b);
+              if (indexA !== -1 && indexB !== -1) {
+                return indexA - indexB;
+              }
+
+              const codeA = a.tourInstanceCode || "";
+              const codeB = b.tourInstanceCode || "";
+              return codeB.localeCompare(codeA);
+            });
+          }
+
+          setInstances(sortedInstances);
+          setTotalItems(result.total ?? filteredInstances.length);
           if (!filteredInstances || filteredInstances.length === 0) {
             setDataState("empty");
           } else {
@@ -153,8 +200,10 @@ export function CustomTourInstanceRequestListPage({
     debouncedSearchText,
     statusFilter,
     excludePast,
+    currentPage,
     pageSize,
     reloadToken,
+    role,
     // safeT intentionally excluded: it changes on hydration (false→true) and
     // would cause a duplicate fetch. It is only used for error display strings.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -168,19 +217,28 @@ export function CustomTourInstanceRequestListPage({
 
   return (
     <>
-      <main id="main-content" className="p-6 space-y-8 max-w-[87.5rem] mx-auto">
+      <main id="main-content" className="relative min-h-[100dvh] overflow-hidden px-4 py-10 md:px-8 md:py-16">
+        <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[36rem] bg-[radial-gradient(circle_at_12%_16%,rgba(245,158,11,0.18),transparent_30%),radial-gradient(circle_at_86%_10%,rgba(120,113,108,0.14),transparent_30%),linear-gradient(180deg,#fffaf0_0%,#f5f5f4_100%)]" />
+        <div className="mx-auto max-w-[87.5rem] space-y-10">
         {/* ── Page Header ────────────────────────────────── */}
         <motion.div
           variants={itemVariants}
           initial="hidden"
           animate="show"
-          className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tight text-stone-900">
-              Custom Tour Requests
+          className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-3xl">
+            <span className="mb-4 inline-flex rounded-full bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-500 ring-1 ring-black/[0.05]">
+              {safeT("customTourRequests.eyebrow", "Private itinerary desk")}
+            </span>
+            <h1 className="text-5xl font-bold tracking-[-0.06em] text-stone-950 md:text-7xl">
+              {role === "tour-operator"
+                ? safeT("customTourRequests.tourOperatorTitle", "Design Queue")
+                : safeT("customTourRequests.managerTitle", "Custom Tour Requests")}
             </h1>
-            <p className="text-sm text-stone-500">
-              Manage draft instances that have customer customization requests.
+            <p className="mt-4 max-w-2xl text-base leading-7 text-stone-500">
+              {role === "tour-operator"
+                ? safeT("customTourRequests.tourOperatorSubtitle", "Review assigned private itineraries that need adjustment or manager approval.")
+                : safeT("customTourRequests.managerSubtitle", "Review new private tour requests and operator revisions waiting for manager approval.")}
             </p>
           </div>
         </motion.div>
@@ -193,7 +251,8 @@ export function CustomTourInstanceRequestListPage({
           initial="hidden"
           animate="show"
           layout
-          className="bg-white border border-stone-200/50 rounded-[2rem] p-3 shadow-[0_12px_24px_-10px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+          className="relative z-10 rounded-[2.25rem] bg-white/55 p-1.5 ring-1 ring-black/[0.045] shadow-[0_30px_90px_-58px_rgba(28,25,23,0.7)]">
+          <div className="flex flex-col items-center justify-between gap-4 rounded-[calc(2.25rem-0.375rem)] bg-white p-3 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] md:flex-row">
           <div className="relative flex-1 w-full min-w-[300px]">
             <Icon
               icon="heroicons:magnifying-glass"
@@ -202,12 +261,15 @@ export function CustomTourInstanceRequestListPage({
             <input
               type="text"
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => {
+                setSearchText(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder={safeT(
                 "placeholder.searchByTitleLocationCountry",
                 "Search scheduled instances...",
               )}
-              className="w-full pl-12 pr-10 py-3 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300"
+              className="w-full rounded-full border-none bg-stone-50/80 py-3 pl-12 pr-10 text-sm font-medium text-stone-900 ring-1 ring-black/[0.04] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20"
             />
             <AnimatePresence>
               {searchText && (
@@ -215,27 +277,29 @@ export function CustomTourInstanceRequestListPage({
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  onClick={() => setSearchText("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-stone-200 text-stone-500 hover:bg-stone-300 hover:text-stone-700 rounded-full transition-colors">
+                  onClick={() => {
+                    setSearchText("");
+                    setCurrentPage(1);
+                  }}
+                  className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-stone-200 text-stone-500 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-105 hover:bg-stone-300 hover:text-stone-700">
                   <Icon icon="heroicons:x-mark" className="size-4" />
                 </motion.button>
               )}
             </AnimatePresence>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-stone-100 pt-3 md:pt-0 md:pl-4">
+          <div className="flex w-full shrink-0 items-center gap-3 border-t border-stone-100 pt-3 md:w-auto md:border-l md:border-t-0 md:pl-4 md:pt-0">
             <div className="relative flex-1 md:flex-none min-w-[140px]">
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
-                <option value="all">Tất cả</option>
-                <option value="draft">Bản nháp (Draft)</option>
-                <option value="pendingmanagerreview">Chờ Quản lý duyệt</option>
-                <option value="pendingcustomerapproval">Chờ Khách hàng chốt</option>
-                <option value="pendingadjustment">Cần điều chỉnh</option>
-                <option value="confirmed">Đã xác nhận</option>
-                <option value="cancelled">Đã huỷ</option>
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full cursor-pointer appearance-none rounded-full border-none bg-stone-50/80 px-4 py-3 pl-10 text-sm font-medium text-stone-700 ring-1 ring-black/[0.04] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20">
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
               </select>
               <Icon
                 icon="heroicons:chevron-down"
@@ -249,15 +313,19 @@ export function CustomTourInstanceRequestListPage({
 
 
             
-            <label className="flex items-center gap-2 text-sm font-medium text-stone-700 cursor-pointer min-w-max ml-2">
+            <label className="ml-2 flex min-w-max cursor-pointer items-center gap-2 rounded-full bg-stone-50/80 px-4 py-3 text-sm font-medium text-stone-700 ring-1 ring-black/[0.04]">
               <input 
                 type="checkbox" 
                 checked={excludePast} 
-                onChange={(e) => setExcludePast(e.target.checked)} 
-                className="size-4 rounded border-stone-300 text-amber-500 focus:ring-amber-500/20 transition-colors"
+                onChange={(e) => {
+                  setExcludePast(e.target.checked);
+                  setCurrentPage(1);
+                }}
+                className="size-4 rounded border-stone-300 text-amber-500 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] focus:ring-amber-500/20"
                />
               {safeT("tourInstance.filter.excludePast", "Ẩn tour đã qua")}
             </label>
+          </div>
           </div>
         </motion.div>
 
@@ -301,7 +369,7 @@ export function CustomTourInstanceRequestListPage({
               variants={containerVariants}
               initial="hidden"
               animate="show"
-              className="space-y-4">
+              className="space-y-5">
               {[...Array(5)].map((_, i) => (
                 <motion.div
                   key={i}
@@ -380,10 +448,11 @@ export function CustomTourInstanceRequestListPage({
                             setDrawerLoading(false);
                           }
                         }}
-                        className="bg-white border border-stone-200/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer group">
+                        className="group rounded-[2rem] bg-white/55 p-1.5 ring-1 ring-black/[0.045] shadow-[0_26px_80px_-54px_rgba(28,25,23,0.7)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 cursor-pointer">
+                        <div className="flex flex-col justify-between gap-5 rounded-[calc(2rem-0.375rem)] bg-white p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] md:flex-row md:items-center">
                         
                         <div className="flex items-start md:items-center gap-4 min-w-0">
-                          <div className="w-14 h-14 rounded-2xl shrink-0 overflow-hidden border border-stone-200/50 bg-amber-50">
+                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-amber-50 ring-1 ring-black/[0.04]">
                             {inst.thumbnail?.publicURL ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
@@ -400,7 +469,7 @@ export function CustomTourInstanceRequestListPage({
                           
                           <div className="min-w-0">
                             <div className="flex items-center gap-3 mb-1.5">
-                              <h3 className="text-lg font-bold text-stone-900 truncate">
+                              <h3 className="truncate text-xl font-bold tracking-[-0.035em] text-stone-950">
                                 {inst.title || inst.tourName}
                               </h3>
                               <TourStatusBadge status={inst.status} />
@@ -429,19 +498,22 @@ export function CustomTourInstanceRequestListPage({
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between md:flex-col md:items-end gap-3 shrink-0 border-t md:border-t-0 border-stone-100 pt-3 md:pt-0">
-                          <div className="flex items-center gap-1.5 text-sm font-medium text-stone-600 bg-stone-50 px-3 py-1.5 rounded-lg border border-stone-200/50">
+                        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-stone-100 pt-3 md:flex-col md:items-end md:border-t-0 md:pt-0">
+                          <div className="flex items-center gap-1.5 rounded-full bg-stone-50 px-3 py-1.5 text-sm font-medium text-stone-600 ring-1 ring-black/[0.04]">
                             <Icon icon="heroicons:user-group" className="w-4 h-4 text-stone-400" />
                             {inst.maxParticipation} khách
                           </div>
                           
-                          <div className="text-sm font-semibold text-amber-600 flex items-center gap-1 group-hover:text-amber-700 transition-colors">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-amber-700 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:text-stone-950">
                             {safeT("common.viewDetails", "Details")}
+                            <span className="flex size-8 items-center justify-center rounded-full bg-amber-100 text-amber-700 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
                             <Icon
                               icon="heroicons:arrow-right"
-                              className="size-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all"
+                              className="size-4"
                             />
+                            </span>
                           </div>
+                        </div>
                         </div>
                       </motion.div>
                   );
@@ -453,28 +525,29 @@ export function CustomTourInstanceRequestListPage({
 
         {/* ── Pagination ─────────────────────────────────── */}
         {(dataState === "ready" || dataState === "empty") && totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white border border-stone-200/50 rounded-[2.5rem] p-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+          <div className="flex items-center justify-between rounded-[2rem] bg-white/70 p-4 ring-1 ring-black/[0.045] shadow-[0_24px_70px_-54px_rgba(28,25,23,0.65)]">
             <span className="text-sm text-stone-600">
-              Page {currentPage} of {totalPages}
+              {safeT("common.page", "Page")} {currentPage} {safeT("common.of", "of")} {totalPages}
             </span>
             <div className="flex items-center gap-2">
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                className="px-4 py-1.5 rounded-xl text-sm text-stone-600 disabled:opacity-50 hover:bg-stone-100 active:scale-[0.98] transition-all">
-                Previous
+                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-stone-600 ring-1 ring-black/[0.06] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 disabled:opacity-50 active:scale-[0.98]">
+                {safeT("common.previous", "Previous")}
               </button>
               <button
                 disabled={currentPage === totalPages}
                 onClick={() =>
                   setCurrentPage(Math.min(totalPages, currentPage + 1))
                 }
-                className="px-4 py-1.5 rounded-xl text-sm text-stone-600 disabled:opacity-50 hover:bg-stone-100 active:scale-[0.98] transition-all">
-                Next
+                className="rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 disabled:opacity-40 active:scale-[0.98]">
+                {safeT("common.next", "Next")}
               </button>
             </div>
           </div>
         )}
+        </div>
       </main>
 
       {/* ── Detail Drawer ───────────────────────────────── */}

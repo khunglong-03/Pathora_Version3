@@ -26,6 +26,7 @@ export interface BookingStatusChangedEvent {
   newStatus: string;
   paidAmount: number;
   remainingBalance: number;
+  updatedAt?: string;
 }
 
 export interface TourInstanceUpdate {

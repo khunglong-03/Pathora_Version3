@@ -8,9 +8,11 @@ using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries;
 
-public sealed record GetAdminOverviewQuery : IQuery<ErrorOr<AdminOverviewReport>>, ICacheable
+public sealed record GetAdminOverviewQuery(Guid? ManagerId = null) : IQuery<ErrorOr<AdminOverviewReport>>, ICacheable
 {
-    public string CacheKey => $"{Common.CacheKey.Admin}:overview";
+    public string CacheKey => ManagerId.HasValue 
+        ? $"{Common.CacheKey.Admin}:overview:manager:{ManagerId.Value}" 
+        : $"{Common.CacheKey.Admin}:overview";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
 }
 
@@ -19,6 +21,6 @@ public sealed class GetAdminOverviewQueryHandler(IAdminOverviewRepository adminO
 {
     public async Task<ErrorOr<AdminOverviewReport>> Handle(GetAdminOverviewQuery request, CancellationToken cancellationToken)
     {
-        return await adminOverviewRepository.GetOverview(cancellationToken);
+        return await adminOverviewRepository.GetOverview(request.ManagerId, cancellationToken);
     }
 }

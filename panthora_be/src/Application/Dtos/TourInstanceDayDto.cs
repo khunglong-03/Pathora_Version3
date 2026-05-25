@@ -77,6 +77,8 @@ public sealed record TourInstancePlanAccommodationDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("roomType")] string RoomType,
     [property: JsonPropertyName("quantity")] int Quantity,
+    [property: JsonPropertyName("checkInTime")] DateTimeOffset? CheckInTime = null,
+    [property: JsonPropertyName("checkOutTime")] DateTimeOffset? CheckOutTime = null,
     [property: JsonPropertyName("supplierId")] Guid? SupplierId = null,
     [property: JsonPropertyName("supplierName")] string? SupplierName = null,
     [property: JsonPropertyName("supplierApprovalStatus")] string? SupplierApprovalStatus = null,

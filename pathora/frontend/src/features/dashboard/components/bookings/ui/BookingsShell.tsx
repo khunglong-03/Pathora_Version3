@@ -8,8 +8,8 @@ export function CardShell({ children, className = "" }: { children: React.ReactN
     <div
       className={`relative rounded-[1.5rem] ${className}`}
       style={{
-        background: "linear-gradient(145deg, rgba(0,0,0,0.025) 0%, rgba(0,0,0,0.008) 100%)",
-        boxShadow: "0 20px 50px -12px rgba(0,0,0,0.055), 0 4px 12px rgba(0,0,0,0.03)",
+        background: "linear-gradient(145deg, rgba(68,64,60,0.06) 0%, rgba(68,64,60,0.014) 100%)",
+        boxShadow: "0 24px 70px -38px rgba(68,64,60,0.5), 0 4px 12px rgba(68,64,60,0.04)",
       }}
     >
       <div className="absolute inset-0 rounded-[1.5rem] pointer-events-none" style={{ border: "1px solid rgba(0,0,0,0.04)" }} />
@@ -40,9 +40,9 @@ export function Reveal({ children, delay = 0, className = "" }: { children: Reac
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, filter: "blur(6px)", y: 16 }}
+      initial={{ opacity: 0, filter: "blur(8px)", y: 28 }}
       animate={isInView ? { opacity: 1, filter: "blur(0px)", y: 0 } : {}}
-      transition={{ duration: 0.7, ease: EASE_BENTO, delay: delay * 0.07 }}
+      transition={{ duration: 0.82, ease: EASE_BENTO, delay: delay * 0.07 }}
       className={className}
     >
       {children}

@@ -51,6 +51,11 @@ export interface AdminBooking {
   numberInfant?: number;
 }
 
+export interface AdminBookingPage {
+  items: AdminBooking[];
+  totalCount: number;
+}
+
 export interface GetAllUsersParams {
   page?: number;
   limit?: number;
@@ -115,9 +120,29 @@ export const adminService = {
     return extractResult<AdminDashboard>(response.data);
   },
 
+  getBookingsPage: async (params: { page?: number; pageSize?: number } = {}): Promise<AdminBookingPage> => {
+    const response = await api.get(API_ENDPOINTS.BOOKING.GET_LIST, {
+      params: {
+        page: params.page ?? 1,
+        pageSize: params.pageSize ?? 20,
+      },
+    });
+    const result = extractResult<{ items?: AdminBooking[]; totalCount?: number }>(response.data);
+    const items = result?.items ?? extractItems<AdminBooking>(response.data);
+
+    return {
+      items: items.map((booking) => ({
+        ...booking,
+        amount: booking.amount ?? booking.totalPrice ?? 0,
+        status: normalizeAdminBookingStatus(booking.status),
+      })),
+      totalCount: result?.totalCount ?? items.length,
+    };
+  },
+
   getBookings: async (): Promise<AdminBooking[]> => {
-    const response = await api.get(API_ENDPOINTS.BOOKING.GET_LIST);
-    return extractItems<AdminBooking>(response.data).map((booking) => ({
+    const result = await adminService.getBookingsPage();
+    return result.items.map((booking) => ({
       ...booking,
       amount: booking.amount ?? booking.totalPrice ?? 0,
       status: normalizeAdminBookingStatus(booking.status),

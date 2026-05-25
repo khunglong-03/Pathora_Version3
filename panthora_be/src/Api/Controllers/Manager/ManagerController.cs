@@ -24,7 +24,8 @@ public sealed class ManagerController : BaseApiController
     [HttpGet(ManagerEndpoint.Overview)]
     public async Task<IActionResult> GetOverview()
     {
-        var result = await Sender.Send(new GetAdminOverviewQuery());
+        var managerId = Guid.TryParse(CurrentUserId, out var parsedId) ? (Guid?)parsedId : null;
+        var result = await Sender.Send(new GetAdminOverviewQuery(managerId));
         return HandleResult(result);
     }
 

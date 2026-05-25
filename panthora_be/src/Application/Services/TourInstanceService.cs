@@ -37,7 +37,7 @@ public interface ITourInstanceService
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetProviderAssigned(int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request);
     Task<ErrorOr<TourInstanceDto>> GetDetail(Guid id);
-    Task<ErrorOr<TourInstanceStatsDto>> GetStats();
+    Task<ErrorOr<TourInstanceStatsDto>> GetStats(TourType? instanceType = null);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetPublicAvailable(string? destination, string? sortBy, int page, int pageSize, string? language = null, string? catalogInstanceType = null);
     Task<ErrorOr<TourInstanceDto>> GetPublicDetail(Guid id, string? language = null);
     Task<ErrorOr<CheckDuplicateTourInstanceResultDto>> CheckDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate);
@@ -54,10 +54,6 @@ public interface ITourInstanceService
     Task<ErrorOr<Guid>> CreatePublicPrivateDraftAsync(CreateTourInstanceCommand request);
     Task TriggerProviderAssignmentsAsync(Guid instanceId, CancellationToken cancellationToken = default);
     Task HandleSupplierRejectionAsync(Guid instanceId, string reason, CancellationToken cancellationToken = default);
-    /// <summary>Manager duyệt lịch trình private tour → PendingCustomerApproval.</summary>
-    Task<ErrorOr<Success>> ManagerApproveItinerary(Guid id);
-    /// <summary>Manager từ chối lịch trình private tour → PendingAdjustment, lưu note.</summary>
-    Task<ErrorOr<Success>> ManagerRejectItinerary(Guid id, string reason);
 }
 
 public class TourInstanceService(
@@ -1331,48 +1327,6 @@ public class TourInstanceService(
         }
     }
 
-    public async Task<ErrorOr<Success>> ManagerApproveItinerary(Guid id)
-    {
-        var entity = await _tourInstanceRepository.FindById(id);
-        if (entity is null)
-            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
-        try { entity.ManagerApproveItinerary(_user.Id ?? string.Empty); }
-        catch (InvalidOperationException ex) { return Error.Validation("TourInstance.InvalidTransition", ex.Message); }
-        await _tourInstanceRepository.Update(entity);
-        return Result.Success;
-    }
-
-    public async Task<ErrorOr<Success>> ManagerRejectItinerary(Guid id, string reason)
-    {
-        var entity = await _tourInstanceRepository.FindByIdWithBookingsAsync(id);
-        if (entity is null)
-            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
-        try
-        {
-            // wantsCustomization=false: không có Operator nào chỉnh sửa → Cancel luôn.
-            // wantsCustomization=true: trả về Operator để điều chỉnh → PendingAdjustment.
-            if (!entity.WantsCustomization)
-            {
-                entity.Cancel(reason, _user.Id ?? string.Empty);
-                // Cancel tất cả bookings liên quan (Pending/Confirmed/Deposited/Paid)
-                foreach (var booking in entity.Bookings)
-                {
-                    if (booking.Status != Domain.Enums.BookingStatus.Cancelled
-                        && booking.Status != Domain.Enums.BookingStatus.Completed)
-                    {
-                        booking.Cancel(reason, _user.Id ?? string.Empty);
-                    }
-                }
-            }
-            else
-                entity.ManagerRejectItinerary(reason, _user.Id ?? string.Empty);
-        }
-        catch (InvalidOperationException ex) { return Error.Validation("TourInstance.InvalidTransition", ex.Message); }
-        catch (ArgumentException ex) { return Error.Validation("TourInstance.InvalidArgument", ex.Message); }
-        await _tourInstanceRepository.Update(entity);
-        return Result.Success;
-    }
-
     public async Task<ErrorOr<Success>> ProviderApprove(
         Guid instanceId,
         bool isApproved,
@@ -1700,13 +1654,31 @@ public class TourInstanceService(
             return new PaginatedList<TourInstanceVm>(0, [], request.PageNumber, request.PageSize);
         }
 
-        // If the user is an Admin or Manager, and they are viewing Custom Tour Requests (wantsCustomization = true),
-        // we bypass the principalId scoping so they can see all custom requests for review.
         var isAdminOrManager = _user.Roles != null && (_user.Roles.Contains("Admin") || _user.Roles.Contains("Manager"));
-        Guid? effectivePrincipalId = (isAdminOrManager && request.WantsCustomization == true) ? null : principalId;
+        
+        // Determine effective principal ID for scoping:
+        // 1. Admin/Manager viewing custom requests (wantsCustomization = true) → see all (null)
+        // 2. Tour Operator viewing public tours (wantsCustomization = false) → see all public tours (null)
+        // 3. Otherwise → scope to user's managed tours/instances (principalId)
+        Guid? effectivePrincipalId = null;
+        if (isAdminOrManager && request.WantsCustomization == true)
+        {
+            // Admin/Manager can see all custom tour requests
+            effectivePrincipalId = null;
+        }
+        else if (request.WantsCustomization == false)
+        {
+            // Public tours: all users (including tour operators) can see all public tours
+            effectivePrincipalId = null;
+        }
+        else
+        {
+            // Private/custom tours or no filter: scope to user's managed tours
+            effectivePrincipalId = principalId;
+        }
 
-        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, request.WantsCustomization, effectivePrincipalId);
-        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, request.WantsCustomization, effectivePrincipalId);
+        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, request.WantsCustomization, request.InstanceType, effectivePrincipalId, request.Statuses);
+        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, request.WantsCustomization, request.InstanceType, effectivePrincipalId, request.Statuses);
 
         var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, request.PageNumber, request.PageSize);
@@ -1729,9 +1701,9 @@ public class TourInstanceService(
         return dto;
     }
 
-    public async Task<ErrorOr<TourInstanceStatsDto>> GetStats()
+    public async Task<ErrorOr<TourInstanceStatsDto>> GetStats(TourType? instanceType = null)
     {
-        var (total, available, confirmed, soldOut, completed) = await _tourInstanceRepository.GetStats();
+        var (total, available, confirmed, soldOut, completed) = await _tourInstanceRepository.GetStats(instanceType);
         return new TourInstanceStatsDto(total, available, confirmed, soldOut, completed);
     }
 
@@ -1892,6 +1864,57 @@ public class TourInstanceService(
         return customDay.Id;
     }
 
+    private async Task<TourPlanLocationEntity?> ResolveLocationAsync(Guid? locationId, string? locationName, Guid tourId)
+    {
+        var hasId = locationId.HasValue && locationId != Guid.Empty;
+        var hasName = !string.IsNullOrWhiteSpace(locationName);
+        if (!hasId && !hasName)
+        {
+            return null;
+        }
+
+        if (hasId)
+        {
+            var existingLocation = await _tourRepository.FindLocationByIdAsync(locationId!.Value);
+            if (existingLocation != null)
+            {
+                existingLocation.TourId = tourId;
+                return existingLocation;
+            }
+            var stub = TourPlanLocationEntity.Create(
+                locationName ?? "Referenced Location",
+                LocationType.Other,
+                _user.Id ?? string.Empty,
+                tourId);
+            _unitOfWork?.MarkAsAdded(stub);
+            return stub;
+        }
+
+        var tour = await _tourRepository.FindByIdForUpdate(tourId);
+        if (tour != null)
+        {
+            var existingByName = tour.PlanLocations.FirstOrDefault(l => 
+                !l.IsDeleted && 
+                l.LocationName.Trim().Equals(locationName!.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (existingByName != null)
+            {
+                return existingByName;
+            }
+        }
+
+        var location = TourPlanLocationEntity.Create(
+            locationName!.Trim(),
+            LocationType.Other,
+            _user.Id ?? string.Empty,
+            tourId);
+        if (tour != null)
+        {
+            tour.PlanLocations.Add(location);
+        }
+        _unitOfWork?.MarkAsAdded(location);
+        return location;
+    }
+
     public async Task<ErrorOr<TourInstanceDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request)
     {
         var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId);
@@ -1922,22 +1945,41 @@ public class TourInstanceService(
         if (request.Price.HasValue)
             activity.Price = request.Price.Value;
 
-        if (activity.ActivityType == TourDayActivityType.Accommodation
-            && (request.RoomType.HasValue || request.RoomCount.HasValue))
+        if (activity.ActivityType == TourDayActivityType.Accommodation)
         {
             var nextRoomType = request.RoomType ?? activity.Accommodation?.RoomType;
             var nextQuantity = request.RoomCount ?? activity.Accommodation?.Quantity ?? 1;
+
+            var nextStartTime = activity.StartTime;
+            var nextEndTime = activity.EndTime;
+
+            DateTimeOffset? checkInTime = nextStartTime.HasValue
+                ? new DateTimeOffset(instanceDay.ActualDate.ToDateTime(nextStartTime.Value), TimeSpan.Zero)
+                : null;
+            DateTimeOffset? checkOutTime = nextEndTime.HasValue
+                ? new DateTimeOffset(instanceDay.ActualDate.ToDateTime(nextEndTime.Value), TimeSpan.Zero)
+                : null;
+
+            if (checkInTime.HasValue && checkOutTime.HasValue && checkOutTime.Value < checkInTime.Value)
+            {
+                checkOutTime = checkOutTime.Value.AddDays(1);
+            }
+
             if (activity.Accommodation is null)
             {
                 activity.Accommodation = TourInstancePlanAccommodationEntity.Create(
                     tourInstanceDayActivityId: activity.Id,
                     roomType: nextRoomType,
-                    quantity: nextQuantity);
+                    quantity: nextQuantity,
+                    checkInTime: checkInTime,
+                    checkOutTime: checkOutTime);
             }
             else
             {
                 activity.Accommodation.RoomType = nextRoomType;
                 activity.Accommodation.Quantity = nextQuantity;
+                activity.Accommodation.CheckInTime = checkInTime;
+                activity.Accommodation.CheckOutTime = checkOutTime;
             }
         }
 
@@ -1953,11 +1995,35 @@ public class TourInstanceService(
                     TourInstanceTransportErrors.CannotChangeTransportGroupWithSupplierAssignedDescription.En);
             }
 
+            var tourId = instance.TourId;
+            var fromLocId = activity.FromLocationId;
+            var toLocId = activity.ToLocationId;
+
+            if (request.FromLocationId.HasValue || !string.IsNullOrWhiteSpace(request.FromLocationName))
+            {
+                var resolvedFrom = await ResolveLocationAsync(request.FromLocationId, request.FromLocationName, tourId);
+                fromLocId = resolvedFrom?.Id;
+            }
+            else if (request.FromLocationId == Guid.Empty)
+            {
+                fromLocId = null;
+            }
+
+            if (request.ToLocationId.HasValue || !string.IsNullOrWhiteSpace(request.ToLocationName))
+            {
+                var resolvedTo = await ResolveLocationAsync(request.ToLocationId, request.ToLocationName, tourId);
+                toLocId = resolvedTo?.Id;
+            }
+            else if (request.ToLocationId == Guid.Empty)
+            {
+                toLocId = null;
+            }
+
             activity.UpdateTransportPlan(
                 request.TransportationType,
                 request.TransportationName ?? activity.TransportationName,
-                request.FromLocationId ?? activity.FromLocationId,
-                request.ToLocationId ?? activity.ToLocationId,
+                fromLocId,
+                toLocId,
                 request.DepartureTime,
                 request.ArrivalTime,
                 request.RequestedVehicleType,
@@ -1991,6 +2057,25 @@ public class TourInstanceService(
 
         int order = day.Activities.Count > 0 ? day.Activities.Max(a => a.Order) + 1 : 1;
 
+        Guid? fromLocId = null;
+        Guid? toLocId = null;
+
+        if (request.ActivityType == TourDayActivityType.Transportation)
+        {
+            var tourId = instance.TourId;
+            if (request.FromLocationId.HasValue || !string.IsNullOrWhiteSpace(request.FromLocationName))
+            {
+                var resolvedFrom = await ResolveLocationAsync(request.FromLocationId, request.FromLocationName, tourId);
+                fromLocId = resolvedFrom?.Id;
+            }
+
+            if (request.ToLocationId.HasValue || !string.IsNullOrWhiteSpace(request.ToLocationName))
+            {
+                var resolvedTo = await ResolveLocationAsync(request.ToLocationId, request.ToLocationName, tourId);
+                toLocId = resolvedTo?.Id;
+            }
+        }
+
         var activity = TourInstanceDayActivityEntity.Create(
             request.DayId,
             order,
@@ -2002,8 +2087,8 @@ public class TourInstanceService(
             request.StartTime,
             request.EndTime,
             request.IsOptional,
-            request.FromLocationId,
-            request.ToLocationId,
+            fromLocId,
+            toLocId,
             request.TransportationType,
             request.TransportationName,
             null, // durationMinutes
@@ -2018,8 +2103,8 @@ public class TourInstanceService(
                 activity.UpdateTransportPlan(
                     request.TransportationType,
                     request.TransportationName,
-                    request.FromLocationId,
-                    request.ToLocationId,
+                    fromLocId,
+                    toLocId,
                     request.DepartureTime,
                     request.ArrivalTime,
                     request.RequestedVehicleType,
@@ -2028,12 +2113,26 @@ public class TourInstanceService(
                     _user.Id ?? "system");
             }
         }
-        else if (request.ActivityType == TourDayActivityType.Accommodation && request.RoomType.HasValue)
+        else if (request.ActivityType == TourDayActivityType.Accommodation)
         {
+            DateTimeOffset? checkInTime = request.StartTime.HasValue
+                ? new DateTimeOffset(day.ActualDate.ToDateTime(request.StartTime.Value), TimeSpan.Zero)
+                : null;
+            DateTimeOffset? checkOutTime = request.EndTime.HasValue
+                ? new DateTimeOffset(day.ActualDate.ToDateTime(request.EndTime.Value), TimeSpan.Zero)
+                : null;
+
+            if (checkInTime.HasValue && checkOutTime.HasValue && checkOutTime.Value < checkInTime.Value)
+            {
+                checkOutTime = checkOutTime.Value.AddDays(1);
+            }
+
             activity.Accommodation = TourInstancePlanAccommodationEntity.Create(
                 tourInstanceDayActivityId: activity.Id,
                 roomType: request.RoomType,
-                quantity: request.RoomCount ?? 1);
+                quantity: request.RoomCount ?? 1,
+                checkInTime: checkInTime,
+                checkOutTime: checkOutTime);
         }
 
         // Use AddAsync (via repo) to explicitly mark the entry as Added — adding to the
@@ -2073,7 +2172,17 @@ public class TourInstanceService(
     private async Task RecalculatePrivateTourFinalPriceAsync(Guid instanceId, TourInstanceEntity? loadedInstance = null)
     {
         var instance = loadedInstance ?? await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId);
-        if (instance == null || instance.InstanceType != TourType.Private) return;
+        if (instance == null) return;
+
+        if (instance.InstanceType != TourType.Private)
+        {
+            await _tourInstanceRepository.Update(instance);
+            if (_unitOfWork != null)
+            {
+                await _unitOfWork.SaveChangeAsync();
+            }
+            return;
+        }
 
         // OriginalBasePrice is the immutable per-person snapshot set at creation time
         // (kept for historical reference). The displayed BasePrice for a private custom

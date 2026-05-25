@@ -87,9 +87,8 @@ D:\DoAn\
 > **Migrations:** Chỉ tạo và chạy (dotnet ef database update) migration từ project `Api`! Không chạy auto-migration ở bất kỳ service nào.
 
 > **Runtime Ingress (Docker Compose):**
-> - **Production / Dokploy** (`docker compose -f docker-compose.yml up -d`): KHÔNG publish host port. Traefik (Dokploy) route `Host(${PATHORA_PUBLIC_HOST})` vào `pathora-nginx:8080` qua external network `pathora-shared-network`. Traefik labels gắn trên service nginx. Set env `NEXT_PUBLIC_API_GATEWAY=""` (rỗng) cho same-origin.
-> - **Dev** (`docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d` — dev overlay KHÔNG auto-load): mở `localhost:80` (nginx), `localhost:3003` (FE), `localhost:8099` (nginx alt), `localhost:8088/8089` (backend/publicapi direct) để debug.
-> - **Frontend container** chỉ `expose: 3003`, không join `pathora-shared-network` → Traefik không thể route trực tiếp vào FE; mọi traffic phải qua nginx.
+> - **Chạy Local / Dev** (`docker compose up -d`): Khởi động toàn bộ stack với các cổng được map trực tiếp ra máy host để phát triển (`localhost:80` / `localhost:8099` cho nginx, `localhost:3003` cho Frontend, và `localhost:8088`/`localhost:8089` cho API).
+> - **Production / Dokploy** (`docker compose up -d`): Dokploy chạy trực tiếp base compose, Traefik sẽ route traffic từ TLS edge trực tiếp vào cổng expose của `pathora-nginx:8080` qua shared network.
 > - **Rate-limit**: nginx `limit_req` zone `auth_zone` 10 r/s burst 20 áp cho `/api/auth/*` và `/signin-google`.
 > - **Required env on Dokploy**: `PATHORA_PUBLIC_HOST=yourdomain.com`, `NEXT_PUBLIC_API_GATEWAY=` (rỗng), bỏ origin dev khỏi `Cors__AllowedOrigins__*`.
 
@@ -235,7 +234,7 @@ This workspace is configured to use **gstack** for all web browsing and design t
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Pathora_Version3** (8459 symbols, 11778 relationships, 84 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Pathora_Version3** (27106 symbols, 62194 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

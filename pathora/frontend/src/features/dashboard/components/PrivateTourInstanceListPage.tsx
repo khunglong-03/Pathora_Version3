@@ -76,12 +76,37 @@ export function PrivateTourInstanceListPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
   const debouncedSearchText = useDebounce(searchText, 300);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("approved");
   const [excludePast, setExcludePast] = useState(true);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [reloadToken, setReloadToken] = useState(0);
+
+  /* ── Statuses for ticket-assignment workflow ─────────────────
+     Only show tours where payment has been confirmed:
+     - confirmed   : customer paid / manager confirmed
+     - available   : ready to depart
+     - inprogress  : tour currently happening
+     pendingcustomerapproval is intentionally excluded because
+     the customer hasn't paid a deposit at that stage yet.
+     ─────────────────────────────────────────────────────────── */
+  const TICKET_ASSIGNMENT_STATUSES = ["confirmed", "available", "inprogress"];
+
+  const resolveStatuses = (filter: string): string[] | undefined => {
+    switch (filter) {
+      case "approved":
+        return TICKET_ASSIGNMENT_STATUSES;
+      case "confirmed":
+        return ["confirmed"];
+      case "available":
+        return ["available"];
+      case "inprogress":
+        return ["inprogress"];
+      default:
+        return TICKET_ASSIGNMENT_STATUSES;
+    }
+  };
 
   /* ── Fetch instances ─────────────────────────────────────── */
   useEffect(() => {
@@ -102,30 +127,22 @@ export function PrivateTourInstanceListPage() {
       try {
         setDataState("loading");
         setErrorMessage(null);
-        setCurrentPage(1);
+        const statuses = resolveStatuses(statusFilter);
         const result = await tourInstanceService.getAllInstances(
           debouncedSearchText || undefined,
-          statusFilter,
-          1,
+          undefined, // no single status — use statuses array
+          currentPage,
           pageSize,
           excludePast,
           undefined,
+          "private",
+          statuses,
         );
         if (!active) return;
         if (result) {
-          const allInstances = result.data ?? [];
-          // Only private instances that have been deposited/paid (exclude draft/pendingadjustment)
-          const filtered = allInstances.filter(
-            (inst) => {
-              const st = inst.status?.toLowerCase() || "";
-              return inst.instanceType?.toLowerCase() === "private" && 
-                     st !== "draft" && 
-                     st !== "pendingadjustment";
-            }
-          );
-          setInstances(filtered);
-          setTotalItems(filtered.length);
-          setDataState(filtered.length === 0 ? "empty" : "ready");
+          setInstances(result.data ?? []);
+          setTotalItems(result.total ?? 0);
+          setDataState((result.data ?? []).length === 0 ? "empty" : "ready");
         }
       } catch (error: unknown) {
         if (!active) return;
@@ -147,7 +164,12 @@ export function PrivateTourInstanceListPage() {
     void doFetch();
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchText, statusFilter, excludePast, pageSize, reloadToken]);
+  }, [debouncedSearchText, statusFilter, excludePast, currentPage, pageSize, reloadToken]);
+
+  /* ── Reset page when filters change ─────────────────────── */
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchText, statusFilter, excludePast]);
 
   const totalPages = Math.ceil(totalItems / pageSize);
 
@@ -211,15 +233,10 @@ export function PrivateTourInstanceListPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full appearance-none px-3.5 py-2.5 pl-9 rounded-xl border-none bg-slate-50/50 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all cursor-pointer"
             >
-              <option value="all">Tất cả trạng thái</option>
-              
-              <option value="pendingvisa">Chờ xin Visa</option>
-              <option value="pendingapproval">Chờ duyệt</option>
+              <option value="approved">Tất cả đã thanh toán</option>
               <option value="confirmed">Đã xác nhận</option>
               <option value="available">Sẵn sàng</option>
               <option value="inprogress">Đang diễn ra</option>
-              <option value="cancelled">Đã huỷ</option>
-              <option value="completed">Hoàn thành</option>
             </select>
             <Icon
               icon="heroicons:funnel"

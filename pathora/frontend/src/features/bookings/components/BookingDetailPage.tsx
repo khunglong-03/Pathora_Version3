@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 
@@ -40,7 +40,21 @@ export function BookingDetailPage() {
   const [tourInstance, setTourInstance] = useState<NormalizedTourInstanceDto | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useBookingStatusListener();
+  const fetchBookingWithoutLoading = useCallback(async () => {
+    try {
+      const data = await bookingService.getBookingDetail(bookingId);
+      if (data) setBooking(data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [bookingId]);
+
+  useBookingStatusListener(useCallback((event) => {
+    const matchingIds = [bookingId, booking?.id, booking?.bookingId].filter(Boolean);
+    if (matchingIds.includes(event.bookingId)) {
+      void fetchBookingWithoutLoading();
+    }
+  }, [bookingId, booking?.id, booking?.bookingId, fetchBookingWithoutLoading]));
 
   useEffect(() => {
     if (!bookingId) return;
@@ -91,15 +105,6 @@ export function BookingDetailPage() {
     void fetchBooking();
     return () => { cancelled = true; };
   }, [bookingId]);
-
-  const fetchBookingWithoutLoading = async () => {
-    try {
-      const data = await bookingService.getBookingDetail(bookingId);
-      if (data) setBooking(data);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   useEffect(() => {
     if (loading || !booking) return;
@@ -232,6 +237,7 @@ export function BookingDetailPage() {
                 showPayRemaining={showPayRemaining}
                 showCancelBooking={showCancelBooking}
                 getPaymentStatusLabel={labelFns.getPaymentStatusLabel}
+                onCancellationChanged={fetchBookingWithoutLoading}
               />
               <CancellationRequestTimeline requests={mappedBooking.cancellationRequests || []} />
               <BookingRefundSection

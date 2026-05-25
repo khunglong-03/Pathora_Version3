@@ -4,6 +4,7 @@ public sealed record AdminOverviewReport(
     AdminDashboardStatsReport Stats,
     List<AdminCustomerReport> Customers,
     List<AdminPaymentReport> Payments,
+    AdminPaymentStatsReport PaymentStats,
     List<AdminInsuranceReport> Insurances,
     List<AdminVisaApplicationReport> VisaApplications);
 
@@ -34,6 +35,13 @@ public sealed record AdminPaymentReport(
     decimal Amount,
     string Status,
     string Date);
+
+public sealed record AdminPaymentStatsReport(
+    decimal TotalRevenue,
+    decimal PendingAmount,
+    int CompletedCount,
+    int PendingCount,
+    int RefundedCount);
 
 public sealed record AdminInsuranceReport(
     string Id,

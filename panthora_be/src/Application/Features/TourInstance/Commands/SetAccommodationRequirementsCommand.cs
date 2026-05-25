@@ -68,8 +68,25 @@ public sealed class SetAccommodationRequirementsCommandHandler(
 
         activity.Accommodation ??= TourInstancePlanAccommodationEntity.Create(activity.Id);
 
-        var checkInTime = activity.Accommodation.CheckInTime;
-        var checkOutTime = activity.Accommodation.CheckOutTime;
+        DateTimeOffset? checkInTime = null;
+        DateTimeOffset? checkOutTime = null;
+
+        var day = instance.InstanceDays.FirstOrDefault(d => d.Activities.Any(a => a.Id == request.AccommodationActivityId));
+        if (day is not null)
+        {
+            if (activity.StartTime.HasValue)
+            {
+                checkInTime = new DateTimeOffset(day.ActualDate.ToDateTime(activity.StartTime.Value), TimeSpan.Zero);
+            }
+            if (activity.EndTime.HasValue)
+            {
+                checkOutTime = new DateTimeOffset(day.ActualDate.ToDateTime(activity.EndTime.Value), TimeSpan.Zero);
+            }
+            if (checkInTime.HasValue && checkOutTime.HasValue && checkOutTime.Value < checkInTime.Value)
+            {
+                checkOutTime = checkOutTime.Value.AddDays(1);
+            }
+        }
 
         activity.Accommodation.Update(
             roomType: roomType,

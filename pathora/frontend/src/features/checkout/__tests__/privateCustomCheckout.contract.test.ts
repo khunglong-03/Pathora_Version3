@@ -42,4 +42,10 @@ describe("private-custom checkout contract", () => {
     const page = readFile("src/features/checkout/components/CheckoutRequestPage.tsx");
     expect(page).toMatch(/privateCustomTransactionError/);
   });
+
+  it("shows duplicate custom request error toast when backend rejects with Booking.DuplicateCustomRequest", () => {
+    const page = readFile("src/features/checkout/components/CheckoutRequestPage.tsx");
+    expect(page).toMatch(/Booking\.DuplicateCustomRequest/);
+    expect(page).toMatch(/duplicateCustomRequest/);
+  });
 });

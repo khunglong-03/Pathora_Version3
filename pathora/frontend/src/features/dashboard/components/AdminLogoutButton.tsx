@@ -11,9 +11,6 @@ export function AdminLogoutButton() {
   const [logout, { isLoading }] = useLogoutMutation();
 
   const handleLogout = async () => {
-    // Clear all auth cookies via the standard helper (includes refresh_token + auth_roles)
-    clearAuthSession();
-
     // Portal-aware redirect: admin portal → /, user portal → /
     const portal =
       typeof document !== "undefined"
@@ -23,12 +20,23 @@ export function AdminLogoutButton() {
             ?.split("=")[1]
         : undefined;
 
+    const refreshToken =
+      typeof document !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find((c) => c.startsWith("refresh_token="))
+            ?.split("=")[1]
+        : undefined;
+
     // Wait for server-side revocation to ensure HttpOnly cookies are cleared
     try {
-      await logout({ refreshToken: "" }).unwrap();
+      await logout({ refreshToken: refreshToken ?? "" }).unwrap();
     } catch {
       // intentionally ignored — client state is already clean or cleared in onQueryStarted
     }
+
+    // Clear all auth cookies via the standard helper (includes refresh_token + auth_roles)
+    clearAuthSession();
 
     router.push("/");
   };

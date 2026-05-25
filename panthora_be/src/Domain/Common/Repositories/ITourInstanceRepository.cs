@@ -20,12 +20,12 @@ public interface ITourInstanceRepository
     Task UpdateTourDayActivity(TourDayActivityEntity activity, CancellationToken cancellationToken = default);
     Task AddInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default);
     Task DeleteInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default);
-    Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default);
-    Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default);
+    Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, bool? wantsCustomization = null, TourType? instanceType = null, Guid? principalId = null, IReadOnlyCollection<TourInstanceStatus>? statuses = null, CancellationToken cancellationToken = default);
+    Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, bool? wantsCustomization = null, TourType? instanceType = null, Guid? principalId = null, IReadOnlyCollection<TourInstanceStatus>? statuses = null, CancellationToken cancellationToken = default);
     Task Create(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default);
     Task Update(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default);
     Task SoftDelete(Guid id, CancellationToken cancellationToken = default);
-    Task<(int Total, int Available, int Confirmed, int SoldOut, int Completed)> GetStats(CancellationToken cancellationToken = default);
+    Task<(int Total, int Available, int Confirmed, int SoldOut, int Completed)> GetStats(TourType? instanceType = null, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default);
     Task<int> CountPublicAvailable(string? destination, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default);
     Task<TourInstanceEntity?> FindPublicById(Guid id, CancellationToken cancellationToken = default);

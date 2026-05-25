@@ -124,6 +124,34 @@ public sealed class RequestPublicPrivateTourCommandHandler(
         RequestPublicPrivateTourCommand request,
         CancellationToken cancellationToken)
     {
+        Guid? currentUserId = null;
+        if (!string.IsNullOrWhiteSpace(user.Id) && Guid.TryParse(user.Id, out var parsedId))
+        {
+            currentUserId = parsedId;
+        }
+
+        if (currentUserId == null && !string.IsNullOrWhiteSpace(request.CustomerEmail))
+        {
+            var matchedByEmail = await userRepository.GetByEmailAsync(request.CustomerEmail, cancellationToken);
+            if (matchedByEmail != null)
+            {
+                currentUserId = matchedByEmail.Id;
+            }
+        }
+
+        var hasActiveRequest = await bookingRepository.HasActiveCustomTourRequestAsync(
+            currentUserId,
+            request.CustomerEmail,
+            request.TourId,
+            cancellationToken);
+
+        if (hasActiveRequest)
+        {
+            return Error.Validation(
+                "Booking.DuplicateCustomRequest",
+                "Bạn đã có một tour như vậy đang được xét duyệt.");
+        }
+
         var tour = await tourRepository.FindById(request.TourId, true, cancellationToken);
         if (tour is null)
         {
@@ -185,38 +213,14 @@ public sealed class RequestPublicPrivateTourCommandHandler(
                 "Tour không còn đủ chỗ cho số lượng người yêu cầu.");
         }
 
-        var taxConfigs = await taxConfigRepository.GetListAsync(t => t.IsActive);
-        var activeTaxConfig = taxConfigs.FirstOrDefault();
-
-        var pricingPolicy = await pricingPolicyRepository.GetActivePolicyByTourType(tourInstance.InstanceType)
-            ?? await pricingPolicyRepository.GetDefaultPolicy();
-
-        var breakdown = priceCalculator.Calculate(
-            numberAdult: request.NumberAdult,
-            numberChild: request.NumberChild,
-            numberInfant: request.NumberInfant,
-            basePrice: tourInstance.BasePrice,
-            tiers: pricingPolicy?.Tiers,
-            taxConfig: activeTaxConfig,
-            visaServiceFeeTotal: 0m,
-            paidAmount: 0m);
+        var breakdown = await CalculateBreakdownAsync(
+            tourInstance,
+            request.NumberAdult,
+            request.NumberChild,
+            request.NumberInfant,
+            cancellationToken);
 
         var totalPrice = breakdown.TotalAmount;
-
-        Guid? currentUserId = null;
-        if (!string.IsNullOrWhiteSpace(user.Id) && Guid.TryParse(user.Id, out var parsedId))
-        {
-            currentUserId = parsedId;
-        }
-
-        if (currentUserId == null && !string.IsNullOrWhiteSpace(request.CustomerEmail))
-        {
-            var matchedByEmail = await userRepository.GetByEmailAsync(request.CustomerEmail, cancellationToken);
-            if (matchedByEmail != null)
-            {
-                currentUserId = matchedByEmail.Id;
-            }
-        }
 
         var booking = BookingEntity.Create(
             tourInstanceId: tourInstance.Id,
@@ -252,7 +256,49 @@ public sealed class RequestPublicPrivateTourCommandHandler(
                 cancellationToken);
         }
 
-        var tourScope = tour.TourScope;
+        return await BuildCheckoutPriceResponseAsync(booking, tourInstance, cancellationToken, breakdown, tour.TourScope);
+    }
+
+    private async Task<BookingPriceBreakdown> CalculateBreakdownAsync(
+        TourInstanceEntity tourInstance,
+        int numberAdult,
+        int numberChild,
+        int numberInfant,
+        CancellationToken cancellationToken)
+    {
+        var taxConfigs = await taxConfigRepository.GetListAsync(t => t.IsActive);
+        var activeTaxConfig = taxConfigs.FirstOrDefault();
+
+        var pricingPolicy = await pricingPolicyRepository.GetActivePolicyByTourType(tourInstance.InstanceType)
+            ?? await pricingPolicyRepository.GetDefaultPolicy();
+
+        return priceCalculator.Calculate(
+            numberAdult: numberAdult,
+            numberChild: numberChild,
+            numberInfant: numberInfant,
+            basePrice: tourInstance.BasePrice,
+            tiers: pricingPolicy?.Tiers,
+            taxConfig: activeTaxConfig,
+            visaServiceFeeTotal: 0m,
+            paidAmount: 0m);
+    }
+
+    private async Task<CheckoutPriceResponse> BuildCheckoutPriceResponseAsync(
+        BookingEntity booking,
+        TourInstanceEntity tourInstance,
+        CancellationToken cancellationToken,
+        BookingPriceBreakdown? breakdown = null,
+        TourScope? tourScopeOverride = null)
+    {
+        breakdown ??= await CalculateBreakdownAsync(
+            tourInstance,
+            booking.NumberAdult,
+            booking.NumberChild,
+            booking.NumberInfant,
+            cancellationToken);
+
+        var totalPrice = booking.TotalPrice > 0 ? booking.TotalPrice : breakdown.TotalAmount;
+        var tourScope = tourScopeOverride ?? tourInstance.Tour?.TourScope ?? TourScope.Domestic;
         var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
         var policy = depositPolicies.FirstOrDefault(p => p.TourScope == tourScope);
 
@@ -269,7 +315,7 @@ public sealed class RequestPublicPrivateTourCommandHandler(
             }
         }
 
-        if (request.IsFullPay)
+        if (booking.IsFullPay)
         {
             depositPercentage = 100m;
         }
@@ -287,9 +333,9 @@ public sealed class RequestPublicPrivateTourCommandHandler(
             EndDate: tourInstance.EndDate,
             DurationDays: tourInstance.DurationDays,
             Location: tourInstance.Location,
-            NumberAdult: request.NumberAdult,
-            NumberChild: request.NumberChild,
-            NumberInfant: request.NumberInfant,
+            NumberAdult: booking.NumberAdult,
+            NumberChild: booking.NumberChild,
+            NumberInfant: booking.NumberInfant,
             BasePrice: breakdown.AdultUnitPrice,
             ChildPrice: breakdown.ChildUnitPrice,
             InfantPrice: breakdown.InfantUnitPrice,
