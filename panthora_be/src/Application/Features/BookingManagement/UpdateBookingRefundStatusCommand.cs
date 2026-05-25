@@ -3,6 +3,7 @@ using Application.Common;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
+using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
@@ -32,6 +33,7 @@ public sealed class UpdateBookingRefundStatusCommandValidator : AbstractValidato
 
 public sealed class UpdateBookingRefundStatusCommandHandler(
     IBookingRepository bookingRepository,
+    IPaymentTransactionRepository paymentTransactionRepository,
     IUser user,
     IUnitOfWork unitOfWork,
     ILanguageContext? languageContext = null)
@@ -65,7 +67,24 @@ public sealed class UpdateBookingRefundStatusCommandHandler(
                     booking.MarkRefundContacted(performedBy);
                     break;
                 case RefundStatus.Refunded:
+                    var refundAmount = booking.RefundOutstandingAmount ?? 0m;
                     booking.MarkRefundCompleted(performedBy);
+
+                    if (refundAmount > 0)
+                    {
+                        var refundTransaction = PaymentTransactionEntity.Create(
+                            booking.Id,
+                            transactionCode: $"REF-{booking.Id.ToString()[..8]}-{DateTimeOffset.UtcNow.Ticks}",
+                            type: TransactionType.Refund,
+                            amount: refundAmount,
+                            paymentMethod: PaymentMethod.BankTransfer,
+                            paymentNote: $"Hoàn tiền cho booking {booking.Id} (cascade)",
+                            createdBy: performedBy
+                        );
+                        refundTransaction.MarkAsPaid(refundAmount, DateTimeOffset.UtcNow);
+
+                        await paymentTransactionRepository.AddAsync(refundTransaction, cancellationToken);
+                    }
                     break;
                 default:
                     return Error.Validation(

@@ -309,6 +309,47 @@ public class BookingEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Khởi tạo tracking hoàn tiền với số tiền cụ thể từ Yêu cầu hủy (Policy-calculated).
+    /// Guard: chỉ chạy khi Status = Cancelled.
+    /// </summary>
+    public void InitializeRefundTrackingWithAmount(decimal refundAmount, string performedBy)
+    {
+        if (Status != BookingStatus.Cancelled)
+            throw new InvalidOperationException("Chỉ khởi tạo refund tracking cho booking đã Cancel.");
+
+        if (refundAmount <= 0)
+        {
+            RefundStatus = RefundStatus.NotApplicable;
+            RefundOutstandingAmount = null;
+        }
+        else
+        {
+            RefundStatus = RefundStatus.Pending;
+            RefundOutstandingAmount = Math.Round(refundAmount, 0, MidpointRounding.ToEven);
+        }
+
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Ép trạng thái hoàn tiền sang Đã hoàn tiền (Refunded) — dùng cho ConfirmRefund trực tiếp.
+    /// Guard: chỉ chạy khi Status = Cancelled.
+    /// </summary>
+    public void ForceMarkRefunded(string performedBy)
+    {
+        if (Status != BookingStatus.Cancelled)
+            throw new InvalidOperationException("Chỉ cập nhật trạng thái hoàn tiền cho booking đã Cancel.");
+
+        RefundStatus = RefundStatus.Refunded;
+        RefundCompletedAt = DateTimeOffset.UtcNow;
+        RefundOutstandingAmount = 0m;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+
     private static void EnsureValidParticipants(int numberAdult, int numberChild, int numberInfant)
     {
         if (numberAdult <= 0)

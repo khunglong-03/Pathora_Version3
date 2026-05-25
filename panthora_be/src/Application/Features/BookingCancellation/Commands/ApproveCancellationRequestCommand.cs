@@ -1,5 +1,7 @@
+using Application.Common;
 using Application.Common.Constant;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.UnitOfWork;
 using ErrorOr;
@@ -12,7 +14,10 @@ namespace Application.Features.BookingCancellation.Commands;
 public sealed record ApproveCancellationRequestCommand(
     [property: JsonPropertyName("requestId")] Guid RequestId,
     [property: JsonPropertyName("managerNote")] string? ManagerNote,
-    Guid ManagerId) : ICommand<ErrorOr<Success>>;
+    Guid ManagerId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.TourInstance];
+}
 
 public sealed class ApproveCancellationRequestCommandValidator
     : AbstractValidator<ApproveCancellationRequestCommand>
@@ -91,6 +96,7 @@ public sealed class ApproveCancellationRequestCommandHandler(
             // Update booking status from PendingCancellation to Cancelled
             var approvalReason = request.ManagerNote ?? cancellationRequest.CustomerReason;
             booking.ApproveCancellation(approvalReason, performedBy);
+            booking.InitializeRefundTrackingWithAmount(cancellationRequest.RefundAmount, performedBy);
 
             // Free up participant slots
             var tourInstance = booking.TourInstance;
