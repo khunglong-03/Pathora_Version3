@@ -53,14 +53,17 @@ export function BookingHistoryPage() {
     },
     { key: "approved", label: t("landing.bookings.statusApproved") },
     { key: "completed", label: t("landing.bookings.statusCompleted") },
-    { key: "cancelled", label: t("landing.bookings.statusCancelled") },
     { key: "rejected", label: t("landing.bookings.statusRejected") },
   ];
 
   const { bookings, totalCount, isLoading, isError } = useBookings(activeFilter, 1, 50); // Fetch first 50 bookings for now
 
+  const nonCancelledBookings = useMemo(() => {
+    return bookings.filter((b) => b.status !== "cancelled");
+  }, [bookings]);
+
   const filtered = useMemo(() => {
-    let list = bookings;
+    let list = nonCancelledBookings;
     if (debouncedSearchQuery.trim()) {
       const q = debouncedSearchQuery.toLowerCase();
       list = list.filter(
@@ -70,7 +73,9 @@ export function BookingHistoryPage() {
       );
     }
     return list;
-  }, [bookings, debouncedSearchQuery]);
+  }, [nonCancelledBookings, debouncedSearchQuery]);
+
+  const displayedTotalCount = nonCancelledBookings.length;
 
   const activeCount = getActiveBookingsCount(bookings);
 
@@ -86,7 +91,7 @@ export function BookingHistoryPage() {
     <>
       <main className={cn("v-stack min-h-[100dvh] bg-slate-50")}>
         <BookingHistoryHero
-          totalCount={totalCount}
+          totalCount={displayedTotalCount}
           activeCount={activeCount}
           backLabel={t("landing.bookings.backToHome")}
           titleLabel={t("landing.bookings.title")}

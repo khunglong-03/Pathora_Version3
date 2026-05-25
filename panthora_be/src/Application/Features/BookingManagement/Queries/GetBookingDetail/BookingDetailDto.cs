@@ -45,6 +45,10 @@ public class BookingDetailDto
     public List<PendingTransactionDto> PendingTransactions { get; set; } = [];
     public BookingCancellationRequestSummaryDto? CancellationRequest { get; set; }
     public List<BookingCancellationRequestSummaryDto> CancellationRequests { get; set; } = [];
+    public string? RefundStatus { get; set; }
+    public decimal? RefundOutstandingAmount { get; set; }
+    public DateTimeOffset? RefundContactedAt { get; set; }
+    public DateTimeOffset? RefundCompletedAt { get; set; }
 }
 
 public class PendingTransactionDto

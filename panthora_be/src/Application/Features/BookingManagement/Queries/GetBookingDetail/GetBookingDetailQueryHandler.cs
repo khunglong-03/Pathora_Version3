@@ -137,7 +137,11 @@ public class GetBookingDetailQueryHandler(
                 Purpose = t.Type == TransactionType.VisaServiceFee ? "Visa Service Fee" : "Tour Payment",
                 CreatedAt = t.CreatedOnUtc,
                 ExpiresAt = null // If you have an ExpiresAt logic, add it here
-            }).ToList()
+            }).ToList(),
+            RefundStatus = booking.RefundStatus.ToString(),
+            RefundOutstandingAmount = booking.RefundOutstandingAmount,
+            RefundContactedAt = booking.RefundContactedAt,
+            RefundCompletedAt = booking.RefundCompletedAt
         };
 
         var allRequests = await cancellationRequestRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
