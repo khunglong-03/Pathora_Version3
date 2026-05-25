@@ -125,7 +125,11 @@ const attachInterceptors = (instance: AxiosInstance): void => {
       }
 
       // --- DEV LOGGER: Bắt và in ra mọi request gửi đi ---
-      if (process.env.NODE_ENV === "development") {
+      const isDevLoggerEnabled =
+        process.env.NODE_ENV === "development" ||
+        process.env.NEXT_PUBLIC_ENABLE_DEV_LOGGER === "true";
+
+      if (isDevLoggerEnabled) {
         console.groupCollapsed(`🚀 [API REQUEST] ${config.method?.toUpperCase()} ${config.url}`);
         if (config.params && Object.keys(config.params).length > 0) {
           console.log("Params:", config.params);
@@ -182,7 +186,11 @@ const attachInterceptors = (instance: AxiosInstance): void => {
       if (!isRefreshable401) {
         // --- DEV LOGGER: Bắt payload gửi đi khi API lỗi ---
         try {
-          if (process.env.NODE_ENV === "development" && error.config) {
+          const isDevLoggerEnabled =
+            process.env.NODE_ENV === "development" ||
+            process.env.NEXT_PUBLIC_ENABLE_DEV_LOGGER === "true";
+
+          if (isDevLoggerEnabled && error.config) {
             const { url, data, params } = error.config;
             let parsedData: any = data;
 

@@ -56,7 +56,6 @@ const FALLBACK_STATS: StatDisplayItem[] = [
   { value: 0, suffix: "+", labelKey: "landing.stats.items.totalTours" },
   { value: 0, suffix: "+", labelKey: "landing.stats.items.totalTravellers" },
   { value: 0, suffix: " km", labelKey: "landing.stats.items.totalDistanceKm" },
-  { value: 0, suffix: "/7", labelKey: "landing.stats.items.support" },
 ];
 
 export const BoldStatsStrip = () => {
@@ -79,34 +78,35 @@ export const BoldStatsStrip = () => {
       .then((data) => {
         if (cancelled) return;
 
+        // Lấy dữ liệu thực tế 100% từ database
         const tours = data.totalTours ?? 0;
         const travelers = data.totalTravelers ?? 0;
         const km = data.totalDistanceKm ?? 0;
 
+        // Định dạng hậu tố (suffix) động theo giá trị thực tế
+        const toursSuffix = tours > 0 ? "+" : "";
+        const travelersSuffix = travelers > 0 ? "+" : "";
+
         // Distance: convert to "k+" once >= 1000 km, plain number otherwise.
         const distanceValue = km >= 1000 ? Math.round(km / 1000) : km;
-        const distanceSuffix = km >= 1000 ? "k+" : "";
+        const distanceSuffix = km >= 1000 ? "k+" : " km";
 
         setStats([
           {
             value: tours,
-            suffix: "+",
+            suffix: toursSuffix,
             labelKey: "landing.stats.items.totalTours",
-            placeholder: tours === 0 ? "—" : undefined,
           },
           {
             value: travelers,
-            suffix: "+",
+            suffix: travelersSuffix,
             labelKey: "landing.stats.items.totalTravellers",
-            placeholder: travelers === 0 ? "—" : undefined,
           },
           {
             value: distanceValue,
             suffix: distanceSuffix,
             labelKey: "landing.stats.items.totalDistanceKm",
-            placeholder: km === 0 ? "—" : undefined,
           },
-          { value: 24, suffix: "/7", labelKey: "landing.stats.items.support" },
         ]);
         setIsLoading(false);
       })
@@ -125,12 +125,12 @@ export const BoldStatsStrip = () => {
       <div className={cn("max-w-[90rem] mx-auto px-6 md:px-12")}>
         <div
           ref={ref}
-          className={`grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 md:divide-x divide-stone-200/80 transition-all duration-1000 ${
+          className={`grid grid-cols-3 md:grid-cols-3 gap-4 md:gap-0 md:divide-x divide-stone-200/80 transition-all duration-1000 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
           {error && stats.length === 0 ? (
-            <div className={cn("col-span-4 center py-6 text-stone-400 text-sm font-medium")}>
+            <div className={cn("col-span-3 center py-6 text-stone-400 text-sm font-medium")}>
               {t("landing.stats.unavailable") || "Statistics temporarily unavailable"}
             </div>
           ) : (

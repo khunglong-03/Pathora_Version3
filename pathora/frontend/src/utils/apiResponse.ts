@@ -298,7 +298,11 @@ export const mapToTranslationKey = (errorMessage: string): string => {
   }
 
   // Dev-mode drift warning for unmapped backend codes
-  if (process.env.NODE_ENV === "development" && DOTTED_ERROR_CODE_PATTERN.test(errorMessage)) {
+  const isDevLoggerEnabled =
+    process.env.NODE_ENV === "development" ||
+    process.env.NEXT_PUBLIC_ENABLE_DEV_LOGGER === "true";
+
+  if (isDevLoggerEnabled && DOTTED_ERROR_CODE_PATTERN.test(errorMessage)) {
     console.warn(`[handleApiError] Unmapped backend code: ${errorMessage}`);
   }
 
@@ -409,7 +413,11 @@ export const handleApiError = (error: unknown): ApiError => {
         ? resolveErrorMappingCandidate(rawMessage, rawCode, rawDetails)
         : (rtkError.error ?? rawMessage);
 
-    if (process.env.NODE_ENV === "development") {
+    const isDevLoggerEnabled =
+      process.env.NODE_ENV === "development" ||
+      process.env.NEXT_PUBLIC_ENABLE_DEV_LOGGER === "true";
+
+    if (isDevLoggerEnabled) {
       console.warn("[handleApiError][rtk]", {
         status: rtkError.status,
         rawMessage,

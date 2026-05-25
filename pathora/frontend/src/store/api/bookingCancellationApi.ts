@@ -85,6 +85,7 @@ export const bookingCancellationApi = apiSlice.injectEndpoints({
       invalidatesTags: (_result, _error, arg) => [
         { type: "BookingDetail" as const, id: arg.bookingId },
         { type: "BookingCancellation" as const, id: "MY_LIST" },
+        "Orders",
       ],
     }),
 

@@ -208,6 +208,7 @@ services:
         NEXT_PUBLIC_API_GATEWAY: "${NEXT_PUBLIC_API_GATEWAY}"
         NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
         NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
+        NEXT_PUBLIC_ENABLE_DEV_LOGGER: "${NEXT_PUBLIC_ENABLE_DEV_LOGGER:-false}"
         NODE_OPTIONS_ARG: "--max-old-space-size=4096"
         DOCKER_BUILD: "true"
     environment:
@@ -216,6 +217,7 @@ services:
       INTERNAL_API_URL: "${INTERNAL_API_URL:-http://backend:8080}"
       NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
       NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
+      NEXT_PUBLIC_ENABLE_DEV_LOGGER: "${NEXT_PUBLIC_ENABLE_DEV_LOGGER:-false}"
     expose:
       - "3003"
     ports:

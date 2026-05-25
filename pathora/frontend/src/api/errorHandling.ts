@@ -203,7 +203,11 @@ export const logApiError = (
 ): void => {
   console.warn("[API_ERROR]", buildErrorLogPayload(error, timestamp));
 
-  if (process.env.NODE_ENV === "development") {
+  const isDevLoggerEnabled =
+    process.env.NODE_ENV === "development" ||
+    process.env.NEXT_PUBLIC_ENABLE_DEV_LOGGER === "true";
+
+  if (isDevLoggerEnabled) {
     console.debug("[API_ERROR_FULL]", error);
   }
 };

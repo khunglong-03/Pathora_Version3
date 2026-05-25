@@ -1,9 +1,10 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
 import { STATS } from "./AboutUsPageData";
 import { motion, useInView, useSpring, useTransform } from "framer-motion";
+import { homeService } from "@/api/services/homeService";
 
 const CountUp = ({ to }: { to: number }) => {
   const ref = useRef(null);
@@ -20,10 +21,60 @@ const CountUp = ({ to }: { to: number }) => {
   return <motion.span ref={ref}>{display}</motion.span>;
 };
 
-const StatsBar = ({ stats = STATS }: { stats?: typeof STATS }) => {
+const StatsBar = ({ stats: propStats }: { stats?: typeof STATS }) => {
   const { t } = useTranslation();
+  const [statsData, setStatsData] = useState<typeof STATS>(propStats || STATS);
+
+  useEffect(() => {
+    if (propStats) return;
+
+    let cancelled = false;
+
+    Promise.all([
+      homeService.getHomeStats().catch(() => null),
+      homeService.getDestinations().catch(() => []),
+    ]).then(([stats, destinations]) => {
+      if (cancelled) return;
+
+      const toursCount = stats?.totalTours ?? 0;
+      const travelersCount = stats?.totalTravelers ?? 0;
+      const destinationsCount = destinations?.length ?? 0;
+
+      const toursSuffix = toursCount > 0 ? "+" : "";
+      const travelersSuffix = travelersCount > 0 ? "+" : "";
+      const destinationsSuffix = destinationsCount > 0 ? "+" : "";
+
+      setStatsData([
+        {
+          icon: "heroicons-outline:map-pin",
+          value: `${destinationsCount}${destinationsSuffix}`,
+          labelKey: "destinations",
+        },
+        {
+          icon: "heroicons-outline:users",
+          value: `${travelersCount}${travelersSuffix}`,
+          labelKey: "happyTravelers",
+        },
+        {
+          icon: "heroicons-outline:globe-alt",
+          value: `${toursCount}${toursSuffix}`,
+          labelKey: "toursOffered",
+        },
+        {
+          icon: "heroicons-outline:heart",
+          value: "98%",
+          labelKey: "satisfactionRate",
+        },
+      ]);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [propStats]);
+
   return (
-    <section className="bg-white dark:bg-zinc-950 px-4 md:px-4 md:px-6 lg:px-8 lg:px-8 py-16 relative overflow-hidden">
+    <section className="bg-white dark:bg-zinc-950 px-4 md:px-6 lg:px-8 py-16 relative overflow-hidden">
       {/* Background glow motion */}
       <motion.div 
         animate={{ 
@@ -35,11 +86,12 @@ const StatsBar = ({ stats = STATS }: { stats?: typeof STATS }) => {
       />
 
       <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
-        {stats.map((stat, i) => {
+        {statsData.map((stat, i) => {
           // Parse number from value if possible, fallback to string
           const numValue = parseInt(stat.value.replace(/[^0-9]/g, ''), 10);
           const hasSuffix = stat.value.includes('+');
           const hasK = stat.value.includes('K');
+          const hasPercent = stat.value.includes('%');
           
           return (
             <motion.div
@@ -63,6 +115,7 @@ const StatsBar = ({ stats = STATS }: { stats?: typeof STATS }) => {
               <p className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-zinc-900 dark:text-white font-mono flex items-baseline">
                 {numValue ? <CountUp to={numValue} /> : stat.value}
                 {hasK && "K"}
+                {hasPercent && "%"}
                 {hasSuffix && <span className="text-[#fa8b02] ml-1">+</span>}
               </p>
               <p className="text-sm font-semibold text-zinc-500 tracking-wide mt-1">
