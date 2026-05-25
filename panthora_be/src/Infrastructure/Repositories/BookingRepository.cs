@@ -86,6 +86,8 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .AsNoTracking()
             .Include(b => b.TourInstance)
             .Include(b => b.User)
+            .Where(b => b.Status != BookingStatus.Cancelled 
+                        && b.TourInstance.Status != TourInstanceStatus.Cancelled)
             .AsSplitQuery();
 
         if (refundStatus.HasValue)
@@ -138,6 +140,8 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .Include(b => b.TourInstance)
             .Include(b => b.User)
             .Where(b => !b.TourInstance.IsDeleted
+                        && b.Status != BookingStatus.Cancelled
+                        && b.TourInstance.Status != TourInstanceStatus.Cancelled
                         && (allowedTourIds.Contains(b.TourInstance.TourId)
                             || allowedInstanceIds.Contains(b.TourInstanceId)))
             .AsSplitQuery();
