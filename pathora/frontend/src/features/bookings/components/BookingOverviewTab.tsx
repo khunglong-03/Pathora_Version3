@@ -18,7 +18,7 @@ export function BookingOverviewTab({ booking, tourInstance, totalGuests, getTier
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"overview" | "itinerary" | "tickets">("overview");
   const [activeImage, setActiveImage] = useState<string | null>(null);
-  const isBookingPaid = booking.paymentStatus === "paid" || booking.status === "confirmed" || booking.status === "completed";
+  const isBookingPaid = booking.paymentStatus === "paid" || booking.paymentStatus === "partial";
 
   // Lock body scroll when lightbox is open
   React.useEffect(() => {
@@ -262,239 +262,339 @@ export function BookingOverviewTab({ booking, tourInstance, totalGuests, getTier
               transition={{ duration: 0.2 }}
               className="flex flex-col gap-6"
             >
-              {tourInstance?.days && tourInstance.days.length > 0 ? (
-                <div className="flex flex-col gap-6 relative pl-4 sm:pl-8 before:absolute before:left-[15px] sm:before:left-[31px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
-                  {tourInstance.days.map((day, index) => {
-                    const statusDto = booking.dayStatuses?.find(s => s.tourDayId === day.id);
-                    const status = statusDto?.activityStatus || "NotStarted";
-
-                    let statusColor = "bg-slate-100 text-slate-400 border-slate-200";
-                    let dotColor = "bg-slate-300 ring-slate-100";
-                    let statusText = t("booking.details.timeline.status.notStarted", "Chưa bắt đầu");
-
-                    if (status === "InProgress") {
-                      statusColor = "bg-blue-50 text-blue-600 border-blue-100";
-                      dotColor = "bg-blue-500 ring-blue-100 animate-pulse";
-                      statusText = t("booking.details.timeline.status.inProgress", "Đang diễn ra");
-                    } else if (status === "Completed") {
-                      statusColor = "bg-emerald-50 text-emerald-600 border-emerald-100";
-                      dotColor = "bg-emerald-500 ring-emerald-100";
-                      statusText = t("booking.details.timeline.status.completed", "Đã hoàn thành");
-                    } else if (status === "Cancelled") {
-                      statusColor = "bg-red-50 text-red-600 border-red-100";
-                      dotColor = "bg-red-500 ring-red-100";
-                      statusText = t("booking.details.timeline.status.cancelled", "Đã hủy");
-                    }
-
-                    const dayActivities = day.activities || [];
-                    const activityIds = dayActivities.map((a: any) => a.id);
-
-                    const dayTickets = booking.tickets?.filter(t => activityIds.includes(t.tourInstanceDayActivityId)) || [];
-                    const dayRooms = booking.roomAssignments?.filter(r => activityIds.includes(r.tourInstanceDayActivityId)) || [];
-                    const dayTicketImages = booking.ticketImages?.filter(img => activityIds.includes(img.tourInstanceDayActivityId)) || [];
-
-                    const hasTickets = dayTickets.length > 0;
-                    const hasRooms = dayRooms.length > 0;
-                    const hasImages = dayTicketImages.length > 0;
-
-                    return (
-                      <div key={day.id || index} className="relative flex flex-col gap-4 group">
-                        <div className={`absolute -left-[25px] sm:-left-[41px] top-1.5 size-4 rounded-full border-2 border-white ring-4 ${dotColor} z-20 transition-all`} />
-
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                          <div className="flex items-center gap-3">
-                            <span className="text-base font-black text-slate-800">
-                              {t("booking.details.timeline.day", "Ngày {{day}}", { day: index + 1 })}
-                            </span>
-                            <span className="text-slate-400 font-medium">|</span>
-                            <span className="text-sm font-bold text-slate-600 truncate max-w-[200px] sm:max-w-xs">
-                              {day.title || `Lịch trình ngày ${index + 1}`}
-                            </span>
-                          </div>
-                          
-                          <span className={`text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full border ${statusColor}`}>
-                            {statusText}
-                          </span>
+              {tourInstance === null ? (
+                <div className="flex flex-col gap-6 animate-pulse">
+                  <div className="h-16 bg-slate-100 rounded-3xl w-full" />
+                  <div className="relative pl-4 sm:pl-8 before:absolute before:left-[15px] sm:before:left-[31px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="relative flex flex-col gap-4 mb-8">
+                        <div className="absolute -left-[25px] sm:-left-[41px] top-1.5 size-4 rounded-full border-2 border-white ring-4 ring-slate-100 bg-slate-200" />
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                          <div className="h-5 bg-slate-100 rounded-lg w-1/3" />
+                          <div className="h-5 bg-slate-100 rounded-full w-16" />
                         </div>
-
-                        <div className="grid grid-cols-1 gap-4">
-                          {hasTickets && (
-                            <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
-                              <h5 className="flex items-center gap-2 text-sm font-black text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-50 pb-2">
-                                <AirplaneTilt weight="fill" className="size-5 text-blue-500" />
-                                {t("booking.details.tickets.title", "Thông Tin Vé Di Chuyển")}
-                              </h5>
-                              <div className="flex flex-col gap-4">
-                                {dayTickets.map((ticket) => {
-                                  const matchingActivity = dayActivities.find((a: any) => a.id === ticket.tourInstanceDayActivityId);
-                                  
-                                  let TransportIcon = AirplaneTilt;
-                                  if (matchingActivity?.transportationType === "Train") TransportIcon = Train;
-                                  else if (matchingActivity?.transportationType === "Boat") TransportIcon = Boat;
-                                  else if (matchingActivity?.transportationType === "Car") TransportIcon = CarProfile;
-
-                                  return (
-                                    <div key={ticket.id} className="bg-slate-50/50 border border-slate-100 rounded-xl p-4">
-                                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                                        <div className="flex items-center gap-2">
-                                          <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
-                                            <TransportIcon weight="bold" className="size-4" />
-                                          </div>
-                                          <span className="text-sm font-bold text-slate-800">
-                                            {matchingActivity?.transportationName || matchingActivity?.title || "Phương tiện di chuyển"}
-                                          </span>
-                                        </div>
-                                        {ticket.seatClass && (
-                                          <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded uppercase">
-                                            {t("booking.details.tickets.seatClass", "Hạng")}: {ticket.seatClass}
-                                          </span>
-                                        )}
-                                      </div>
-
-                                      {(matchingActivity?.fromLocation?.locationName || matchingActivity?.toLocation?.locationName) && (
-                                        <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold mb-3">
-                                          <span>{matchingActivity?.fromLocation?.locationName || "N/A"}</span>
-                                          <ArrowRight className="size-3 text-slate-400" />
-                                          <span>{matchingActivity?.toLocation?.locationName || "N/A"}</span>
-                                        </div>
-                                      )}
-
-                                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold text-slate-600">
-                                        {ticket.flightNumber && (
-                                          <div>
-                                            <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.tickets.flightNumber", "Số hiệu")}</p>
-                                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{ticket.flightNumber}</p>
-                                          </div>
-                                        )}
-                                        {ticket.seatNumbers && (
-                                          <div>
-                                            <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.tickets.seat", "Số ghế")}</p>
-                                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{ticket.seatNumbers}</p>
-                                          </div>
-                                        )}
-                                        {ticket.eTicketNumbers && (
-                                          <div>
-                                            <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.tickets.eTicket", "Mã đặt chỗ PNR")}</p>
-                                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{ticket.eTicketNumbers}</p>
-                                          </div>
-                                        )}
-                                        {(ticket.departureAt || ticket.arrivalAt) && (
-                                          <div className="col-span-2 sm:col-span-1">
-                                            <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.tickets.departure", "Giờ khởi hành")}</p>
-                                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">
-                                              {ticket.departureAt ? new Date(ticket.departureAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }) : "N/A"}
-                                            </p>
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      {ticket.note && (
-                                        <div className="mt-3 text-xs text-slate-500 bg-white border border-slate-100 p-2.5 rounded-lg">
-                                          <span className="font-bold text-slate-700">Lưu ý:</span> {ticket.note}
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          {hasImages && (
-                            <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
-                              <h5 className="flex items-center gap-2 text-sm font-black text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-50 pb-2">
-                                <IdentificationCard weight="fill" className="size-5 text-indigo-500" />
-                                {t("booking.details.tickets.viewTicketImage", "Xem ảnh vé/QR")}
-                              </h5>
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                {dayTicketImages.map((img) => (
-                                  <div 
-                                    key={img.id} 
-                                    onClick={() => setActiveImage(img.publicUrl)}
-                                    className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-100 cursor-pointer bg-slate-50"
-                                  >
-                                    <img 
-                                      src={img.publicUrl} 
-                                      alt={img.note || "Vé quét / QR"} 
-                                      className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                    <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                      <span className="text-white text-xs font-bold px-2.5 py-1.5 rounded-lg bg-slate-900/60 backdrop-blur-sm">
-                                        Xem chi tiết
-                                      </span>
-                                    </div>
-                                    {img.bookingReference && (
-                                      <div className="absolute bottom-1 left-1 right-1 bg-slate-900/70 backdrop-blur-sm text-[9px] font-bold text-white px-1.5 py-0.5 rounded truncate">
-                                        Ref: {img.bookingReference}
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {hasRooms && (
-                            <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
-                              <h5 className="flex items-center gap-2 text-sm font-black text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-50 pb-2">
-                                <Bed weight="fill" className="size-5 text-emerald-500" />
-                                {t("booking.details.rooms.title", "Thông Tin Phòng Ở")}
-                              </h5>
-                              <div className="flex flex-col gap-4">
-                                {dayRooms.map((room) => {
-                                  const matchingActivity = dayActivities.find((a: any) => a.id === room.tourInstanceDayActivityId);
-
-                                  return (
-                                    <div key={room.id} className="bg-slate-50/50 border border-slate-100 rounded-xl p-4">
-                                      <div className="flex items-center gap-2 mb-3">
-                                        <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
-                                          <Bed weight="bold" className="size-4" />
-                                        </div>
-                                        <div>
-                                          <span className="text-sm font-bold text-slate-800 block">
-                                            {matchingActivity?.accommodation?.supplierName || "Khách sạn"}
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs font-semibold text-slate-600">
-                                        <div>
-                                          <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.rooms.roomType", "Loại phòng")}</p>
-                                          <p className="text-sm font-extrabold text-slate-800 mt-0.5">{room.roomType || "Standard"}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.rooms.roomCount", "Số lượng phòng")}</p>
-                                          <p className="text-sm font-extrabold text-slate-800 mt-0.5">{room.roomCount} phòng</p>
-                                        </div>
-                                        {room.roomNumbers && (
-                                          <div>
-                                            <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.rooms.roomNumbers", "Số phòng")}</p>
-                                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{room.roomNumbers}</p>
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      {room.note && (
-                                        <div className="mt-3 text-xs text-slate-500 bg-white border border-slate-100 p-2.5 rounded-lg">
-                                          <span className="font-bold text-slate-700">Lưu ý:</span> {room.note}
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          {!hasTickets && !hasRooms && (
-                            <div className="bg-slate-50/50 border border-slate-100/50 rounded-2xl p-4 flex items-center justify-center text-slate-400 text-xs font-semibold italic">
-                              {t("booking.details.timeline.noDetails", "Chưa có thông tin chi tiết vé di chuyển hoặc phòng ở cho ngày này.")}
-                            </div>
-                          )}
+                        <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5 h-32" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (!booking.tickets || booking.tickets.length === 0) && (!booking.roomAssignments || booking.roomAssignments.length === 0) ? (
+                <div className="text-center py-20 flex flex-col items-center justify-center bg-slate-50/30 rounded-3xl border border-dashed border-slate-250">
+                  <div className="size-20 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-6">
+                    <IdentificationCard weight="fill" className="size-8 text-slate-300" />
+                  </div>
+                  <p className="text-lg font-bold text-slate-800 mb-2">{t("booking.tickets.noTicket", "Vé chưa được cập nhật")}</p>
+                  <p className="text-sm text-slate-400 max-w-sm">Thông tin vé di chuyển và phòng ở sẽ hiển thị tại đây sau khi được cập nhật.</p>
+                </div>
+              ) : tourInstance?.days && tourInstance.days.length > 0 ? (
+                <div className="flex flex-col gap-6">
+                  {/* Progress summary header */}
+                  {(() => {
+                    const totalDays = tourInstance?.days?.length || 0;
+                    const completedDays = booking.dayStatuses?.filter(s => s.activityStatus === "Completed").length || 0;
+                    const progressPercent = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
+                    
+                    return (
+                      <div className="mb-6 p-6 bg-slate-50 border border-slate-150 rounded-[1.8rem] flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex flex-col gap-1">
+                          <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                            {t("booking.tickets.title", "Vé & Trạng thái")}
+                          </h4>
+                          <p className="text-xs font-bold text-slate-500">
+                            {completedDays === totalDays 
+                              ? t("booking.tickets.allConfirmed", "Tất cả các ngày đã hoàn thành")
+                              : t("booking.tickets.summary", "{{confirmed}}/{{total}} ngày đã hoàn thành", { confirmed: completedDays, total: totalDays })}
+                          </p>
+                        </div>
+                        <div className="flex-1 max-w-md w-full flex items-center gap-4">
+                          <div className="flex-1 h-2.5 bg-slate-200/50 rounded-full overflow-hidden relative">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: `${progressPercent}%` }}
+                              transition={{ duration: 0.8, ease: "easeOut" }}
+                              className="h-full bg-emerald-500 rounded-full"
+                            />
+                          </div>
+                          <span className="text-xs font-black text-emerald-600 shrink-0">{progressPercent}%</span>
                         </div>
                       </div>
                     );
-                  })}
+                  })()}
+
+                  <div className="flex flex-col gap-6 relative pl-4 sm:pl-8 before:absolute before:left-[15px] sm:before:left-[31px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+                    {tourInstance.days.map((day, index) => {
+                      const statusDto = booking.dayStatuses?.find(s => s.tourDayId === day.id);
+                      const status = statusDto?.activityStatus || "NotStarted";
+
+                      let statusColor = "bg-slate-100 text-slate-400 border-slate-200";
+                      let dotColor = "bg-slate-300 ring-slate-100";
+                      let statusText = t("booking.details.timeline.status.notStarted", "Chưa bắt đầu");
+
+                      if (status === "InProgress") {
+                        statusColor = "bg-blue-50 text-blue-600 border-blue-100";
+                        dotColor = "bg-blue-500 ring-blue-100 animate-pulse";
+                        statusText = t("booking.details.timeline.status.inProgress", "Đang diễn ra");
+                      } else if (status === "Completed") {
+                        statusColor = "bg-emerald-50 text-emerald-600 border-emerald-100";
+                        dotColor = "bg-emerald-500 ring-emerald-100";
+                        statusText = t("booking.details.timeline.status.completed", "Đã hoàn thành");
+                      } else if (status === "Cancelled") {
+                        statusColor = "bg-red-50 text-red-600 border-red-100";
+                        dotColor = "bg-red-500 ring-red-100";
+                        statusText = t("booking.details.timeline.status.cancelled", "Đã hủy");
+                      }
+
+                      const dayActivities = day.activities || [];
+                      const activityIds = dayActivities.map((a: any) => a.id);
+
+                      const dayTickets = booking.tickets?.filter(t => activityIds.includes(t.tourInstanceDayActivityId)) || [];
+                      const dayRooms = booking.roomAssignments?.filter(r => activityIds.includes(r.tourInstanceDayActivityId)) || [];
+
+                      const hasTickets = dayTickets.length > 0;
+                      const hasRooms = dayRooms.length > 0;
+
+                      return (
+                        <div key={day.id || index} className="relative flex flex-col gap-4 group">
+                          <div className={`absolute -left-[25px] sm:-left-[41px] top-1.5 size-4 rounded-full border-2 border-white ring-4 ${dotColor} z-20 transition-all`} />
+
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="text-base font-black text-slate-800">
+                                {t("booking.details.timeline.day", "Ngày {{day}}", { day: index + 1 })}
+                              </span>
+                              <span className="text-slate-400 font-medium">|</span>
+                              <span className="text-sm font-bold text-slate-600 truncate max-w-[200px] sm:max-w-xs">
+                                {day.title || `Lịch trình ngày ${index + 1}`}
+                              </span>
+                            </div>
+                            
+                            <span className={`text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full border ${statusColor}`}>
+                              {statusText}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-4">
+                            {hasTickets && (
+                              <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+                                <h5 className="flex items-center gap-2 text-sm font-black text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-50 pb-2">
+                                  <AirplaneTilt weight="fill" className="size-5 text-blue-500" />
+                                  {t("booking.details.tickets.title", "Thông Tin Vé Di Chuyển")}
+                                </h5>
+                                <div className="flex flex-col gap-4">
+                                  {dayTickets.map((ticket) => {
+                                    const matchingActivity = dayActivities.find((a: any) => a.id === ticket.tourInstanceDayActivityId);
+                                    const activityTicketImages = booking.ticketImages?.filter(img => img.tourInstanceDayActivityId === ticket.tourInstanceDayActivityId) || [];
+                                    
+                                    let TransportIcon = AirplaneTilt;
+                                    if (matchingActivity?.transportationType === "Train") TransportIcon = Train;
+                                    else if (matchingActivity?.transportationType === "Boat") TransportIcon = Boat;
+                                    else if (matchingActivity?.transportationType === "Car") TransportIcon = CarProfile;
+
+                                    let ticketStatus: "pending" | "confirmed" | "cancelled" = "pending";
+                                    if (status === "Cancelled") {
+                                      ticketStatus = "cancelled";
+                                    } else if (activityTicketImages.length > 0 || status === "Completed" || status === "InProgress") {
+                                      ticketStatus = "confirmed";
+                                    }
+
+                                    const getTicketStatusBadge = (tStatus: "pending" | "confirmed" | "cancelled") => {
+                                      switch (tStatus) {
+                                        case "confirmed":
+                                          return (
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded border bg-emerald-50 text-emerald-600 border-emerald-100 uppercase">
+                                              {t("booking.status.confirmed", "Đã xác nhận")}
+                                            </span>
+                                          );
+                                        case "cancelled":
+                                          return (
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded border bg-red-50 text-red-600 border-red-100 uppercase">
+                                              {t("booking.status.cancelled", "Đã hủy")}
+                                            </span>
+                                          );
+                                        case "pending":
+                                        default:
+                                          return (
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded border bg-amber-50 text-amber-600 border-amber-100 uppercase">
+                                              {t("booking.status.pending", "Đang xử lý")}
+                                            </span>
+                                          );
+                                      }
+                                    };
+
+                                    return (
+                                      <div key={ticket.id} className="bg-slate-50/50 border border-slate-100 rounded-xl p-4">
+                                        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                          <div className="flex items-center gap-2">
+                                            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
+                                              <TransportIcon weight="bold" className="size-4" />
+                                            </div>
+                                            <span className="text-sm font-bold text-slate-800">
+                                              {matchingActivity?.transportationName || matchingActivity?.title || "Phương tiện di chuyển"}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            {ticket.seatClass && (
+                                              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded uppercase">
+                                                {t("booking.details.tickets.seatClass", "Hạng")}: {ticket.seatClass}
+                                              </span>
+                                            )}
+                                            {getTicketStatusBadge(ticketStatus)}
+                                          </div>
+                                        </div>
+
+                                        {(matchingActivity?.fromLocation?.locationName || matchingActivity?.toLocation?.locationName) && (
+                                          <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold mb-3">
+                                            <span>{matchingActivity?.fromLocation?.locationName || "N/A"}</span>
+                                            <ArrowRight className="size-3 text-slate-400" />
+                                            <span>{matchingActivity?.toLocation?.locationName || "N/A"}</span>
+                                          </div>
+                                        )}
+
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold text-slate-600">
+                                          {ticket.flightNumber && (
+                                            <div>
+                                              <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.tickets.flightNumber", "Số hiệu")}</p>
+                                              <p className="text-sm font-extrabold text-slate-800 mt-0.5">{ticket.flightNumber}</p>
+                                            </div>
+                                          )}
+                                          {ticket.seatNumbers && (
+                                            <div>
+                                              <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.tickets.seat", "Số ghế")}</p>
+                                              <p className="text-sm font-extrabold text-slate-800 mt-0.5">{ticket.seatNumbers}</p>
+                                            </div>
+                                          )}
+                                          {ticket.eTicketNumbers && (
+                                            <div>
+                                              <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.tickets.eTicket", "Mã đặt chỗ PNR")}</p>
+                                              <p className="text-sm font-extrabold text-slate-800 mt-0.5">{ticket.eTicketNumbers}</p>
+                                            </div>
+                                          )}
+                                          {(ticket.departureAt || ticket.arrivalAt) && (
+                                            <div className="col-span-2 sm:col-span-1">
+                                              <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.tickets.departure", "Giờ khởi hành")}</p>
+                                              <p className="text-sm font-extrabold text-slate-800 mt-0.5">
+                                                {ticket.departureAt ? new Date(ticket.departureAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }) : "N/A"}
+                                              </p>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {ticket.note && (
+                                          <div className="mt-3 text-xs text-slate-500 bg-white border border-slate-100 p-2.5 rounded-lg">
+                                            <span className="font-bold text-slate-700">Lưu ý:</span> {ticket.note}
+                                          </div>
+                                        )}
+
+                                        {/* Ticket image attachments scoped per ticket */}
+                                        {activityTicketImages.length > 0 ? (
+                                          <div className="mt-4 pt-4 border-t border-slate-100">
+                                            <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider mb-2 flex items-center gap-1.5">
+                                              <IdentificationCard weight="fill" className="size-3.5 text-indigo-500" />
+                                              {t("booking.details.tickets.viewTicketImage", "Ảnh vé / QR")}
+                                            </p>
+                                            <div className="flex flex-wrap gap-3">
+                                              {activityTicketImages.map((img) => (
+                                                <div key={img.id} className="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-2 md:p-2.5 shadow-sm">
+                                                  <div 
+                                                    onClick={() => setActiveImage(img.publicUrl)}
+                                                    className="size-12 rounded-lg overflow-hidden border border-slate-100 cursor-pointer bg-slate-50 relative group shrink-0"
+                                                  >
+                                                    <img src={img.publicUrl} alt={img.note || "Vé quét"} className="size-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                    <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                      <span className="text-[8px] font-bold text-white bg-slate-900/60 px-1 py-0.5 rounded">Mở</span>
+                                                    </div>
+                                                  </div>
+                                                  <div className="flex flex-col min-w-0">
+                                                    {img.bookingReference && (
+                                                      <span className="text-[10px] font-black text-slate-700 truncate">PNR: {img.bookingReference}</span>
+                                                    )}
+                                                    <button 
+                                                      type="button"
+                                                      onClick={() => setActiveImage(img.publicUrl)}
+                                                      className="text-[11px] font-black text-blue-600 hover:text-blue-700 hover:underline text-left mt-0.5 cursor-pointer"
+                                                    >
+                                                      {t("booking.details.tickets.viewTicket", "Xem vé")}
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div className="mt-4 pt-4 border-t border-slate-150 flex items-center gap-2 text-[10px] text-slate-400 italic">
+                                            <IdentificationCard className="size-3.5" />
+                                            <span>{t("booking.details.tickets.noTicket", "Vé chưa được cập nhật")}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {hasRooms && (
+                              <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+                                <h5 className="flex items-center gap-2 text-sm font-black text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-50 pb-2">
+                                  <Bed weight="fill" className="size-5 text-emerald-500" />
+                                  {t("booking.details.rooms.title", "Thông Tin Phòng Ở")}
+                                </h5>
+                                <div className="flex flex-col gap-4">
+                                  {dayRooms.map((room) => {
+                                    const matchingActivity = dayActivities.find((a: any) => a.id === room.tourInstanceDayActivityId);
+
+                                    return (
+                                      <div key={room.id} className="bg-slate-50/50 border border-slate-100 rounded-xl p-4">
+                                        <div className="flex items-center gap-2 mb-3">
+                                          <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                                            <Bed weight="bold" className="size-4" />
+                                          </div>
+                                          <div>
+                                            <span className="text-sm font-bold text-slate-800 block">
+                                              {matchingActivity?.accommodation?.supplierName || "Khách sạn"}
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs font-semibold text-slate-600">
+                                          <div>
+                                            <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.rooms.roomType", "Loại phòng")}</p>
+                                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{room.roomType || "Standard"}</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.rooms.roomCount", "Số lượng phòng")}</p>
+                                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{room.roomCount} phòng</p>
+                                          </div>
+                                          {room.roomNumbers && (
+                                            <div>
+                                              <p className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">{t("booking.details.rooms.roomNumbers", "Số phòng")}</p>
+                                              <p className="text-sm font-extrabold text-slate-800 mt-0.5">{room.roomNumbers}</p>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {room.note && (
+                                          <div className="mt-3 text-xs text-slate-500 bg-white border border-slate-100 p-2.5 rounded-lg">
+                                            <span className="font-bold text-slate-700">Lưu ý:</span> {room.note}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {!hasTickets && !hasRooms && (
+                              <div className="bg-slate-50/50 border border-slate-100/50 rounded-2xl p-4 flex items-center justify-center text-slate-400 text-xs font-semibold italic">
+                                {t("booking.details.timeline.noDetails", "Chưa có thông tin chi tiết vé di chuyển hoặc phòng ở cho ngày này.")}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-20 flex flex-col items-center justify-center">

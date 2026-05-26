@@ -55,35 +55,54 @@ vi.mock("framer-motion", () => ({
 }));
 
 // Mock Phosphor icons
-vi.mock("@phosphor-icons/react", () => ({
-  ArrowLeft: (props: { size?: number; weight?: string; "aria-label"?: string; [key: string]: unknown }) => (
-    <span data-testid="mock-icon-arrow-left" aria-label={props["aria-label"]}>ArrowLeft</span>
-  ),
-  ArrowsClockwise: () => <span data-testid="mock-icon-refresh">ArrowsClockwise</span>,
-  Warning: () => <span data-testid="mock-icon-warning">Warning</span>,
-  Clock: () => <span data-testid="mock-icon-clock">Clock</span>,
-  Van: () => <span data-testid="mock-icon-van">Van</span>,
-  Bed: () => <span data-testid="mock-icon-bed">Bed</span>,
-  Phone: () => <span data-testid="mock-icon-phone">Phone</span>,
-  EnvelopeSimple: () => <span data-testid="mock-icon-envelope">EnvelopeSimple</span>,
-  DotsThreeVertical: () => <span data-testid="mock-icon-ellipsis">DotsThreeVertical</span>,
-  Eye: () => <span data-testid="mock-icon-eye">Eye</span>,
-  UsersThree: () => <span data-testid="mock-icon-users">UsersThree</span>,
-  PencilSimple: () => <span data-testid="mock-icon-edit">PencilSimple</span>,
-  ArrowRight: () => <span data-testid="mock-icon-arrow-right">ArrowRight</span>,
-  X: () => <span data-testid="mock-icon-x">X</span>,
-  UserPlus: () => <span data-testid="mock-icon-user-plus">UserPlus</span>,
-  User: () => <span data-testid="mock-icon-user">User</span>,
-  ArrowClockwise: () => <span data-testid="mock-icon-arrow-clockwise">ArrowClockwise</span>,
-  Check: () => <span data-testid="mock-icon-check">Check</span>,
-  CheckCircle: () => <span data-testid="mock-icon-check-circle">CheckCircle</span>,
-  XCircle: () => <span data-testid="mock-icon-x-circle">XCircle</span>,
-  AirplaneTilt: () => <span data-testid="mock-icon-airplane-tilt">AirplaneTilt</span>,
-  IdentificationCard: () => <span data-testid="mock-icon-identification-card">IdentificationCard</span>,
-  WarningCircle: () => <span data-testid="mock-icon-warning-circle">WarningCircle</span>,
-  HandHeart: () => <span data-testid="mock-icon-hand-heart">HandHeart</span>,
-  Receipt: () => <span data-testid="mock-icon-receipt">Receipt</span>,
-}));
+vi.mock("@phosphor-icons/react", () => {
+  const IconMock = (name: string) => {
+    const Component = (props: { size?: number; weight?: string; "aria-label"?: string; [key: string]: unknown }) => (
+      <span data-testid={`mock-icon-${name}`} aria-label={props["aria-label"]}>{name}</span>
+    );
+    Component.displayName = `IconMock(${name})`;
+    return Component;
+  };
+  return {
+    ArrowLeft: IconMock("ArrowLeft"),
+    ArrowsClockwise: IconMock("ArrowsClockwise"),
+    Warning: IconMock("Warning"),
+    Clock: IconMock("Clock"),
+    Van: IconMock("Van"),
+    Bed: IconMock("Bed"),
+    Phone: IconMock("Phone"),
+    EnvelopeSimple: IconMock("EnvelopeSimple"),
+    DotsThreeVertical: IconMock("DotsThreeVertical"),
+    Eye: IconMock("Eye"),
+    UsersThree: IconMock("UsersThree"),
+    PencilSimple: IconMock("PencilSimple"),
+    ArrowRight: IconMock("ArrowRight"),
+    X: IconMock("X"),
+    UserPlus: IconMock("UserPlus"),
+    User: IconMock("User"),
+    ArrowClockwise: IconMock("ArrowClockwise"),
+    Check: IconMock("Check"),
+    CheckCircle: IconMock("CheckCircle"),
+    XCircle: IconMock("XCircle"),
+    AirplaneTilt: IconMock("AirplaneTilt"),
+    IdentificationCard: IconMock("IdentificationCard"),
+    WarningCircle: IconMock("WarningCircle"),
+    HandHeart: IconMock("HandHeart"),
+    Receipt: IconMock("Receipt"),
+    Info: IconMock("Info"),
+    MapTrifold: IconMock("MapTrifold"),
+    Tag: IconMock("Tag"),
+    MapPin: IconMock("MapPin"),
+    Users: IconMock("Users"),
+    Calendar: IconMock("Calendar"),
+    CaretDown: IconMock("CaretDown"),
+    CaretUp: IconMock("CaretUp"),
+    CarProfile: IconMock("CarProfile"),
+    Train: IconMock("Train"),
+    Boat: IconMock("Boat"),
+    DownloadSimple: IconMock("DownloadSimple"),
+  };
+});
 
 // Mock next/link
 vi.mock("next/link", () => ({

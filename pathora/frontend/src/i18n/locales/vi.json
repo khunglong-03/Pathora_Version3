@@ -1521,7 +1521,11 @@
         "passenger": "Hành khách",
         "viewTicketImage": "Xem ảnh vé/QR",
         "noTickets": "Chưa có vé được gán cho hoạt động này.",
-        "download": "Tải xuống"
+        "download": "Tải xuống",
+        "viewTicket": "Xem vé",
+        "noTicket": "Vé chưa được cập nhật",
+        "summary": "{{confirmed}}/{{total}} ngày đã hoàn thành",
+        "allConfirmed": "Tất cả các ngày đã hoàn thành"
       },
       "rooms": {
         "title": "Thông Tin Phòng Ở",

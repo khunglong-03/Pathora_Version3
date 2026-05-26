@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:22-alpine AS base
+FROM node:22.14.0-alpine3.20 AS base
 WORKDIR /app
 
 # Stage 1: deps — install node_modules with BuildKit cache

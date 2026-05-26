@@ -1521,7 +1521,11 @@
         "passenger": "Passenger",
         "viewTicketImage": "View scan/QR",
         "noTickets": "No tickets assigned for this activity.",
-        "download": "Download"
+        "download": "Download",
+        "viewTicket": "View Ticket",
+        "noTicket": "Ticket not yet updated",
+        "summary": "{{confirmed}}/{{total}} days completed",
+        "allConfirmed": "All days completed"
       },
       "rooms": {
         "title": "Hotel Room Assignment",

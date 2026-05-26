@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1: Build + Publish (single SDK pass — publish builds too)
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.102-noble AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
@@ -26,9 +26,9 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
         /p:UseAppHost=false
 
 # Stage 2: Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.2-noble AS final
 WORKDIR /app
-EXPOSE 8899 8891
+EXPOSE 8080
 
 # Kerberos/GSSAPI for Redis SSL + curl for healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -37,9 +37,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /app/publish .
+COPY --chown=app:app --from=build /app/publish .
+
+USER app
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8899/health/live || exit 1
+    CMD curl -f http://localhost:8080/health/live || exit 1
 
 ENTRYPOINT ["dotnet", "Api.dll"]
