@@ -101,7 +101,7 @@ describe("CustomerAddParticipants", () => {
       expect(screen.getByDisplayValue("Existing Passenger")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText("Save Participants"));
+    fireEvent.click(screen.getByText("Lưu thông tin hành khách"));
 
     await waitFor(() => {
       // Should not call create or update
@@ -151,7 +151,7 @@ describe("CustomerAddParticipants", () => {
 
     createParticipantMock.mockResolvedValue("p-uuid-2");
 
-    fireEvent.click(screen.getByText("Save Participants"));
+    fireEvent.click(screen.getByText("Lưu thông tin hành khách"));
 
     await waitFor(() => {
       // Should call create for the new passenger, but not update for the existing one
@@ -193,7 +193,7 @@ describe("CustomerAddParticipants", () => {
     const apiError = new Error("Seat capacity race conflict");
     createParticipantMock.mockRejectedValue(apiError);
 
-    fireEvent.click(screen.getByText("Save Participants"));
+    fireEvent.click(screen.getByText("Lưu thông tin hành khách"));
 
     await waitFor(() => {
       expect(screen.getByText("Lưu thất bại")).toBeInTheDocument();

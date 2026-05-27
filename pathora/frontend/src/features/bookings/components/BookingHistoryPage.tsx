@@ -1,9 +1,8 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import { FacebookLogo, ChatTeardropDots, Ticket } from "@phosphor-icons/react";
+import { Ticket } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTranslation } from "react-i18next";
-import { SOCIAL_MEDIA } from "@/configs/urls";
 import { FilterKey } from "./BookingHistoryData";
 import { useBookings } from "../hooks/useBookings";
 import { useBookingStatusListener } from "@/hooks/useBookingStatusListener";
@@ -130,7 +129,7 @@ export function BookingHistoryPage() {
                   >
                     <div className={cn("flex flex-col gap-6 lg:flex-row lg:items-stretch")}>
                       {/* Image Skeleton */}
-                      <div className={cn("relative min-h-[220px] w-full shrink-0 animate-pulse rounded-[1.5rem] bg-stone-100 lg:w-[240px]")} />
+                      <div className={cn("relative h-[240px] lg:h-[280px] w-full shrink-0 animate-pulse rounded-[1.5rem] bg-stone-100 lg:w-[240px] self-start")} />
                       
                       {/* Content Skeleton */}
                       <div className={cn("flex flex-col justify-between flex-1 py-1")}>
@@ -204,25 +203,6 @@ export function BookingHistoryPage() {
           </motion.div>
         </div>
       </main>
-
-      <div className={cn("v-stack fixed right-6 bottom-6 z-50 hidden gap-4 md:flex")}>
-        <a
-          href={SOCIAL_MEDIA.facebook}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Facebook"
-          className={cn("center size-14 rounded-full border border-slate-100 bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] transition-transform hover:scale-110 active:scale-95")}
-        >
-          <FacebookLogo weight="fill" className={cn("size-6 text-blue-600")} />
-        </a>
-        <button
-          type="button"
-          aria-label="Chat with us"
-          className={cn("center size-14 rounded-full border border-slate-800 bg-slate-900 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.2)] transition-transform hover:scale-110 active:scale-95")}
-        >
-          <ChatTeardropDots weight="fill" className={cn("size-6 text-white")} />
-        </button>
-      </div>
     </>
   );
 }
