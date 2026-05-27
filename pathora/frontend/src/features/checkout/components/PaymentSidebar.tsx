@@ -10,8 +10,8 @@ import { fmtCurrency, copyToClipboard, STATUS_STEPS } from "./checkoutHelpers";
 import { PaymentTransaction, type NormalizedPaymentStatus, paymentService } from "@/api/services/paymentService";
 import { PaymentBeneficiaryCard } from "./PaymentBeneficiaryCard";
 
-function buildPostPaymentLoginHref(bookingId: string | null | undefined): string {
-  const nextPath = bookingId ? `/bookings/${bookingId}` : "/bookings";
+function buildPostPaymentLoginHref(bookingId: string | null | undefined, subPath: string = ""): string {
+  const nextPath = bookingId ? `/bookings/${bookingId}${subPath}` : "/bookings";
   const params = new URLSearchParams();
   params.set("login", "true");
   params.set("next", nextPath);
@@ -163,6 +163,16 @@ function PaymentStatusPanel({
             </div>
           ) : user != null ? (
             <>
+              {transaction.bookingId && (
+                <Button
+                  type="button"
+                  onClick={() => router.push(`/bookings/${transaction.bookingId}/participants`)}
+                  className="w-full h-10 rounded-xl font-semibold text-sm bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2"
+                >
+                  <Icon icon="heroicons:users" className="size-4" />
+                  {t("landing.checkout.enterPassengerDetails")}
+                </Button>
+              )}
               <Button
                 type="button"
                 onClick={() => router.push("/bookings")}
@@ -182,6 +192,16 @@ function PaymentStatusPanel({
             </>
           ) : (
             <>
+              {transaction.bookingId && (
+                <Button
+                  type="button"
+                  onClick={() => router.push(buildPostPaymentLoginHref(transaction.bookingId, "/participants"))}
+                  className="w-full h-10 rounded-xl font-semibold text-sm bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2"
+                >
+                  <Icon icon="heroicons:arrow-right-on-rectangle" className="size-4" />
+                  {t("landing.checkout.loginToEnterPassengerDetails")}
+                </Button>
+              )}
               <Button
                 type="button"
                 onClick={() => router.push(buildPostPaymentLoginHref(transaction.bookingId))}

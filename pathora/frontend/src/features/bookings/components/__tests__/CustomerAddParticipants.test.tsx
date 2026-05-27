@@ -1,0 +1,213 @@
+import "@testing-library/jest-dom/vitest";
+import React from "react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { CustomerAddParticipants } from "../CustomerAddParticipants";
+import { bookingService } from "@/api/services/bookingService";
+import { toast } from "react-toastify";
+
+vi.mock("react-toastify", () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
+vi.mock("react-i18next", () => {
+  const t = (_key: string, fallback?: string) => fallback ?? _key;
+  return {
+    useTranslation: () => ({ t }),
+  };
+});
+
+vi.mock("@/api/services/bookingService", () => ({
+  bookingService: {
+    getParticipants: vi.fn(),
+    getBookingDetail: vi.fn(),
+    createParticipant: vi.fn(),
+    updateParticipant: vi.fn(),
+    upsertParticipantPassport: vi.fn(),
+    submitVisaApplication: vi.fn(),
+    requestVisaSupport: vi.fn(),
+  },
+}));
+
+vi.mock("@/api/services/fileService", () => ({
+  fileService: {
+    uploadFile: vi.fn(),
+  },
+}));
+
+describe("CustomerAddParticipants", () => {
+  const getParticipantsMock = vi.mocked(bookingService.getParticipants);
+  const getBookingDetailMock = vi.mocked(bookingService.getBookingDetail);
+  const createParticipantMock = vi.mocked(bookingService.createParticipant);
+  const updateParticipantMock = vi.mocked(bookingService.updateParticipant);
+  const upsertParticipantPassportMock = vi.mocked(bookingService.upsertParticipantPassport);
+  const submitVisaApplicationMock = vi.mocked(bookingService.submitVisaApplication);
+  const requestVisaSupportMock = vi.mocked(bookingService.requestVisaSupport);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("loads and renders guest cards based on booking details", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: false,
+    } as any);
+    getParticipantsMock.mockResolvedValue([]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+  });
+
+  it("skips API calls for non-dirty rows and redirects successfully", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: false,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Existing Passenger",
+        dateOfBirth: "1995-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+      },
+    ]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("Existing Passenger")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Save Participants"));
+
+    await waitFor(() => {
+      // Should not call create or update
+      expect(createParticipantMock).not.toHaveBeenCalled();
+      expect(updateParticipantMock).not.toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith("/bookings/bk-123#visa");
+    });
+  });
+
+  it("submits create/update requests for dirty/new rows only", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 2,
+      children: 0,
+      infants: 0,
+      isVisaRequired: false,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Existing Passenger",
+        dateOfBirth: "1995-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+      },
+    ]);
+
+    const { container } = render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    // Wait for guest cards to load (Guest 1 is existing, Guest 2 is new)
+    await waitFor(() => {
+      expect(screen.getByText("Guest 2")).toBeInTheDocument();
+    });
+
+    // Fill in Guest 2 (new card)
+    const inputs = screen.getAllByPlaceholderText("As shown on passport");
+    expect(inputs.length).toBe(2);
+    
+    // Change input for Guest 2
+    fireEvent.change(inputs[1], { target: { value: "New Passenger Name" } });
+    
+    // Set date of birth for Guest 2
+    const dobInputs = container.querySelectorAll("input[type='date']");
+    expect(dobInputs.length).toBe(2);
+    fireEvent.change(dobInputs[1], { target: { value: "1998-10-20" } });
+
+    createParticipantMock.mockResolvedValue("p-uuid-2");
+
+    fireEvent.click(screen.getByText("Save Participants"));
+
+    await waitFor(() => {
+      // Should call create for the new passenger, but not update for the existing one
+      expect(createParticipantMock).toHaveBeenCalledTimes(1);
+      expect(createParticipantMock).toHaveBeenCalledWith("bk-123", expect.objectContaining({
+        fullName: "New Passenger Name",
+        participantType: "Adult",
+      }));
+      expect(updateParticipantMock).not.toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith("/bookings/bk-123#visa");
+    });
+  });
+
+  it("handles individual row failure, displays error details and renders retry button", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: false,
+    } as any);
+    getParticipantsMock.mockResolvedValue([]);
+
+    const { container } = render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    // Fill in Guest 1
+    const nameInput = screen.getByPlaceholderText("As shown on passport");
+    fireEvent.change(nameInput, { target: { value: "Fail Passenger" } });
+    
+    const dobInput = container.querySelector("input[type='date']");
+    expect(dobInput).not.toBeNull();
+    fireEvent.change(dobInput!, { target: { value: "1990-01-01" } });
+
+    // Mock API to fail
+    const apiError = new Error("Seat capacity race conflict");
+    createParticipantMock.mockRejectedValue(apiError);
+
+    fireEvent.click(screen.getByText("Save Participants"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Lưu thất bại")).toBeInTheDocument();
+      expect(screen.getByText("Chi tiết: Seat capacity race conflict")).toBeInTheDocument();
+      expect(screen.getByText("Thử lại các dòng lỗi")).toBeInTheDocument();
+    });
+
+    // Retry should trigger handleSave again
+    createParticipantMock.mockResolvedValue("p-uuid-1");
+    fireEvent.click(screen.getByText("Thử lại các dòng lỗi"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Đã lưu thành công")).toBeInTheDocument();
+      expect(mockPush).toHaveBeenCalledWith("/bookings/bk-123#visa");
+    });
+  });
+});

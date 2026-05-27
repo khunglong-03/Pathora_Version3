@@ -490,11 +490,11 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
     private sealed record VisaApplicationRow(
         Guid Id,
         string CustomerName,
-        string Destination,
+        string? Destination,
         VisaStatus Status,
         DateTimeOffset CreatedOnUtc,
         DateTimeOffset? ReviewedAt,
         Guid? BookingId,
-        string PassportNumber,
+        string? PassportNumber,
         TourType? TourType);
 }

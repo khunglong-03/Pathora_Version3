@@ -30,6 +30,7 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
   const [format, setFormat] = useState("");
   const [maxStayDays, setMaxStayDays] = useState<number | "">("");
   const [issuingAuthority, setIssuingAuthority] = useState("");
+  const [destinationCountryInput, setDestinationCountryInput] = useState("");
   
   const [submitting, setSubmitting] = useState(false);
 
@@ -49,6 +50,7 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
       setFormat("");
       setMaxStayDays("");
       setIssuingAuthority("");
+      setDestinationCountryInput("");
     }
   }, [isOpen, visaId]);
 
@@ -71,6 +73,7 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
       setFormat(resData.format ?? "");
       setMaxStayDays(resData.maxStayDays ?? "");
       setIssuingAuthority(resData.issuingAuthority || "");
+      setDestinationCountryInput(resData.destinationCountry || "");
     } catch (err) {
       import("react-toastify").then(({ toast }) => toast.error(t("common.error", "Error loading details")));
       onClose();
@@ -99,6 +102,14 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
   };
 
   const handleRegisterDetails = async () => {
+    if (!destinationCountryInput.trim()) {
+      import("react-toastify").then(({ toast }) => toast.error("Quốc gia đến là bắt buộc"));
+      return;
+    }
+    if (destinationCountryInput.trim().length < 2 || destinationCountryInput.trim().length > 3 || !/^[A-Z]+$/.test(destinationCountryInput.trim())) {
+      import("react-toastify").then(({ toast }) => toast.error("Quốc gia đến phải từ 2 đến 3 ký tự viết hoa (ISO)"));
+      return;
+    }
     if (!visaNumber.trim()) {
       import("react-toastify").then(({ toast }) => toast.error(t("visa.error.visaNumberRequired", "Visa number is required")));
       return;
@@ -124,6 +135,7 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
         expiresAt: new Date(expiresAt).toISOString(),
         category,
         format,
+        destinationCountry: destinationCountryInput.trim(),
         entryType: entryType || undefined,
         maxStayDays: maxStayDays !== "" && Number.isFinite(Number(maxStayDays)) ? Number(maxStayDays) : undefined,
         issuingAuthority: issuingAuthority || undefined,
@@ -217,7 +229,7 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
             </div>
             <div className="v-stack">
               <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">{t("visa.detail.destination", "Destination")}</p>
-              <p className="text-base font-semibold text-slate-900">{data.destinationCountry}</p>
+              <p className="text-base font-semibold text-slate-900">{data.destinationCountry || t("visa.pendingDestination")}</p>
             </div>
             <div className="v-stack">
               <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">{t("visa.detail.status", "Status")}</p>
@@ -342,6 +354,14 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                     <div className="grid grid-cols-2 gap-4">
                       <TextInput
                         type="text"
+                        label="Destination Country (ISO) *"
+                        placeholder="Ex: JP, KR, US"
+                        maxLength={3}
+                        value={destinationCountryInput}
+                        onChange={(e: any) => setDestinationCountryInput(e.target.value.toUpperCase())}
+                      />
+                      <TextInput
+                        type="text"
                         label="Visa Number *"
                         placeholder="Ex: V123456"
                         value={visaNumber}
@@ -461,6 +481,14 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                         : t("visa.detail.systemAssistedDetailsRequired", "Visa Details (Required)")}
                     </h5>
                     <div className="grid grid-cols-2 gap-4">
+                      <TextInput
+                        type="text"
+                        label="Destination Country (ISO) *"
+                        placeholder="Ex: JP, KR, US"
+                        maxLength={3}
+                        value={destinationCountryInput}
+                        onChange={(e: any) => setDestinationCountryInput(e.target.value.toUpperCase())}
+                      />
                       <TextInput
                         type="text"
                         label={`Visa Number${hasRegisteredDetails ? "" : " *"}`}

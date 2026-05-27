@@ -285,6 +285,7 @@ public sealed record RegisterVisaDetailsCommand(
     [property: JsonPropertyName("expiresAt")] DateTimeOffset ExpiresAt,
     [property: JsonPropertyName("category")] VisaCategory? Category,
     [property: JsonPropertyName("format")] VisaFormat? Format,
+    [property: JsonPropertyName("destinationCountry")] string DestinationCountry,
     [property: JsonPropertyName("entryType")] VisaEntryType? EntryType = null,
     [property: JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
     [property: JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null,
@@ -306,6 +307,11 @@ public sealed class RegisterVisaDetailsCommandValidator : AbstractValidator<Regi
             .WithMessage("ExpiresAt phải lớn hơn IssuedAt.");
         RuleFor(x => x.Category).NotNull().IsInEnum();
         RuleFor(x => x.Format).NotNull().IsInEnum();
+        RuleFor(x => x.DestinationCountry)
+            .NotEmpty()
+            .Length(2, 3)
+            .Matches("^[A-Z]+$")
+            .WithMessage("Quốc gia đến bắt buộc phải từ 2 đến 3 ký tự viết hoa.");
         RuleFor(x => x.EntryType).IsInEnum().When(x => x.EntryType.HasValue);
         RuleFor(x => x.MaxStayDays).GreaterThan(0).When(x => x.MaxStayDays.HasValue);
         RuleFor(x => x.IssuingAuthority).MaximumLength(200);
@@ -362,7 +368,7 @@ public sealed class RegisterVisaDetailsCommandHandler(
                 entryType: request.EntryType ?? visaApp.Visa.EntryType,
                 issuedAt: request.IssuedAt.ToUniversalTime(),
                 expiresAt: request.ExpiresAt.ToUniversalTime(),
-                destinationCountry: visaApp.DestinationCountry,
+                destinationCountry: request.DestinationCountry,
                 category: request.Category,
                 format: request.Format,
                 maxStayDays: request.MaxStayDays,
@@ -379,7 +385,7 @@ public sealed class RegisterVisaDetailsCommandHandler(
                 entryType: request.EntryType,
                 issuedAt: request.IssuedAt.ToUniversalTime(),
                 expiresAt: request.ExpiresAt.ToUniversalTime(),
-                destinationCountry: visaApp.DestinationCountry,
+                destinationCountry: request.DestinationCountry,
                 category: request.Category,
                 format: request.Format,
                 maxStayDays: request.MaxStayDays,
@@ -394,7 +400,7 @@ public sealed class RegisterVisaDetailsCommandHandler(
             visaApp.VisaFileUrl = request.VisaFileUrl;
 
         visaApp.Update(
-            destinationCountry: visaApp.DestinationCountry,
+            destinationCountry: request.DestinationCountry,
             performedBy: performedBy,
             status: VisaStatus.Approved,
             minReturnDate: visaApp.MinReturnDate,

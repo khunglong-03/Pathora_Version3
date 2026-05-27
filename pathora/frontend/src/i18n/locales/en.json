@@ -1643,7 +1643,8 @@
     "required": "Required",
     "invalidPrice": "Invalid price",
     "visa": {
-      "label": "Visa Required"
+      "label": "Visa Required",
+      "pendingDestination": "Awaiting manager confirmation"
     },
     "validation": {
       "titleRequired": "Title is required",
@@ -3912,6 +3913,8 @@
       "viewMyBookings": "View My Bookings",
       "loginToViewBookings": "Sign in to view booking",
       "guestBookingNote": "No account required to book. Sign in with {{email}} to track this booking.",
+      "enterPassengerDetails": "Enter Passenger Details",
+      "loginToEnterPassengerDetails": "Sign in to enter passenger details",
       "statusPending": "Pending",
       "statusProcessing": "Processing",
       "statusCompleted": "Completed",
@@ -4154,7 +4157,20 @@
       "paymentUnpaid": "Unpaid",
       "methodQRCode": "QR Code",
       "methodCash": "Cash",
-      "methodBankTransfer": "Bank Transfer"
+      "methodBankTransfer": "Bank Transfer",
+      "guestDetails": "Guest Details",
+      "adults": "Adults",
+      "children": "Children",
+      "infants": "Infants",
+      "totalGuests": "Total Guests",
+      "missingPassengerDetailsWarning": "Missing passenger details ({{filled}}/{{total}} filled). Please provide info for all travelers.",
+      "enterPassengerDetailsBtn": "Enter Passenger Details",
+      "editPassengerDetailsBtn": "Edit Passenger Details",
+      "passengerList": "Passenger List",
+      "noPassengers": "No passengers entered yet.",
+      "ageLabelAdult": "Age 13+",
+      "ageLabelChild": "Age 2-12",
+      "ageLabelInfant": "Under 2"
     }
   },
   "adminSupplierModal": {

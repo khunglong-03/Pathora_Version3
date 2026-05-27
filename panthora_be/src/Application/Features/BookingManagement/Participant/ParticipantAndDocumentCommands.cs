@@ -51,57 +51,76 @@ public sealed class CreateParticipantCommandHandler(
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         var performedBy = user.Id ?? "system";
-        var booking = await bookingRepository.GetByIdAsync(request.BookingId);
-        if (booking is null)
+        ErrorOr<Guid> result = default;
+
+        try
         {
-            return Error.NotFound(
-                ErrorConstants.Booking.NotFoundCode,
-                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
+            await unitOfWork.ExecuteTransactionAsync(System.Data.IsolationLevel.RepeatableRead, async () =>
+            {
+                var booking = await bookingRepository.GetByIdAsync(request.BookingId);
+                if (booking is null)
+                {
+                    result = Error.NotFound(
+                        ErrorConstants.Booking.NotFoundCode,
+                        ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
+                    return;
+                }
+
+                var participants = await bookingParticipantRepository.GetByBookingIdAsync(request.BookingId);
+                var activeParticipantCount = BookingCapacityValidation.CountActiveParticipants(participants);
+                var nextParticipantCount = activeParticipantCount + 1;
+
+                var (seatCapacityLimit, roomCapacityLimit) = await BookingCapacityValidation.GetBookingCapacityLimitsAsync(
+                    request.BookingId,
+                    bookingActivityReservationRepository,
+                    bookingTransportDetailRepository,
+                    bookingAccommodationDetailRepository);
+
+                if (seatCapacityLimit.HasValue && nextParticipantCount > seatCapacityLimit.Value)
+                {
+                    result = Error.Validation(
+                        ErrorConstants.Booking.SeatCapacityExceededCode,
+                        ErrorConstants.Booking.SeatCapacityExceededDescriptionTemplate.Format(
+                            lang,
+                            nextParticipantCount,
+                            seatCapacityLimit.Value));
+                    return;
+                }
+
+                if (roomCapacityLimit.HasValue && nextParticipantCount > roomCapacityLimit.Value)
+                {
+                    result = Error.Validation(
+                        ErrorConstants.Booking.RoomCapacityExceededCode,
+                        ErrorConstants.Booking.RoomCapacityExceededDescriptionTemplate.Format(
+                            lang,
+                            nextParticipantCount,
+                            roomCapacityLimit.Value));
+                    return;
+                }
+
+                var entity = BookingParticipantEntity.Create(
+                    request.BookingId,
+                    request.ParticipantType,
+                    request.FullName,
+                    performedBy: performedBy,
+                    request.DateOfBirth,
+                    request.Gender,
+                    request.Nationality);
+
+                await bookingParticipantRepository.AddAsync(entity);
+                await unitOfWork.SaveChangeAsync(cancellationToken);
+
+                result = entity.Id;
+            });
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+        {
+            return Error.Conflict(
+                ErrorConstants.BookingParticipant.ConcurrencyConflictCode,
+                ErrorConstants.BookingParticipant.ConcurrencyConflictDescription.Resolve(lang));
         }
 
-        var participants = await bookingParticipantRepository.GetByBookingIdAsync(request.BookingId);
-        var activeParticipantCount = BookingCapacityValidation.CountActiveParticipants(participants);
-        var nextParticipantCount = activeParticipantCount + 1;
-
-        var (seatCapacityLimit, roomCapacityLimit) = await BookingCapacityValidation.GetBookingCapacityLimitsAsync(
-            request.BookingId,
-            bookingActivityReservationRepository,
-            bookingTransportDetailRepository,
-            bookingAccommodationDetailRepository);
-
-        if (seatCapacityLimit.HasValue && nextParticipantCount > seatCapacityLimit.Value)
-        {
-            return Error.Validation(
-                ErrorConstants.Booking.SeatCapacityExceededCode,
-                ErrorConstants.Booking.SeatCapacityExceededDescriptionTemplate.Format(
-                    lang,
-                    nextParticipantCount,
-                    seatCapacityLimit.Value));
-        }
-
-        if (roomCapacityLimit.HasValue && nextParticipantCount > roomCapacityLimit.Value)
-        {
-            return Error.Validation(
-                ErrorConstants.Booking.RoomCapacityExceededCode,
-                ErrorConstants.Booking.RoomCapacityExceededDescriptionTemplate.Format(
-                    lang,
-                    nextParticipantCount,
-                    roomCapacityLimit.Value));
-        }
-
-        var entity = BookingParticipantEntity.Create(
-            request.BookingId,
-            request.ParticipantType,
-            request.FullName,
-            performedBy: performedBy,
-            request.DateOfBirth,
-            request.Gender,
-            request.Nationality);
-
-        await bookingParticipantRepository.AddAsync(entity);
-        await unitOfWork.SaveChangeAsync(cancellationToken);
-
-        return entity.Id;
+        return result;
     }
 }
 
@@ -141,73 +160,92 @@ public sealed class UpdateParticipantCommandHandler(
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         var performedBy = user.Id ?? "system";
-        var entity = await bookingParticipantRepository.GetByIdAsync(request.ParticipantId);
-        if (entity is null)
+        ErrorOr<Success> result = default;
+
+        try
         {
-            return Error.NotFound(
-                ErrorConstants.BookingParticipant.NotFoundCode,
-                ErrorConstants.BookingParticipant.NotFoundDescription.Resolve(lang));
+            await unitOfWork.ExecuteTransactionAsync(System.Data.IsolationLevel.RepeatableRead, async () =>
+            {
+                var entity = await bookingParticipantRepository.GetByIdAsync(request.ParticipantId);
+                if (entity is null)
+                {
+                    result = Error.NotFound(
+                        ErrorConstants.BookingParticipant.NotFoundCode,
+                        ErrorConstants.BookingParticipant.NotFoundDescription.Resolve(lang));
+                    return;
+                }
+
+                var participants = await bookingParticipantRepository.GetByBookingIdAsync(entity.BookingId);
+                var activeParticipantCount = BookingCapacityValidation.CountActiveParticipants(participants);
+                var nextStatus = request.Status ?? entity.Status;
+                var nextParticipantCount = activeParticipantCount;
+
+                if (entity.Status == ReservationStatus.Cancelled && nextStatus != ReservationStatus.Cancelled)
+                {
+                    nextParticipantCount += 1;
+                }
+                else if (entity.Status != ReservationStatus.Cancelled && nextStatus == ReservationStatus.Cancelled)
+                {
+                    nextParticipantCount -= 1;
+                }
+
+                var (seatCapacityLimit, roomCapacityLimit) = await BookingCapacityValidation.GetBookingCapacityLimitsAsync(
+                    entity.BookingId,
+                    bookingActivityReservationRepository,
+                    bookingTransportDetailRepository,
+                    bookingAccommodationDetailRepository);
+
+                if (seatCapacityLimit.HasValue && nextParticipantCount > seatCapacityLimit.Value)
+                {
+                    result = Error.Validation(
+                        ErrorConstants.Booking.SeatCapacityExceededCode,
+                        ErrorConstants.Booking.SeatCapacityExceededDescriptionTemplate.Format(
+                            lang,
+                            nextParticipantCount,
+                            seatCapacityLimit.Value));
+                    return;
+                }
+
+                if (roomCapacityLimit.HasValue && nextParticipantCount > roomCapacityLimit.Value)
+                {
+                    result = Error.Validation(
+                        ErrorConstants.Booking.RoomCapacityExceededCode,
+                        ErrorConstants.Booking.RoomCapacityExceededDescriptionTemplate.Format(
+                            lang,
+                            nextParticipantCount,
+                            roomCapacityLimit.Value));
+                    return;
+                }
+
+                entity.Update(
+                    request.ParticipantType,
+                    request.FullName,
+                    performedBy: performedBy,
+                    request.DateOfBirth,
+                    request.Gender,
+                    request.Nationality,
+                    request.Status);
+
+                bookingParticipantRepository.Update(entity);
+                await unitOfWork.SaveChangeAsync(cancellationToken);
+
+                result = Result.Success;
+            });
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+        {
+            return Error.Conflict(
+                ErrorConstants.BookingParticipant.ConcurrencyConflictCode,
+                ErrorConstants.BookingParticipant.ConcurrencyConflictDescription.Resolve(lang));
         }
 
-        var participants = await bookingParticipantRepository.GetByBookingIdAsync(entity.BookingId);
-        var activeParticipantCount = BookingCapacityValidation.CountActiveParticipants(participants);
-        var nextStatus = request.Status ?? entity.Status;
-        var nextParticipantCount = activeParticipantCount;
-
-        if (entity.Status == ReservationStatus.Cancelled && nextStatus != ReservationStatus.Cancelled)
-        {
-            nextParticipantCount += 1;
-        }
-        else if (entity.Status != ReservationStatus.Cancelled && nextStatus == ReservationStatus.Cancelled)
-        {
-            nextParticipantCount -= 1;
-        }
-
-        var (seatCapacityLimit, roomCapacityLimit) = await BookingCapacityValidation.GetBookingCapacityLimitsAsync(
-            entity.BookingId,
-            bookingActivityReservationRepository,
-            bookingTransportDetailRepository,
-            bookingAccommodationDetailRepository);
-
-        if (seatCapacityLimit.HasValue && nextParticipantCount > seatCapacityLimit.Value)
-        {
-            return Error.Validation(
-                ErrorConstants.Booking.SeatCapacityExceededCode,
-                ErrorConstants.Booking.SeatCapacityExceededDescriptionTemplate.Format(
-                    lang,
-                    nextParticipantCount,
-                    seatCapacityLimit.Value));
-        }
-
-        if (roomCapacityLimit.HasValue && nextParticipantCount > roomCapacityLimit.Value)
-        {
-            return Error.Validation(
-                ErrorConstants.Booking.RoomCapacityExceededCode,
-                ErrorConstants.Booking.RoomCapacityExceededDescriptionTemplate.Format(
-                    lang,
-                    nextParticipantCount,
-                    roomCapacityLimit.Value));
-        }
-
-        entity.Update(
-            request.ParticipantType,
-            request.FullName,
-            performedBy: performedBy,
-            request.DateOfBirth,
-            request.Gender,
-            request.Nationality,
-            request.Status);
-
-        bookingParticipantRepository.Update(entity);
-        await unitOfWork.SaveChangeAsync(cancellationToken);
-
-        return Result.Success;
+        return result;
     }
 }
 
 public sealed record CreatePassportCommand(
     [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
-    [property: JsonPropertyName("passportNumber")] string PassportNumber,
+    [property: JsonPropertyName("passportNumber")] string? PassportNumber,
     [property: JsonPropertyName("nationality")] string? Nationality,
     [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
     [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
@@ -221,7 +259,10 @@ public sealed class PassportValidator : AbstractValidator<CreatePassportCommand>
     public PassportValidator()
     {
         RuleFor(x => x.BookingParticipantId).NotEmpty();
-        RuleFor(x => x.PassportNumber).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.PassportNumber)
+            .NotEmpty()
+            .MaximumLength(50)
+            .When(x => string.IsNullOrEmpty(x.FileUrl));
         RuleFor(x => x.ExpiresAt)
             .GreaterThan(x => x.IssuedAt)
             .When(x => x.IssuedAt.HasValue && x.ExpiresAt.HasValue);
@@ -290,7 +331,7 @@ public sealed class CreatePassportCommandHandler(
 
 public sealed record UpdatePassportCommand(
     [property: JsonPropertyName("passportId")] Guid PassportId,
-    [property: JsonPropertyName("passportNumber")] string PassportNumber,
+    [property: JsonPropertyName("passportNumber")] string? PassportNumber,
     [property: JsonPropertyName("nationality")] string? Nationality,
     [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
     [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
@@ -304,7 +345,10 @@ public sealed class UpdatePassportCommandValidator : AbstractValidator<UpdatePas
     public UpdatePassportCommandValidator()
     {
         RuleFor(x => x.PassportId).NotEmpty();
-        RuleFor(x => x.PassportNumber).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.PassportNumber)
+            .NotEmpty()
+            .MaximumLength(50)
+            .When(x => string.IsNullOrEmpty(x.FileUrl));
         RuleFor(x => x.ExpiresAt)
             .GreaterThan(x => x.IssuedAt)
             .When(x => x.IssuedAt.HasValue && x.ExpiresAt.HasValue);

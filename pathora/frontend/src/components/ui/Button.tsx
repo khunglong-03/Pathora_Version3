@@ -69,7 +69,7 @@ const ButtonContent = ({
         {icon && (
           <span
             className={`${iconPosition === "right" ? "order-1 ltr:ml-2 rtl:mr-2" : ""} ${text && iconPosition === "left" ? "ltr:mr-2 rtl:ml-2" : ""} ${iconClass}`}>
-            {icon}
+            {typeof icon === "string" ? <Icon icon={icon} className={iconClass} /> : icon}
           </span>
         )}
         {text && <span>{text}</span>}

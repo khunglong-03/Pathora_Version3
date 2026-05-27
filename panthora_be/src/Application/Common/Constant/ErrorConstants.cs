@@ -357,6 +357,12 @@ public static class ErrorConstants
         public const string NotFoundCode = "BookingParticipant.NotFound";
         public static readonly LocalizedMessage NotFoundDescription =
             new("Không tìm thấy participant.", "Participant not found.");
+
+        public const string ConcurrencyConflictCode = "BookingParticipant.ConcurrencyConflict";
+        public static readonly LocalizedMessage ConcurrencyConflictDescription =
+            new(
+                "Thông tin hành khách này đã được thay đổi bởi yêu cầu khác. Vui lòng tải lại trang và thử lại.",
+                "This participant was modified by another request. Please refresh and try again.");
     }
 
     public static class Passport
@@ -666,6 +672,7 @@ public static class ErrorConstants
             var value when value == BookingTeam.AssignmentNotFoundCode => BookingTeam.AssignmentNotFoundDescription,
             var value when value == BookingTeam.TourManagerNotFoundCode => BookingTeam.TourManagerNotFoundDescription,
             var value when value == BookingParticipant.NotFoundCode => BookingParticipant.NotFoundDescription,
+            var value when value == BookingParticipant.ConcurrencyConflictCode => BookingParticipant.ConcurrencyConflictDescription,
             var value when value == Passport.NotFoundCode => Passport.NotFoundDescription,
             var value when value == Passport.ExistsCode => Passport.ExistsDescription,
             var value when value == Passport.ExpiryBeforeTourStartCode => Passport.ExpiryBeforeTourStartDescription,

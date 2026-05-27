@@ -11,7 +11,7 @@ namespace Application.Features.VisaApplication.Queries;
 
 public sealed record PassportDto(
     Guid Id,
-    string PassportNumber,
+    string? PassportNumber,
     string? Nationality,
     DateTimeOffset? IssuedAt,
     DateTimeOffset? ExpiresAt,
@@ -20,7 +20,7 @@ public sealed record PassportDto(
 public sealed record VisaApplicationSummaryDto(
     Guid Id,
     VisaStatus Status,
-    string DestinationCountry,
+    string? DestinationCountry,
     DateTimeOffset? MinReturnDate,
     string? RefusalReason,
     string? VisaFileUrl,

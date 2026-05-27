@@ -147,7 +147,7 @@ public sealed record CreateAccommodationDetailDto(
 public sealed record PassportDto(
     [property: JsonPropertyName("passportId")] Guid PassportId,
     [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
-    [property: JsonPropertyName("passportNumber")] string PassportNumber,
+    [property: JsonPropertyName("passportNumber")] string? PassportNumber,
     [property: JsonPropertyName("nationality")] string? Nationality,
     [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
     [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
@@ -156,7 +156,7 @@ public sealed record PassportDto(
 
 public sealed record CreatePassportDto(
     [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
-    [property: JsonPropertyName("passportNumber")] string PassportNumber,
+    [property: JsonPropertyName("passportNumber")] string? PassportNumber,
     [property: JsonPropertyName("nationality")] string? Nationality,
     [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
     [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
@@ -179,7 +179,7 @@ public sealed record VisaApplicationDto(
     [property: JsonPropertyName("visaApplicationId")] Guid VisaApplicationId,
     [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
     [property: JsonPropertyName("passportId")] Guid PassportId,
-    [property: JsonPropertyName("destinationCountry")] string DestinationCountry,
+    [property: JsonPropertyName("destinationCountry")] string? DestinationCountry,
     [property: JsonPropertyName("status")] VisaStatus Status,
     [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate,
     [property: JsonPropertyName("refusalReason")] string? RefusalReason,

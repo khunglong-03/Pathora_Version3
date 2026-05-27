@@ -34,6 +34,9 @@ public class BookingParticipantConfiguration : IEntityTypeConfiguration<BookingP
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion();
+
         builder.HasIndex(x => x.BookingId);
         builder.HasIndex(x => x.ParticipantType);
         builder.HasIndex(x => x.Status);

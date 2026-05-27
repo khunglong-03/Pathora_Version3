@@ -20,7 +20,7 @@ import { BookingOverviewTab } from "./BookingOverviewTab";
 import { BookingImportantInfo } from "./BookingImportantInfo";
 import { BookingPaymentSummary } from "./BookingPaymentSummary";
 import { BookingNeedHelp } from "./BookingNeedHelp";
-import { BookingFloatingSocial } from "./BookingFloatingSocial";
+
 import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
 import { CancellationRequestTimeline } from "./CancellationRequestTimeline";
 import { BookingRefundSection } from "./BookingRefundSection";
@@ -259,7 +259,7 @@ export function BookingDetailPage() {
         </div>
       </main>
 
-      <BookingFloatingSocial />
+
     </>
   );
 }

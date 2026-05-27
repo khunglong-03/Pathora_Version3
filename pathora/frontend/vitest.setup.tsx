@@ -101,6 +101,9 @@ vi.mock("@phosphor-icons/react", () => {
     Train: IconMock("Train"),
     Boat: IconMock("Boat"),
     DownloadSimple: IconMock("DownloadSimple"),
+    Spinner: IconMock("Spinner"),
+    UserCirclePlus: IconMock("UserCirclePlus"),
+    Trash: IconMock("Trash"),
   };
 });
 
