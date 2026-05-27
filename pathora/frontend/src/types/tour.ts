@@ -690,3 +690,28 @@ export const TourInstanceStatusMap: Record<string, { label: string; bg: string; 
   pendingcustomerapproval: { label: "Chờ khách duyệt", bg: "bg-sky-100", text: "text-sky-700", dot: "bg-sky-500" },
   draft: { label: "Bản nháp", bg: "bg-slate-100", text: "text-slate-700", dot: "bg-slate-500" },
 };
+
+export interface TourGuideManifestParticipantDto {
+  participantId: string;
+  fullName: string;
+  participantType: string;
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  nationality?: string | null;
+}
+
+export interface TourGuideManifestBookingDto {
+  bookingId: string;
+  reference: string;
+  adults: number;
+  children: number;
+  infants: number;
+  participants: TourGuideManifestParticipantDto[];
+}
+
+export interface TourGuideManifestDto {
+  tourInstanceId: string;
+  generatedAt: string;
+  bookings: TourGuideManifestBookingDto[];
+}
+

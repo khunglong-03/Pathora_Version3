@@ -4227,7 +4227,22 @@
     "operations": {
       "title": "Hoạt động",
       "emptyState": "Chưa có tour nào được phân công",
-      "completeTour": "Hoàn thành chuyến đi"
+      "completeTour": "Hoàn thành chuyến đi",
+      "viewManifest": "Danh sách hành khách",
+      "passengerManifest": "Danh sách hành khách",
+      "searchPlaceholder": "Tìm theo tên hành khách hoặc mã booking...",
+      "bookingRef": "Mã đặt tour",
+      "adults": "Người lớn",
+      "children": "Trẻ em",
+      "infants": "Em bé",
+      "fullName": "Họ và tên",
+      "passengerType": "Phân loại",
+      "gender": "Giới tính",
+      "nationality": "Quốc tịch",
+      "dateOfBirth": "Ngày sinh",
+      "noParticipants": "Không tìm thấy hành khách phù hợp.",
+      "accessDenied": "Từ chối truy cập",
+      "notAuthorized": "Bạn không có quyền xem danh sách hành khách của tour này. Quyền truy cập chỉ dành cho hướng dẫn viên được chỉ định, quản lý hoặc quản trị viên."
     },
     "profile": {
       "title": "Tài khoản",

@@ -8,6 +8,7 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { bookingService } from "@/api/services/bookingService";
 import type { NormalizedTourInstanceDto } from "@/types/tour";
 import { isQualifiedBooking } from "@/features/tour-operator/utils/fulfillmentHelpers";
+import { featureFlags } from "@/configs/featureFlags";
 import { 
   CheckCircleIcon, 
   WarningCircleIcon, 
@@ -260,6 +261,18 @@ export default function TourOperationDetailPage() {
               <div className="text-sm text-slate-500 italic mt-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
                 Chưa có dữ liệu khách tham gia chi tiết từ booking.
               </div>
+            )}
+
+            {featureFlags.enableGuideManifest && (
+              <button
+                onClick={() => router.push(`/tour-guide/operations/${instance.id}/manifest`)}
+                className="w-full mt-6 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              >
+                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {t("tourGuide.operations.viewManifest", { defaultValue: "Danh sách hành khách" })}
+              </button>
             )}
           </div>
         </div>

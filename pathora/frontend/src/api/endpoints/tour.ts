@@ -22,6 +22,7 @@ export interface TourInstanceEndpoints {
   GET_DETAIL: EndpointWithId;
   GET_MY_ASSIGNMENTS: string;
   GET_MY_ASSIGNMENT_DETAIL: EndpointWithId;
+  GET_MANIFEST: EndpointWithId;
   GET_STATS: string;
   GET_PRICING_TIERS: EndpointWithId;
   CREATE: string;
@@ -107,6 +108,7 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
   GET_DETAIL: (id: string): string => `/api/tour-instance/${id}`,
   GET_MY_ASSIGNMENTS: "/api/tour-instance/my-assignments",
   GET_MY_ASSIGNMENT_DETAIL: (id: string): string => `/api/tour-instance/my-assignments/${id}`,
+  GET_MANIFEST: (id: string): string => `/api/tour-instance/${id}/manifest`,
   GET_STATS: "/api/tour-instance/stats",
   GET_PRICING_TIERS: (id: string): string => `/api/tour-instance/${id}/pricing-tiers`,
   CREATE: "/api/tour-instance",

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
+import { featureFlags } from "@/configs/featureFlags";
 import { RootState } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -269,6 +270,22 @@ export function AdminSidebar({
     setMounted(true);
   }, []);
 
+  const getTourGuideNavItems = () => {
+    const items = [...TOURGUIDE_NAV_ITEMS];
+    if (featureFlags.enableGuideManifest) {
+      const match = pathname.match(/^\/tour-guide\/operations\/([0-9a-fA-F-]+)/);
+      if (match && match[1]) {
+        const instanceId = match[1];
+        items.splice(2, 0, {
+          label: "Danh Sách Hành Khách",
+          icon: ListChecksIcon,
+          href: `/tour-guide/operations/${instanceId}/manifest`,
+        } as any);
+      }
+    }
+    return items;
+  };
+
   const navItems =
     variant === "admin"
       ? ADMIN_NAV_ITEMS
@@ -279,7 +296,7 @@ export function AdminSidebar({
         : variant === "tour-operator"
           ? TOUROPERATOR_NAV_ITEMS
           : variant === "tour-guide"
-            ? TOURGUIDE_NAV_ITEMS
+            ? getTourGuideNavItems()
             : MANAGER_NAV_ITEMS;
 
   const loadCompanyName = useCallback(async () => {

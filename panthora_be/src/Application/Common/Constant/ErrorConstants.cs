@@ -333,6 +333,13 @@ public static class ErrorConstants
             new("Hướng dẫn viên hiện không khả dụng.", "Tour guide is currently unavailable.");
     }
 
+    public static class TourGuideManifest
+    {
+        public const string NotAuthorizedCode = "TourGuideManifest.NotAuthorized";
+        public static readonly LocalizedMessage NotAuthorizedDescription =
+            new("Bạn không được phân công cho tour này", "You are not assigned to this tour");
+    }
+
     public static class BookingTeam
     {
         public const string AssignmentExistsCode = "BookingTeam.AssignmentExists";
@@ -709,6 +716,7 @@ public static class ErrorConstants
             var value when value == TourInstance.CannotCancelAfterStartCode => TourInstance.CannotCancelAfterStartDescription,
             var value when value == Booking.InvalidRefundStatusTransitionCode => Booking.InvalidRefundStatusTransitionDescription,
             var value when value == Booking.RefundStatusOnlyForCancelledCode => Booking.RefundStatusOnlyForCancelledDescription,
+            var value when value == TourGuideManifest.NotAuthorizedCode => TourGuideManifest.NotAuthorizedDescription,
             _ => null,
         };
 

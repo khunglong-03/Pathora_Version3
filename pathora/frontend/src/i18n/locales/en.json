@@ -4247,7 +4247,22 @@
     "operations": {
       "title": "Operations",
       "emptyState": "You have not been assigned any tours yet",
-      "completeTour": "Complete Tour"
+      "completeTour": "Complete Tour",
+      "viewManifest": "Passenger Manifest",
+      "passengerManifest": "Passenger Manifest",
+      "searchPlaceholder": "Search by passenger name or reference...",
+      "bookingRef": "Booking Reference",
+      "adults": "Adults",
+      "children": "Children",
+      "infants": "Infants",
+      "fullName": "Full Name",
+      "passengerType": "Type",
+      "gender": "Gender",
+      "nationality": "Nationality",
+      "dateOfBirth": "Date of Birth",
+      "noParticipants": "No passenger matches found.",
+      "accessDenied": "Access Denied",
+      "notAuthorized": "You are not authorized to view the manifest of this tour instance. It is only accessible to the assigned tour guides, managers, or administrators."
     },
     "profile": {
       "title": "Account",
