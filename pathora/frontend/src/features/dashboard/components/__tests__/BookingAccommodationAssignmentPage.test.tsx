@@ -7,8 +7,10 @@ import { bookingService } from "@/api/services/bookingService";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import BookingAccommodationAssignmentPage from "../BookingAccommodationAssignmentPage";
 
+const mockGet = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => ({ get: mockGet }),
 }));
 
 const t = (_key: string, fallback?: string) => fallback ?? _key;
@@ -38,9 +40,11 @@ vi.mock("@/api/services/bookingService", () => ({
 vi.mock("../PublicTourBookingAssignmentPanel", () => ({
   default: ({
     bookings,
+    accommodationActivities,
     onSaveRoomAssignment,
   }: {
     bookings: Array<{ id: string; customerName: string }>;
+    accommodationActivities: Array<{ activityId: string; title: string }>;
     onSaveRoomAssignment: (
       activityId: string,
       payload: {
@@ -52,6 +56,7 @@ vi.mock("../PublicTourBookingAssignmentPanel", () => ({
   }) => (
     <div data-testid="room-assignment-panel">
       <p>{bookings.map((booking) => booking.customerName).join(", ")}</p>
+      <p data-testid="activity-list-count">{accommodationActivities.length}</p>
       <button
         type="button"
         onClick={() =>
@@ -80,12 +85,24 @@ const instance = {
         {
           id: "activity-1",
           activityType: "Accommodation",
-          title: "Hotel check-in",
+          title: "Hotel check-in 1",
           accommodation: {
             roomBlocksTotal: 2,
             quantity: 2,
             roomType: "Double",
             supplierName: "Lakeview Hotel",
+            supplierApprovalStatus: "Approved",
+          },
+        },
+        {
+          id: "activity-2",
+          activityType: "Accommodation",
+          title: "Hotel check-in 2",
+          accommodation: {
+            roomBlocksTotal: 2,
+            quantity: 2,
+            roomType: "Twin",
+            supplierName: "Grand Plaza",
             supplierApprovalStatus: "Approved",
           },
         },
@@ -122,6 +139,7 @@ const bookings = [
 describe("BookingAccommodationAssignmentPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGet.mockReturnValue(null);
     vi.mocked(tourInstanceService.getInstanceDetail).mockResolvedValue(instance as any);
     vi.mocked(tourInstanceService.saveBookingRoomAssignment).mockResolvedValue({});
     vi.mocked(tourInstanceService.getBookingRoomAssignments).mockResolvedValue([]);
@@ -181,5 +199,37 @@ describe("BookingAccommodationAssignmentPage", () => {
     );
 
     expect(tourInstanceService.getInstanceDetail).not.toHaveBeenCalled();
+  });
+
+  it("scopes UI to a single activity when valid activityId is passed as search param", async () => {
+    mockGet.mockReturnValue("activity-2");
+
+    render(
+      <BookingAccommodationAssignmentPage
+        instanceId="instance-1"
+        bookingId="booking-1"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("room-assignment-panel")).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId("activity-list-count")).toHaveTextContent("1");
+  });
+
+  it("shows activity not found error when non-matching activityId is passed", async () => {
+    mockGet.mockReturnValue("activity-invalid");
+
+    render(
+      <BookingAccommodationAssignmentPage
+        instanceId="instance-1"
+        bookingId="booking-1"
+      />,
+    );
+
+    expect(
+      await screen.findByText("Hoạt động không tồn tại hoặc không thuộc booking này."),
+    ).toBeInTheDocument();
   });
 });

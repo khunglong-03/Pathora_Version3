@@ -2426,7 +2426,23 @@
       "flightAssigned": "{{count}}/{{total}} đã gán",
       "partialAssigned": "{{assigned}}/{{total}} đã gán",
       "statusLoadPartial": "Một số trạng thái gán dịch vụ chưa tải được.",
-      "statusLoadError": "Không thể tải trạng thái gán dịch vụ."
+      "statusLoadError": "Không thể tải trạng thái gán dịch vụ.",
+      "rowAriaNav": "Xem chi tiết booking {{customerName}}"
+    },
+    "bookingLanding": {
+      "title": "Phân bổ Booking",
+      "headerCustomer": "Khách hàng",
+      "headerParticipants": "Số khách",
+      "headerStatus": "Trạng thái",
+      "headerPayment": "Thanh toán",
+      "headerTotal": "Tổng tiền",
+      "activitiesTitle": "Danh sách dịch vụ cần phân bổ",
+      "activityRowDay": "Ngày {{day}}",
+      "activityRowAccom": "Khách sạn",
+      "activityRowTransport": "Phương tiện",
+      "assignButton": "Gán",
+      "editButton": "Sửa",
+      "empty": "Booking này không có hoạt động nào cần gán."
     },
     "breadcrumb": {
       "label": "Điều hướng",

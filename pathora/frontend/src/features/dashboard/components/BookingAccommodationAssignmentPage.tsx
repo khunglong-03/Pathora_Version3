@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
 import { bookingService, type AdminBookingListResponse } from "@/api/services/bookingService";
@@ -68,6 +68,8 @@ export default function BookingAccommodationAssignmentPage({
 }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activityId = searchParams?.get("activityId") ?? null;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [instance, setInstance] = useState<NormalizedTourInstanceDto | null>(null);
@@ -133,10 +135,15 @@ export default function BookingAccommodationAssignmentPage({
     focusPageHeading(headingRef.current);
   }, []);
 
-  const accommodationActivities = useMemo(
+  const allAccommodationActivities = useMemo(
     () => toAccommodationActivities(instance),
     [instance],
   );
+
+  const accommodationActivities = useMemo(() => {
+    if (!activityId) return allAccommodationActivities;
+    return allAccommodationActivities.filter((act) => act.activityId === activityId);
+  }, [allAccommodationActivities, activityId]);
 
   const handleRoomAssignmentSaved = useCallback(() => {
     storePublicTourReturnFocus("accommodation", bookingId);
@@ -236,10 +243,15 @@ export default function BookingAccommodationAssignmentPage({
               className="mx-auto size-10 text-stone-300"
             />
             <p className="mt-3 text-base font-semibold text-stone-600">
-              {t(
-                "tourInstance.bookingHotel.emptyAccommodation",
-                "No accommodation activity needs assignment.",
-              )}
+              {activityId
+                ? t(
+                    "tourInstance.bookingHotel.activityNotFound",
+                    "Hoạt động không tồn tại hoặc không thuộc booking này.",
+                  )
+                : t(
+                    "tourInstance.bookingHotel.emptyAccommodation",
+                    "No accommodation activity needs assignment.",
+                  )}
             </p>
             <button
               type="button"

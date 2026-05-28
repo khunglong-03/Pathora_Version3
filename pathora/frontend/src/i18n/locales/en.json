@@ -2396,9 +2396,24 @@
       "accommodationAssigned": "{{roomType}} · {{roomCount}} room(s)",
       "flightAssignedNamed": "{{label}}",
       "flightAssigned": "{{count}}/{{total}} assigned",
-      "partialAssigned": "{{assigned}}/{{total}} assigned",
       "statusLoadPartial": "Some assignment statuses could not be loaded.",
-      "statusLoadError": "Could not load assignment statuses."
+      "statusLoadError": "Could not load assignment statuses.",
+      "rowAriaNav": "View details of booking {{customerName}}"
+    },
+    "bookingLanding": {
+      "title": "Booking Assignment",
+      "headerCustomer": "Customer",
+      "headerParticipants": "Guests",
+      "headerStatus": "Status",
+      "headerPayment": "Payment",
+      "headerTotal": "Total Price",
+      "activitiesTitle": "Dịch vụ cần phân bổ",
+      "activityRowDay": "Day {{day}}",
+      "activityRowAccom": "Accommodation",
+      "activityRowTransport": "Transportation",
+      "assignButton": "Assign",
+      "editButton": "Edit",
+      "empty": "No activities require assignment for this booking."
     },
     "breadcrumb": {
       "label": "Breadcrumb",

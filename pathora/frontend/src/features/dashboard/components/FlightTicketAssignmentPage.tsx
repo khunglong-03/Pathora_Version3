@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
@@ -72,6 +72,8 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, bookin
   const { t } = useTranslation();
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const activityId = searchParams?.get("activityId") ?? null;
   const resolvedId = instanceId || params?.id || "";
   const headingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -119,7 +121,11 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, bookin
         }
       }
 
-      setActivities(externalActivities);
+      const filteredActivities = activityId
+        ? externalActivities.filter((act) => act.activityId === activityId)
+        : externalActivities;
+
+      setActivities(filteredActivities);
       const allBookings = (bookingList ?? []).filter(
         (booking) => booking.status !== "Cancelled",
       );
@@ -283,16 +289,26 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, bookin
               className="mx-auto size-10 text-stone-300"
             />
             <p className="text-base font-semibold text-stone-600">
-              {t(
-                "tourInstance.flight.emptyActivity",
-                "Tour này không có phương tiện cần gán",
-              )}
+              {activityId
+                ? t(
+                    "tourInstance.bookingFlight.activityNotFound",
+                    "Hoạt động không tồn tại hoặc không thuộc booking này.",
+                  )
+                : t(
+                    "tourInstance.flight.emptyActivity",
+                    "Tour này không có phương tiện cần gán",
+                  )}
             </p>
             <p className="text-sm text-stone-400">
-              {t(
-                "tourInstance.bookingFlight.emptyActivityDescription",
-                "Tour này không có hoạt động phương tiện.",
-              )}
+              {activityId
+                ? t(
+                    "tourInstance.bookingFlight.activityNotFoundDescription",
+                    "Vui lòng kiểm tra lại ID hoạt động.",
+                  )
+                : t(
+                    "tourInstance.bookingFlight.emptyActivityDescription",
+                    "Tour này không có hoạt động phương tiện.",
+                  )}
             </p>
             <button
               type="button"
