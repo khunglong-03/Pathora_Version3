@@ -54,8 +54,11 @@ vi.mock("framer-motion", () => ({
   motionWrapper: "div",
 }));
 
-// Mock Phosphor icons
-vi.mock("@phosphor-icons/react", () => {
+// Mock Phosphor icons dynamically by wrapping actual exports
+vi.mock("@phosphor-icons/react", async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, any>;
+  const mocked: Record<string, any> = {};
+
   const IconMock = (name: string) => {
     const Component = (props: { size?: number; weight?: string; "aria-label"?: string; [key: string]: unknown }) => (
       <span data-testid={`mock-icon-${name}`} aria-label={props["aria-label"]}>{name}</span>
@@ -63,48 +66,19 @@ vi.mock("@phosphor-icons/react", () => {
     Component.displayName = `IconMock(${name})`;
     return Component;
   };
-  return {
-    ArrowLeft: IconMock("ArrowLeft"),
-    ArrowsClockwise: IconMock("ArrowsClockwise"),
-    Warning: IconMock("Warning"),
-    Clock: IconMock("Clock"),
-    Van: IconMock("Van"),
-    Bed: IconMock("Bed"),
-    Phone: IconMock("Phone"),
-    EnvelopeSimple: IconMock("EnvelopeSimple"),
-    DotsThreeVertical: IconMock("DotsThreeVertical"),
-    Eye: IconMock("Eye"),
-    UsersThree: IconMock("UsersThree"),
-    PencilSimple: IconMock("PencilSimple"),
-    ArrowRight: IconMock("ArrowRight"),
-    X: IconMock("X"),
-    UserPlus: IconMock("UserPlus"),
-    User: IconMock("User"),
-    ArrowClockwise: IconMock("ArrowClockwise"),
-    Check: IconMock("Check"),
-    CheckCircle: IconMock("CheckCircle"),
-    XCircle: IconMock("XCircle"),
-    AirplaneTilt: IconMock("AirplaneTilt"),
-    IdentificationCard: IconMock("IdentificationCard"),
-    WarningCircle: IconMock("WarningCircle"),
-    HandHeart: IconMock("HandHeart"),
-    Receipt: IconMock("Receipt"),
-    Info: IconMock("Info"),
-    MapTrifold: IconMock("MapTrifold"),
-    Tag: IconMock("Tag"),
-    MapPin: IconMock("MapPin"),
-    Users: IconMock("Users"),
-    Calendar: IconMock("Calendar"),
-    CaretDown: IconMock("CaretDown"),
-    CaretUp: IconMock("CaretUp"),
-    CarProfile: IconMock("CarProfile"),
-    Train: IconMock("Train"),
-    Boat: IconMock("Boat"),
-    DownloadSimple: IconMock("DownloadSimple"),
-    Spinner: IconMock("Spinner"),
-    UserCirclePlus: IconMock("UserCirclePlus"),
-    Trash: IconMock("Trash"),
-  };
+
+  for (const key of Object.keys(actual)) {
+    const original = actual[key];
+    if (typeof original === "object" || typeof original === "function") {
+      // Normalise name (e.g. PencilIcon -> Pencil)
+      const cleanName = key.endsWith("Icon") ? key.slice(0, -4) : key;
+      mocked[key] = IconMock(cleanName);
+    } else {
+      mocked[key] = original;
+    }
+  }
+
+  return mocked;
 });
 
 // Mock next/link

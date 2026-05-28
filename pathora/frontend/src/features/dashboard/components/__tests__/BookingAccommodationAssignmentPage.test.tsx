@@ -171,4 +171,15 @@ describe("BookingAccommodationAssignmentPage", () => {
     ).toBeInTheDocument();
     expect(screen.queryByTestId("room-assignment-panel")).not.toBeInTheDocument();
   });
+
+  it("does not fetch or crash when instanceId is empty", async () => {
+    render(
+      <BookingAccommodationAssignmentPage
+        instanceId=""
+        bookingId="booking-1"
+      />,
+    );
+
+    expect(tourInstanceService.getInstanceDetail).not.toHaveBeenCalled();
+  });
 });

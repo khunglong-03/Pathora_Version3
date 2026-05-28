@@ -761,9 +761,6 @@ function AccommodationBookingCard({
   const supplierNotAssigned = !hasSupplier || !hasQuantity;
   const approvedNoBlocks = isApproved && !hasRoomBlocks;
   const canAssign = true; // Always allow assignment to let operators plan room allocations before supplier booking
-  const remaining = Math.max(0, activity.roomBlocksTotal - totalAssigned);
-
-  const bookAccommodationUrl = `/tour-operator/tour-instances/public/${instanceId}/book-accommodation`;
   let blockerBanner:
     | {
         tone: "amber" | "orange" | "rose";
@@ -773,24 +770,21 @@ function AccommodationBookingCard({
         actionHref?: string;
       }
     | null = null;
+
   if (supplierNotAssigned && !showSupplierPicker) {
     blockerBanner = {
       tone: "amber",
       title: "Chưa giao khách sạn cho activity này",
       message: isPublicOverview
         ? "Chưa giao khách sạn cho activity này. Gán NCC và số phòng yêu cầu tại đây, sau đó dùng bảng booking trên trang chi tiết tour để gán phòng từng khách (Gán KS)."
-        : "Activity vừa được tạo, chưa có hotel supplier (Quantity = 0). Bước 1: Manager giao khách sạn + nhập số phòng cần. Bước 2: Supplier approve + block phòng. Bước 3: Quay lại bảng booking và bấm Gán KS.",
-      actionLabel: isPublicOverview ? undefined : "Đi tới trang giao khách sạn",
-      actionHref: isPublicOverview ? undefined : bookAccommodationUrl,
+        : "Activity vừa được tạo, chưa có hotel supplier. Vui lòng quay lại trang chi tiết tour, sử dụng chức năng \"Đổi NCC\" hoặc \"Thêm NCC\" trên activity card để chọn nhà cung cấp.",
     };
   } else if (isRejected && !showSupplierPicker) {
     blockerBanner = {
       tone: "rose",
       title: "Khách sạn đã từ chối activity này",
       message:
-        "Manager cần đổi sang khách sạn khác hoặc thương lượng lại. Phòng chưa block, chưa thể phân bổ.",
-      actionLabel: "Đổi khách sạn khác",
-      actionHref: bookAccommodationUrl,
+        "Nhà cung cấp đã từ chối. Vui lòng quay lại trang chi tiết tour, sử dụng chức năng \"Đổi NCC\" trên activity card để đổi sang nhà cung cấp khác.",
     };
   } else if (!isApproved && !supplierNotAssigned && !isRejected) {
     blockerBanner = {

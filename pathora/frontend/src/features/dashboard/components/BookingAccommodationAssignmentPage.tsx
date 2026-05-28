@@ -16,7 +16,7 @@ import PublicTourBookingAssignmentPanel from "./PublicTourBookingAssignmentPanel
 
 interface Props {
   instanceId: string;
-  bookingId?: string;
+  bookingId: string;
   backUrl?: string;
 }
 
@@ -91,11 +91,9 @@ export default function BookingAccommodationAssignmentPage({
       const activeBookings = (bookingList ?? []).filter(
         (booking) => booking.status !== "Cancelled",
       );
-      const scopedBookings = bookingId
-        ? activeBookings.filter((booking) => booking.id === bookingId)
-        : activeBookings;
+      const scopedBookings = activeBookings.filter((booking) => booking.id === bookingId);
 
-      if (bookingId && scopedBookings.length === 0) {
+      if (scopedBookings.length === 0) {
         setInstance(instanceDetail);
         setBookings([]);
         setError(
@@ -141,15 +139,12 @@ export default function BookingAccommodationAssignmentPage({
   );
 
   const handleRoomAssignmentSaved = useCallback(() => {
-    if (!bookingId) return;
     storePublicTourReturnFocus("accommodation", bookingId);
     router.push(resolvedBackUrl);
   }, [bookingId, resolvedBackUrl, router]);
 
   const handleBack = useCallback(() => {
-    if (bookingId) {
-      storePublicTourReturnFocus("accommodation", bookingId);
-    }
+    storePublicTourReturnFocus("accommodation", bookingId);
     router.push(resolvedBackUrl);
   }, [bookingId, resolvedBackUrl, router]);
 
@@ -171,15 +166,10 @@ export default function BookingAccommodationAssignmentPage({
               tabIndex={-1}
               className="truncate text-lg font-bold leading-tight text-stone-900 focus:outline-none"
             >
-              {bookingId
-                ? t(
-                    "tourInstance.bookingHotel.titleSingle",
-                    "Assign accommodation for booking",
-                  )
-                : t(
-                    "tourInstance.bookingHotel.titleOverview",
-                    "Assign accommodation by booking",
-                  )}
+              {t(
+                "tourInstance.bookingHotel.titleSingle",
+                "Assign accommodation for booking",
+              )}
             </h1>
             {instance?.tourName && (
               <p className="truncate text-sm text-stone-500">{instance.tourName}</p>
@@ -282,17 +272,7 @@ export default function BookingAccommodationAssignmentPage({
               tourInstanceService.getBookingRoomAssignments(instanceId, activityId)
             }
             onRoomAssignmentSaved={handleRoomAssignmentSaved}
-            onSetAccommodationRequirements={
-              !bookingId
-                ? async (activityId, payload) => {
-                    await tourInstanceService.setAccommodationRequirements(
-                      instanceId,
-                      activityId,
-                      payload,
-                    );
-                  }
-                : undefined
-            }
+            onSetAccommodationRequirements={undefined}
             onRequirementsSaved={() => {
               void fetchData();
             }}

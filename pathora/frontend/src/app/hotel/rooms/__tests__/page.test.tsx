@@ -66,8 +66,8 @@ describe("RoomsPage", () => {
       render(<RoomsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Standard")).toBeInTheDocument();
-        expect(screen.getByText("Deluxe")).toBeInTheDocument();
+        expect(screen.getByText("Phòng Standard")).toBeInTheDocument();
+        expect(screen.getByText("Phòng Deluxe")).toBeInTheDocument();
       });
     });
 
@@ -245,10 +245,21 @@ describe("RoomsPage", () => {
 
       render(<RoomsPage />);
 
-      await waitFor(() => screen.getByText("Xem tình trạng phòng"));
+      await waitFor(() => screen.getByText(/Xem tình trạng phòng/i));
 
-      screen.getByText("Xem tình trạng phòng").click();
+      screen.getByText(/Xem tình trạng phòng/i).click();
       await waitFor(() => screen.getByText("Tình trạng phòng"));
+
+      // Set dates (mock)
+      const fromDateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+      if (fromDateInput) {
+        fireEvent.change(fromDateInput, { target: { value: "2026-04-10" } });
+      }
+
+      const toDateInputs = document.querySelectorAll('input[type="date"]');
+      if (toDateInputs.length > 1) {
+        fireEvent.change(toDateInputs[1] as HTMLInputElement, { target: { value: "2026-04-12" } });
+      }
 
       screen.getByText("Xem").click();
 
@@ -264,12 +275,12 @@ describe("RoomsPage", () => {
 
       render(<RoomsPage />);
 
-      await waitFor(() => screen.getByText("Thêm loại phòng"));
+      await waitFor(() => screen.getAllByRole("button", { name: /Thêm loại phòng/i })[0]);
 
-      screen.getByText("Thêm loại phòng").click();
+      screen.getAllByRole("button", { name: /Thêm loại phòng/i })[0].click();
 
       await waitFor(() => {
-        expect(screen.getByText("Thêm loại phòng")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Thêm loại phòng" })).toBeInTheDocument();
       });
     });
 
@@ -281,16 +292,18 @@ describe("RoomsPage", () => {
 
       render(<RoomsPage />);
 
-      await waitFor(() => screen.getByText("Thêm loại phòng"));
-      screen.getByText("Thêm loại phòng").click();
+      await waitFor(() => screen.getAllByRole("button", { name: /Thêm loại phòng/i })[0]);
+      screen.getAllByRole("button", { name: /Thêm loại phòng/i })[0].click();
 
-      await waitFor(() => screen.getByText("Thêm"));
-      screen.getByText("Thêm").click();
+      await waitFor(() => screen.getByRole("button", { name: "Thêm" }));
+      screen.getByRole("button", { name: "Thêm" }).click();
 
       await waitFor(() => {
         expect(hotelProviderService.createAccommodation).toHaveBeenCalledWith({
           roomType: "Standard",
           totalRooms: 1,
+          thumbnail: null,
+          images: null,
         });
       });
     });
@@ -303,11 +316,11 @@ describe("RoomsPage", () => {
 
       render(<RoomsPage />);
 
-      await waitFor(() => screen.getByText("Thêm loại phòng"));
-      screen.getByText("Thêm loại phòng").click();
+      await waitFor(() => screen.getAllByRole("button", { name: /Thêm loại phòng/i })[0]);
+      screen.getAllByRole("button", { name: /Thêm loại phòng/i })[0].click();
 
-      await waitFor(() => screen.getByText("Thêm"));
-      screen.getByText("Thêm").click();
+      await waitFor(() => screen.getByRole("button", { name: "Thêm" }));
+      screen.getByRole("button", { name: "Thêm" }).click();
 
       await waitFor(() => {
         expect(screen.getByText("Tạo phòng thất bại")).toBeInTheDocument();
@@ -324,7 +337,7 @@ describe("RoomsPage", () => {
       await waitFor(() => screen.getByText("10"));
 
       // Click delete button (trash icon)
-      const deleteBtn = screen.getByRole("button", { name: "" });
+      const deleteBtn = screen.getByTitle("Xóa");
       deleteBtn.click();
 
       await waitFor(() => {
@@ -374,7 +387,7 @@ describe("RoomsPage", () => {
 
       await waitFor(() => screen.getByText("Quản lý phòng"));
 
-      expect(screen.getByRole("button", { name: "" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Refresh" })).toBeInTheDocument();
     });
   });
 });

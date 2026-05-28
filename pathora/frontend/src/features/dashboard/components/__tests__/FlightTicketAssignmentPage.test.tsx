@@ -8,20 +8,23 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 import FlightTicketAssignmentPage from "../FlightTicketAssignmentPage";
 
 const routerPush = vi.fn();
+const mockUseParams = vi.fn().mockReturnValue({ id: "instance-1" });
 
 vi.mock("next/navigation", () => ({
-  useParams: () => ({ id: "instance-1" }),
+  useParams: () => mockUseParams(),
   useRouter: () => ({ push: routerPush }),
 }));
 
+const stableT = (_key: string, fallback?: string | Record<string, unknown>) =>
+  typeof fallback === "string"
+    ? fallback
+    : typeof fallback?.defaultValue === "string"
+      ? fallback.defaultValue
+      : _key;
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (_key: string, fallback?: string | Record<string, unknown>) =>
-      typeof fallback === "string"
-        ? fallback
-        : typeof fallback?.defaultValue === "string"
-          ? fallback.defaultValue
-          : _key,
+    t: stableT,
   }),
 }));
 
@@ -140,17 +143,28 @@ describe("FlightTicketAssignmentPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     routerPush.mockReset();
+    mockUseParams.mockReturnValue({ id: "instance-1" });
     vi.mocked(tourInstanceService.getInstanceDetail).mockResolvedValue(instance as any);
     vi.mocked(tourInstanceService.saveBookingTicket).mockResolvedValue({});
     vi.mocked(tourInstanceService.confirmExternalTransport).mockResolvedValue({});
     vi.mocked(bookingService.getBookingsByTourInstance).mockResolvedValue(bookings);
   });
 
+  it("verifies mocked services resolve correctly", async () => {
+    const detail = await tourInstanceService.getInstanceDetail("instance-1");
+    console.log("direct call detail:", detail);
+    expect(detail).toBe(instance);
+
+    const bookingList = await bookingService.getBookingsByTourInstance("instance-1");
+    console.log("direct call bookingList:", bookingList);
+    expect(bookingList).toBe(bookings);
+  });
+
   it("filters to the route booking and saves the ticket with that booking id", async () => {
     render(
       <FlightTicketAssignmentPage
         instanceId="instance-1"
-        filterBookingId="booking-2"
+        bookingId="booking-2"
       />,
     );
 
@@ -185,7 +199,7 @@ describe("FlightTicketAssignmentPage", () => {
     render(
       <FlightTicketAssignmentPage
         instanceId="instance-1"
-        filterBookingId="missing-booking"
+        bookingId="missing-booking"
       />,
     );
 
@@ -193,5 +207,17 @@ describe("FlightTicketAssignmentPage", () => {
       await screen.findByText("Booking does not belong to this tour instance."),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("ticket-panel")).not.toBeInTheDocument();
+  });
+
+  it("does not fetch or crash when instanceId is empty", async () => {
+    mockUseParams.mockReturnValue({});
+    render(
+      <FlightTicketAssignmentPage
+        instanceId=""
+        bookingId="booking-1"
+      />,
+    );
+
+    expect(tourInstanceService.getInstanceDetail).not.toHaveBeenCalled();
   });
 });

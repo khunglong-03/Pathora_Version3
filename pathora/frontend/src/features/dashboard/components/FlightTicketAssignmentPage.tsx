@@ -44,8 +44,8 @@ interface Props {
   instanceId: string;
   /** URL để back về trang detail */
   backUrl?: string;
-  /** Optional: chỉ hiện 1 booking (per-booking assignment mode) */
-  filterBookingId?: string;
+  /** Chỉ hiện 1 booking (per-booking assignment mode) */
+  bookingId: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ const resolveTransportType = (raw?: string | null): "Flight" | "Train" | "Boat" 
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function FlightTicketAssignmentPage({ instanceId, backUrl, filterBookingId }: Props) {
+export default function FlightTicketAssignmentPage({ instanceId, backUrl, bookingId }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -123,11 +123,9 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, filter
       const allBookings = (bookingList ?? []).filter(
         (booking) => booking.status !== "Cancelled",
       );
-      const scopedBookings = filterBookingId
-        ? allBookings.filter((b) => b.id === filterBookingId)
-        : allBookings;
+      const scopedBookings = allBookings.filter((b) => b.id === bookingId);
 
-      if (filterBookingId && scopedBookings.length === 0) {
+      if (scopedBookings.length === 0) {
         setBookings([]);
         setError(
           t(
@@ -150,7 +148,7 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, filter
     } finally {
       setLoading(false);
     }
-  }, [filterBookingId, resolvedId, t]);
+  }, [bookingId, resolvedId, t]);
 
   useEffect(() => {
     void fetchData();
@@ -192,9 +190,7 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, filter
   );
 
   const handleBack = () => {
-    if (filterBookingId) {
-      storePublicTourReturnFocus("flight", filterBookingId);
-    }
+    storePublicTourReturnFocus("flight", bookingId);
     router.push(resolvedBackUrl);
   };
 

@@ -22,7 +22,7 @@ export default async function BookingAssignFlightTicketsPage({
   return (
     <FlightTicketAssignmentPage
       instanceId={id}
-      filterBookingId={bookingId}
+      bookingId={bookingId}
       backUrl={`/tour-operator/tour-instances/public/${id}`}
     />
   );

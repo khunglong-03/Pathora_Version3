@@ -1687,15 +1687,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                                                       {t("tourInstance.accommodation.addSupplier", "Thêm NCC")}
                                                     </button>
                                                   )}
-                                                  {variant === "public" && (
-                                                    <Link
-                                                      href={`/tour-operator/tour-instances/public/${id}/book-accommodation`}
-                                                      className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-                                                    >
-                                                      <Icon icon="heroicons:building-office-2" className="size-3" />
-                                                      {t("tourInstance.accommodation.assignBookings", "Phân bổ booking")}
-                                                    </Link>
-                                                  )}
+
                                                 </div>
                                               )}
                                             </div>

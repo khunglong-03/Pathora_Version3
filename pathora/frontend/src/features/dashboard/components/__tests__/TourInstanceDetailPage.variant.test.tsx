@@ -17,6 +17,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (_key: string, fallback?: string) => fallback ?? _key,
   }),
+  initReactI18next: { type: "3rdParty", init: vi.fn() },
 }));
 
 vi.mock("react-toastify", () => ({
@@ -219,7 +220,11 @@ describe("TourInstanceDetailPage variant gating", () => {
     expect(screen.queryByTestId("approval-overview-transport")).not.toBeInTheDocument();
     expect(screen.queryByTestId("transport-approval-block")).not.toBeInTheDocument();
     expect(screen.queryByTestId("reassign-transport-btn")).not.toBeInTheDocument();
-    expect(screen.getByText("Atlas Coach")).toBeInTheDocument();
+    expect(screen.queryByText("Atlas Coach")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Chi tiết phương tiện được quản lý và gán theo từng booking ở phần dưới."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Phân bổ booking")).not.toBeInTheDocument();
   });
 
   it("shows the transport approval UI in private mode", async () => {
@@ -235,6 +240,9 @@ describe("TourInstanceDetailPage variant gating", () => {
 
     expect(screen.queryByTestId("approval-overview-transport")).not.toBeInTheDocument();
     expect(screen.queryByTestId("transport-approval-block")).not.toBeInTheDocument();
-    expect(screen.getByText("Atlas Coach")).toBeInTheDocument();
+    expect(screen.queryByText("Atlas Coach")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Chi tiết phương tiện được quản lý và gán theo từng booking ở phần dưới."),
+    ).toBeInTheDocument();
   });
 });
