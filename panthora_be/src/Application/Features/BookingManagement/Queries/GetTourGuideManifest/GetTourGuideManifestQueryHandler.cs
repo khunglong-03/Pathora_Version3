@@ -18,7 +18,8 @@ public sealed class GetTourGuideManifestQueryHandler(
     IBookingRepository bookingRepository,
     IBookingTourGuideRepository bookingTourGuideRepository,
     ITourInstanceRepository tourInstanceRepository,
-    IUser user)
+    IUser user,
+    MediatR.IPublisher publisher)
     : IQueryHandler<GetTourGuideManifestQuery, ErrorOr<TourGuideManifestDto>>
 {
     public async Task<ErrorOr<TourGuideManifestDto>> Handle(GetTourGuideManifestQuery request, CancellationToken cancellationToken)
@@ -27,7 +28,12 @@ public sealed class GetTourGuideManifestQueryHandler(
         var tourInstance = await tourInstanceRepository.FindById(request.TourInstanceId, asNoTracking: true, cancellationToken);
         if (tourInstance is null)
         {
-            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription.En);
+            return Error.NotFound(ErrorConstants.TourGuideManifest.NotAuthorizedCode, ErrorConstants.TourGuideManifest.NotAuthorizedDescription.En);
+        }
+
+        if (tourInstance.EndDate < DateTimeOffset.UtcNow.AddDays(-7))
+        {
+            return Error.Conflict("TourGuideManifest.Expired", "This tour has ended more than 7 days ago.");
         }
 
         // 2. Kiểm tra quyền truy cập (Resource Authorization)
@@ -50,6 +56,7 @@ public sealed class GetTourGuideManifestQueryHandler(
 
         // 3. Lấy tất cả bookings của tour instance
         var bookings = await bookingRepository.GetByTourInstanceIdAsync(request.TourInstanceId, cancellationToken);
+        var sortedBookings = bookings.OrderBy(b => b.CreatedOnUtc).ToList();
 
         // 4. Lọc bookings: Confirmed, Deposited, Paid, Completed, PendingAdjustment, PendingCancellation
         // và mapping sang whitelist DTO
@@ -65,7 +72,7 @@ public sealed class GetTourGuideManifestQueryHandler(
 
         var bookingDtos = new List<TourGuideManifestBookingDto>();
 
-        foreach (var b in bookings)
+        foreach (var b in sortedBookings)
         {
             if (!activeStatuses.Contains(b.Status))
             {
@@ -75,6 +82,7 @@ public sealed class GetTourGuideManifestQueryHandler(
             // Lọc participants không bị huỷ
             var activeParticipants = b.BookingParticipants
                 .Where(p => p.Status != ReservationStatus.Cancelled)
+                .OrderBy(p => p.FullName)
                 .Select(p => new TourGuideManifestParticipantDto(
                     ParticipantId: p.Id,
                     FullName: p.FullName,
@@ -102,6 +110,13 @@ public sealed class GetTourGuideManifestQueryHandler(
             GeneratedAt: DateTimeOffset.UtcNow,
             Bookings: bookingDtos
         );
+
+        await publisher.Publish(new Domain.Events.TourGuideManifestViewedEvent(
+            GuideUserId: request.GuideUserId,
+            TourInstanceId: request.TourInstanceId,
+            ViewedAt: DateTimeOffset.UtcNow,
+            BookingIds: bookingDtos.Select(b => b.BookingId).ToList()
+        ), cancellationToken);
 
         return manifestDto;
     }

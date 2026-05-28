@@ -2146,6 +2146,14 @@
     }
   },
   "tourInstance": {
+    "approvals": {
+      "accommodation": "Lưu trú",
+      "transport": "Vận chuyển",
+      "day": "Ngày {{day}}",
+      "pending": "Đang chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Đã từ chối"
+    },
     "title": "Lịch Khởi Hành",
     "description": "Quản lý lịch khởi hành tour và theo dõi các chuyến đi",
     "createInstance": "Tạo Lịch Khởi Hành",

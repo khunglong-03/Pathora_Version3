@@ -498,8 +498,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Tour)
             .Include(t => t.Classification)
             .Include(t => t.Thumbnail)
-            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation!).ThenInclude(acc => acc!.Supplier)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.FromLocation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.ToLocation)
             .OrderByDescending(t => t.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -658,5 +660,17 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                 && t.ConfirmationDeadline != null
                 && t.ConfirmationDeadline < nowUtc)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<TourInstanceEntity?> FindByIdForRejectNotification(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .AsNoTracking()
+            .Include(t => t.Tour)
+                .ThenInclude(t => t.TourOperator)
+            .Include(t => t.Managers)
+                .ThenInclude(m => m.User)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
 }

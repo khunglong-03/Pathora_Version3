@@ -2119,6 +2119,14 @@
     }
   },
   "tourInstance": {
+    "approvals": {
+      "accommodation": "Accommodation",
+      "transport": "Transportation",
+      "day": "Day {{day}}",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
     "title": "Tour Instances",
     "description": "Manage scheduled tour instances and track departures",
     "createInstance": "Create Instance",

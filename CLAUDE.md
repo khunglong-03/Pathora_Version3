@@ -333,6 +333,8 @@ Cleanup rules (ER-3):
 
 Error code registry: `Application/Common/Constant/ErrorConstants.TourInstanceTransport.cs`.
 
+- **Email Rejection Notifications**: When a provider rejects any activity (Hotel or Transport) in a TourInstance, a Vietnamese HTML email notification (`ProviderRejectedTourInstanceMail`) is queued to the outbox for the Tour Operator (falling back to the first Manager). Handlers (`ProviderRejectedTourInstanceEventHandler`) process the event asynchronously post-commit, safely catching mailing database failures and logging structured telemetry.
+
 ---
 
 ## Domain note — Private Tour Co-Design workflow

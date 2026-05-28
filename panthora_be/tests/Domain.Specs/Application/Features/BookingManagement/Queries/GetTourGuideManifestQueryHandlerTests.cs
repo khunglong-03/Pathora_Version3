@@ -22,6 +22,7 @@ public sealed class GetTourGuideManifestQueryHandlerTests
     private readonly IBookingTourGuideRepository _bookingTourGuideRepository = Substitute.For<IBookingTourGuideRepository>();
     private readonly ITourInstanceRepository _tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
     private readonly IUser _user = Substitute.For<IUser>();
+    private readonly MediatR.IPublisher _publisher = Substitute.For<MediatR.IPublisher>();
     private readonly GetTourGuideManifestQueryHandler _handler;
 
     public GetTourGuideManifestQueryHandlerTests()
@@ -30,7 +31,8 @@ public sealed class GetTourGuideManifestQueryHandlerTests
             _bookingRepository,
             _bookingTourGuideRepository,
             _tourInstanceRepository,
-            _user);
+            _user,
+            _publisher);
     }
 
     [Fact]

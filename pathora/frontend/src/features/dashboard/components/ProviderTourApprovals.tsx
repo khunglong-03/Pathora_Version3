@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -10,25 +10,10 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { NormalizedTourInstanceVm } from "@/types/tour";
 import dayjs from "dayjs";
 import { handleApiError } from "@/utils/apiResponse";
-import { getInstanceApprovalAppearance, type ApprovalAppearance } from "@/utils/approvalStatusHelper";
+import { getInstanceApprovalAppearance, getApprovalAppearance, type ApprovalAppearance } from "@/utils/approvalStatusHelper";
 
 interface ProviderTourApprovalsProps {
   providerType: "hotel" | "transport";
-}
-
-/** Map instance.status (normalized string) → approval badge for hotel portal */
-function getHotelApprovalAppearance(instanceStatus: string): ApprovalAppearance {
-  const s = instanceStatus?.trim().toLowerCase() ?? "";
-  if (s === "pendingapproval") {
-    return { state: "pending", label: "Chờ duyệt phòng", icon: "heroicons:clock", ringClassName: "bg-amber-50 text-amber-700 ring-1 ring-amber-500/20" };
-  }
-  if (s === "available" || s === "confirmed" || s === "soldout" || s === "inprogress" || s === "completed") {
-    return { state: "approved", label: "Đã duyệt", icon: "heroicons:check-circle", ringClassName: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/20" };
-  }
-  if (s === "cancelled") {
-    return { state: "rejected", label: "Đã từ chối/Huỷ", icon: "heroicons:x-circle", ringClassName: "bg-rose-50 text-rose-700 ring-1 ring-rose-500/20" };
-  }
-  return { state: "unassigned", label: "Chưa giao", icon: "heroicons:information-circle", ringClassName: "bg-slate-100 text-slate-600 ring-1 ring-slate-500/10" };
 }
 
 export default function ProviderTourApprovals({ providerType }: ProviderTourApprovalsProps) {
@@ -58,6 +43,15 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
   useEffect(() => {
     void fetchAssignments();
   }, [fetchAssignments]);
+
+  const flatCards = useMemo(() => {
+    return instances.flatMap((instance) =>
+      (instance.assignedActivities ?? []).map((activity) => ({
+        instance,
+        activity,
+      }))
+    );
+  }, [instances]);
 
   return (
     <>
@@ -90,28 +84,30 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
               <div key={i} className="h-40 w-full skeleton rounded-3xl"></div>
             ))}
           </div>
-        ) : instances.length === 0 ? (
+        ) : flatCards.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50/50 py-24 text-center">
              <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-900/5">
                 <Icon icon="heroicons:inbox" className="size-10 text-slate-400" />
              </div>
             <h3 className="text-xl font-bold text-slate-900">Không có yêu cầu nào</h3>
             <p className="mt-2 text-base text-slate-500 max-w-md">
-              Hiện tại bạn chưa được chỉ định vào đợt tour nào với trạng thái này.
+              Hiện tại bạn chưa được chỉ định vào hoạt động nào với trạng thái này.
             </p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {instances.map((instance) => {
-              const startDate = dayjs(instance.startDate).format("DD/MM/YYYY");
-              const endDate = dayjs(instance.endDate).format("DD/MM/YYYY");
-              const appearance = providerType === "hotel"
-                ? getHotelApprovalAppearance(instance.status)
-                : getInstanceApprovalAppearance(instance.transportApprovalStatus);
+            {flatCards.map(({ instance, activity }) => {
+              const dateLabel = dayjs(activity.actualDate).format("DD/MM/YYYY");
+              
+              const appearance = typeof activity.approvalStatus === "number"
+                ? getInstanceApprovalAppearance(activity.approvalStatus)
+                : getApprovalAppearance(String(activity.approvalStatus));
+
+              const isHotel = activity.activityType.toLowerCase() === "accommodation";
 
               return (
                 <div 
-                  key={instance.id} 
+                  key={`${instance.id}-${activity.activityId}`} 
                   onClick={() => {
                     if (providerType === "transport") {
                       void router.push(`/transport/tour-approvals/${instance.id}`);
@@ -127,30 +123,46 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                           {instance.tourCode}
                        </span>
                        <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${appearance.ringClassName}`}>
-                         <Icon icon={appearance.icon} className="size-3.5" />
-                         {appearance.label}
+                          <Icon icon={appearance.icon} className="size-3.5" />
+                          {t(`tourInstance.approvals.${appearance.state}`, appearance.label)}
                        </div>
                     </div>
                     
                     <h3 className="mb-2 text-lg font-bold leading-snug text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
                       {instance.title}
                     </h3>
-                    
-                    <div className="flex items-center gap-2 mt-4 text-sm font-medium text-slate-500">
-                      <div className="flex size-8 items-center justify-center rounded-full bg-slate-50 text-slate-600">
-                         <Icon icon="heroicons:calendar" className="size-4.5" />
-                      </div>
-                      {startDate} - {endDate}
-                    </div>
 
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-1.5 text-sm font-medium text-slate-700">
-                        <Icon icon="heroicons:user-group" className="size-4 text-slate-400" />
-                        {instance.currentParticipation}/{instance.maxParticipation} khách
+                    {/* Activity details */}
+                    <div className="mt-4 flex flex-col gap-2 rounded-2xl bg-slate-50/50 p-4 border border-slate-100">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-400 uppercase tracking-wider">
+                          {t("tourInstance.approvals.day", { day: activity.dayNumber })} • {dateLabel}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          isHotel ? "bg-emerald-50 text-emerald-700 border border-emerald-500/10" : "bg-blue-50 text-blue-700 border border-blue-500/10"
+                        }`}>
+                          <Icon icon={isHotel ? "heroicons:home" : "heroicons:truck"} className="size-3" />
+                          {isHotel ? t("tourInstance.approvals.accommodation") : t("tourInstance.approvals.transport")}
+                        </span>
                       </div>
-                      <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-1.5 text-sm font-medium text-slate-700">
-                        <Icon icon="heroicons:currency-dollar" className="size-4 text-slate-400" />
-                        {(instance.assignedRevenue ?? instance.basePrice).toLocaleString("vi-VN")} đ
+                      
+                      <div className="mt-1 text-sm font-semibold text-slate-700 line-clamp-1">
+                        {activity.supplierName}
+                      </div>
+
+                      <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
+                        <Icon icon={isHotel ? "heroicons:key" : "heroicons:identification"} className="size-4 text-slate-400" />
+                        {isHotel && activity.accommodation ? (
+                          <span>
+                            {activity.accommodation.roomType || "Chưa xác định"} • {activity.accommodation.quantity} phòng
+                          </span>
+                        ) : !isHotel && activity.transport ? (
+                          <span>
+                            {activity.transport.vehicleType || "Chưa xác định"} ({activity.transport.seatCount} chỗ)
+                          </span>
+                        ) : (
+                          <span>Chưa có thông tin dịch vụ</span>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -54,4 +54,6 @@ public interface ITourInstanceRepository
     Task<List<TourInstanceEntity>> ListPrivateInstancesPendingTopUpPastDeadlineAsync(
         DateTimeOffset nowUtc,
         CancellationToken cancellationToken = default);
+
+    Task<TourInstanceEntity?> FindByIdForRejectNotification(Guid id, CancellationToken cancellationToken = default);
 }

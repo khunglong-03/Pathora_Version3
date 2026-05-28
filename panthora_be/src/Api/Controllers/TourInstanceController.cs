@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers;
 
@@ -186,6 +187,7 @@ public class TourInstanceController : BaseApiController
     }
 
     [Authorize(Policy = "TourGuideOnly")]
+    [EnableRateLimiting("GuideManifestPolicy")]
     [HttpGet("{tourInstanceId:guid}/manifest")]
     public async Task<IActionResult> GetManifest(Guid tourInstanceId)
     {

@@ -1409,42 +1409,58 @@ public class TourInstanceService(
                     if (fullInstance is null) return;
 
                     var requestedTransportActivityIds = transportationActivityIds?.ToHashSet();
-                    var transportActivities = fullInstance.InstanceDays
-                        .Where(d => !d.IsDeleted)
-                        .SelectMany(d => d.Activities)
-                        .Where(a => a.ActivityType == TourDayActivityType.Transportation
-                                 && a.TransportSupplierId.HasValue
-                                 && ownerSupplierIds.Contains(a.TransportSupplierId.Value)
-                                 && (requestedTransportActivityIds is null || requestedTransportActivityIds.Contains(a.Id)))
-                        .ToList();
+                    var rejectedActivities = new List<Domain.Events.RejectedActivityInfo>();
+                    int index = 0;
 
-                    for (int i = 0; i < transportActivities.Count; i++)
+                    foreach (var day in fullInstance.InstanceDays)
                     {
-                        var act = transportActivities[i];
-                        if (isApproved)
-                        {
-                            if (!act.HasCompleteVehicleAndDriverAssignment())
-                            {
-                                throw new BulkApproveValidationException(
-                                    "TourInstance.BulkApproveFailed",
-                                    $"Activity '{act.Title}' (#{i}) chưa được gán xe/tài xế. Hãy gán trước khi duyệt.");
-                            }
+                        if (day.IsDeleted) continue;
 
-                            if (act.TransportAssignments.Count > 0)
-                            {
-                                var first = act.TransportAssignments.OrderBy(x => x.Id).First();
-                                act.ApproveTransportation(first.VehicleId, first.DriverId, note);
-                            }
-                            else
-                            {
-                                act.ApproveTransportation(act.VehicleId!.Value, act.DriverId, note);
-                            }
-                        }
-                        else
+                        foreach (var act in day.Activities)
                         {
-                            act.RejectTransportation(note);
+                            if (act.ActivityType == TourDayActivityType.Transportation
+                                && act.TransportSupplierId.HasValue
+                                && ownerSupplierIds.Contains(act.TransportSupplierId.Value)
+                                && (requestedTransportActivityIds is null || requestedTransportActivityIds.Contains(act.Id)))
+                            {
+                                if (isApproved)
+                                {
+                                    if (!act.HasCompleteVehicleAndDriverAssignment())
+                                    {
+                                        throw new BulkApproveValidationException(
+                                            "TourInstance.BulkApproveFailed",
+                                            $"Activity '{act.Title}' (#{index}) chưa được gán xe/tài xế. Hãy gán trước khi duyệt.");
+                                    }
+
+                                    if (act.TransportAssignments.Count > 0)
+                                    {
+                                        var first = act.TransportAssignments.OrderBy(x => x.Id).First();
+                                        act.ApproveTransportation(first.VehicleId, first.DriverId, note);
+                                    }
+                                    else
+                                    {
+                                        act.ApproveTransportation(act.VehicleId!.Value, act.DriverId, note);
+                                    }
+                                }
+                                else
+                                {
+                                    var alreadyAtTarget = act.TransportationApprovalStatus == ProviderApprovalStatus.Rejected;
+                                    if (!alreadyAtTarget)
+                                    {
+                                        act.RejectTransportation(note);
+                                        rejectedActivities.Add(new Domain.Events.RejectedActivityInfo(act.Id, day.InstanceDayNumber, act.Title));
+                                    }
+                                }
+                                index++;
+                            }
                         }
                     }
+
+                    if (rejectedActivities.Count > 0)
+                    {
+                        fullInstance.RaiseProviderRejectedEvent(supplier.Id, supplier.Name, "Transport", note, rejectedActivities);
+                    }
+
                     fullInstance.CheckAndActivateTourInstance();
                     instance = fullInstance;
                 });
@@ -1472,6 +1488,8 @@ public class TourInstanceService(
                         .Distinct()
                         .ToList();
 
+                    var rejectedActivities = new List<Domain.Events.RejectedActivityInfo>();
+
                     foreach (var day in fullInst.InstanceDays)
                     {
                         foreach (var act in day.Activities)
@@ -1489,6 +1507,10 @@ public class TourInstanceService(
                                 if (!alreadyAtTarget)
                                 {
                                     act.Accommodation.ApproveBySupplier(isApproved, note);
+                                    if (!isApproved)
+                                    {
+                                        rejectedActivities.Add(new Domain.Events.RejectedActivityInfo(act.Id, day.InstanceDayNumber, act.Title));
+                                    }
                                 }
 
                                 if (isApproved)
@@ -1524,6 +1546,12 @@ public class TourInstanceService(
                             }
                         }
                     }
+
+                    if (rejectedActivities.Count > 0)
+                    {
+                        fullInst.RaiseProviderRejectedEvent(supplier.Id, supplier.Name, "Hotel", note, rejectedActivities);
+                    }
+
                     fullInst.CheckAndActivateTourInstance();
                     instance = fullInst;
                     notificationProviderName = BuildHotelApprovalNotificationLabel(ownerSuppliers, approvedSupplierIds);
@@ -1584,18 +1612,97 @@ public class TourInstanceService(
         }
 
         var supplierIds = suppliers.Select(s => s.Id).ToList();
+        var supplierIdSet = new HashSet<Guid>(supplierIds);
 
         var entities = await _tourInstanceRepository.FindProviderAssigned(supplierIds, pageNumber, pageSize, approvalStatus, cancellationToken);
         var total = await _tourInstanceRepository.CountProviderAssigned(supplierIds, approvalStatus, cancellationToken);
 
-        var vms = entities.Select(e =>
+        var vms = new List<TourInstanceVm>();
+        foreach (var e in entities)
         {
             var vm = _mapper.Map<TourInstanceVm>(e);
-            var supplierIdSet = new HashSet<Guid>(supplierIds);
             var rollup = ComputeTransportApprovalRollup(e, supplierIdSet);
             var assignedRevenue = ComputeAssignedRevenue(e, supplierIdSet);
-            return vm with { TransportApprovalStatus = rollup, AssignedRevenue = assignedRevenue };
-        }).ToList();
+
+            var activities = new List<AssignedActivityVm>();
+            var sortedDays = e.InstanceDays.Where(d => !d.IsDeleted).OrderBy(d => d.InstanceDayNumber).ToList();
+
+            foreach (var d in sortedDays)
+            {
+                var sortedActivities = d.Activities.OrderBy(a => a.Order).ToList();
+                foreach (var a in sortedActivities)
+                {
+                    // Check Accommodation
+                    if (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && supplierIdSet.Contains(a.Accommodation.SupplierId.Value))
+                    {
+                        var status = a.Accommodation.SupplierApprovalStatus;
+                        if (!approvalStatus.HasValue || status == approvalStatus.Value)
+                        {
+                            activities.Add(new AssignedActivityVm(
+                                a.Id,
+                                d.Id,
+                                d.InstanceDayNumber,
+                                new DateTimeOffset(d.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+                                a.ActivityType,
+                                a.Accommodation.SupplierId.Value,
+                                a.Accommodation.Supplier?.Name ?? "Accommodation Supplier",
+                                status,
+                                a.Accommodation.SupplierApprovalNote,
+                                new AccommodationSnapshot(
+                                    a.Accommodation.RoomType,
+                                    a.Accommodation.Quantity,
+                                    a.Accommodation.CheckInTime,
+                                    a.Accommodation.CheckOutTime
+                                ),
+                                null
+                            ));
+                        }
+                    }
+
+                    // Check Transport
+                    if (a.TransportSupplierId.HasValue && supplierIdSet.Contains(a.TransportSupplierId.Value))
+                    {
+                        var status = a.TransportationApprovalStatus;
+                        if (!approvalStatus.HasValue || status == approvalStatus.Value)
+                        {
+                            activities.Add(new AssignedActivityVm(
+                                a.Id,
+                                d.Id,
+                                d.InstanceDayNumber,
+                                new DateTimeOffset(d.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+                                a.ActivityType,
+                                a.TransportSupplierId.Value,
+                                a.TransportSupplier?.Name ?? "Transport Supplier",
+                                status,
+                                a.TransportationApprovalNote,
+                                null,
+                                new TransportSnapshot(
+                                    a.RequestedVehicleType,
+                                    a.RequestedSeatCount ?? 0,
+                                    a.RequestedVehicleCount,
+                                    a.FromLocation?.LocationName,
+                                    a.ToLocation?.LocationName
+                                )
+                            ));
+                        }
+                    }
+                }
+            }
+
+            // Sort AssignedActivities according to (DayNumber ASC, ActivityType ASC)
+            activities = activities
+                .OrderBy(act => act.DayNumber)
+                .ThenBy(act => act.ActivityType)
+                .ToList();
+
+            if (approvalStatus.HasValue && activities.Count == 0)
+            {
+                continue;
+            }
+
+            vms.Add(vm with { AssignedActivities = activities, TransportApprovalStatus = rollup, AssignedRevenue = assignedRevenue });
+        }
+
         return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);
     }
 

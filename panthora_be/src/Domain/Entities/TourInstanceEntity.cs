@@ -2,6 +2,8 @@ namespace Domain.Entities;
 
 using Domain.Entities.Translations;
 using Domain.Enums;
+using Domain.Events;
+using System.Collections.Generic;
 
 /// <summary>
 /// Một đợt/kỳ chạy cụ thể của một tour. TourInstance đại diện cho một lịch trình tour
@@ -567,5 +569,25 @@ public class TourInstanceEntity : Aggregate<Guid>
         Status = TourInstanceStatus.Confirmed;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Phát sự kiện khi nhà cung cấp từ chối duyệt các hoạt động trong TourInstance.
+    /// </summary>
+    public void RaiseProviderRejectedEvent(
+        Guid supplierId,
+        string supplierName,
+        string providerType,
+        string? note,
+        IReadOnlyList<RejectedActivityInfo> rejectedActivities)
+    {
+        AddDomainEvent(new ProviderRejectedTourInstanceEvent(
+            Id,
+            supplierId,
+            supplierName,
+            providerType,
+            note,
+            rejectedActivities
+        ));
     }
 }

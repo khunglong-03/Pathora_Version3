@@ -127,6 +127,17 @@ public static class DependencyInjection
                         QueueLimit = 0
                     }));
 
+            options.AddPolicy("GuideManifestPolicy", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    context.User.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 30,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 5
+                    }));
+
+
             options.OnRejected = async (context, cancellationToken) =>
             {
                 if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
