@@ -43,6 +43,7 @@ import PublicTourBookingAssignmentPanel from "./PublicTourBookingAssignmentPanel
 import type { BookingTicketEntry } from "./ExternalTicketAssignmentPanel";
 import PublicTourBookingTable from "./PublicTourBookingTable";
 import { restorePublicTourReturnFocus } from "@/utils/publicTourRouteFocus";
+import TourGuideTasksManagementSection from "./TourGuideTasksManagementSection";
 
 
 type EditForm = {
@@ -310,6 +311,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
   const [reloadToken, setReloadToken] = useState(0);
   const [allUsers, setAllUsers] = useState<UserInfo[]>([]);
   const [showCreatedBanner, setShowCreatedBanner] = useState(false);
+  const [activeTab, setActiveTab] = useState<"general" | "tasks">("general");
   const [addingDay, setAddingDay] = useState(false);
   const [newDayForm, setNewDayForm] = useState({
     title: "",
@@ -1202,8 +1204,36 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
 
         {!isEditing ? (
           <>
-            {/* STATS SECTION */}
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Tabs Navigation */}
+            <div className="flex gap-2 border-b border-stone-200/80 mt-2 mb-6 overflow-x-auto no-scrollbar scroll-smooth snap-x">
+              <button
+                type="button"
+                onClick={() => setActiveTab("general")}
+                className={cn(
+                  "relative flex items-center gap-2 px-4 py-3 text-sm font-bold whitespace-nowrap transition-colors duration-200 snap-center border-b-2",
+                  activeTab === "general" ? "text-stone-900 border-orange-500" : "text-stone-400 border-transparent hover:text-stone-600"
+                )}
+              >
+                <Icon icon="heroicons:clipboard-document-list" className={cn("size-4", activeTab === "general" ? "text-orange-500" : "")} />
+                <span>{t("tourInstance.tabs.general", "Tổng quan vận hành")}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("tasks")}
+                className={cn(
+                  "relative flex items-center gap-2 px-4 py-3 text-sm font-bold whitespace-nowrap transition-colors duration-200 snap-center border-b-2",
+                  activeTab === "tasks" ? "text-stone-900 border-orange-500" : "text-stone-400 border-transparent hover:text-stone-600"
+                )}
+              >
+                <Icon icon="heroicons:check-badge" className={cn("size-4", activeTab === "tasks" ? "text-orange-500" : "")} />
+                <span>{t("tourInstance.tabs.tasks", "Nhiệm vụ Hướng dẫn viên")}</span>
+              </button>
+            </div>
+
+            {activeTab === "general" ? (
+              <>
+                {/* STATS SECTION */}
+                <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard label={t("tourInstance.participants", "Participants")} value={`${data.currentParticipation} / ${data.maxParticipation}`}>
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-stone-100">
                   <div className="h-full bg-orange-500" style={{ width: `${Math.min(100, Math.round((data.currentParticipation / Math.max(data.maxParticipation, 1)) * 100))}%` }} />
@@ -2227,6 +2257,14 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                 </div>
               );
             })()}
+              </>
+            ) : (
+              <TourGuideTasksManagementSection
+                tourInstanceId={data.id}
+                managers={data.managers ?? []}
+                readOnly={readOnly}
+              />
+            )}
           </>
         ) : (
           <form className="mt-8 space-y-8" onSubmit={handleSaveEdit}>

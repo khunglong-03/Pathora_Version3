@@ -23,6 +23,11 @@ export interface TourInstanceEndpoints {
   GET_MY_ASSIGNMENTS: string;
   GET_MY_ASSIGNMENT_DETAIL: EndpointWithId;
   GET_MANIFEST: EndpointWithId;
+  GET_GUIDE_TASKS: EndpointWithId;
+  CREATE_GUIDE_TASK: string;
+  UPDATE_GUIDE_TASK: EndpointWithId;
+  DELETE_GUIDE_TASK: EndpointWithId;
+  UPDATE_GUIDE_TASK_STATUS: EndpointWithId;
   GET_STATS: string;
   GET_PRICING_TIERS: EndpointWithId;
   CREATE: string;
@@ -109,6 +114,11 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
   GET_MY_ASSIGNMENTS: "/api/tour-instance/my-assignments",
   GET_MY_ASSIGNMENT_DETAIL: (id: string): string => `/api/tour-instance/my-assignments/${id}`,
   GET_MANIFEST: (id: string): string => `/api/tour-instance/${id}/manifest`,
+  GET_GUIDE_TASKS: (tourInstanceId: string): string => `/api/tour-instances/${tourInstanceId}/guide-tasks`,
+  CREATE_GUIDE_TASK: "/api/tour-guide-tasks",
+  UPDATE_GUIDE_TASK: (id: string): string => `/api/tour-guide-tasks/${id}`,
+  DELETE_GUIDE_TASK: (id: string): string => `/api/tour-guide-tasks/${id}`,
+  UPDATE_GUIDE_TASK_STATUS: (id: string): string => `/api/tour-guide-tasks/${id}/status`,
   GET_STATS: "/api/tour-instance/stats",
   GET_PRICING_TIERS: (id: string): string => `/api/tour-instance/${id}/pricing-tiers`,
   CREATE: "/api/tour-instance",

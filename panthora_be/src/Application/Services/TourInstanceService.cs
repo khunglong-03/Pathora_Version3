@@ -79,9 +79,11 @@ public class TourInstanceService(
     Domain.Common.Repositories.IBookingCancellationRequestRepository? bookingCancellationRequestRepository = null,
     Domain.Common.Repositories.ITaxConfigRepository? taxConfigRepository = null,
     Domain.Common.Repositories.IPricingPolicyRepository? pricingPolicyRepository = null,
-    Application.Common.Pricing.IBookingPriceCalculator? priceCalculator = null) : ITourInstanceService
+    Application.Common.Pricing.IBookingPriceCalculator? priceCalculator = null,
+    ITourGuideTaskRepository? tourGuideTaskRepository = null) : ITourInstanceService
 {
     private readonly ITourInstanceRepository _tourInstanceRepository = tourInstanceRepository;
+    private readonly ITourGuideTaskRepository? _tourGuideTaskRepository = tourGuideTaskRepository;
     private readonly ITourRepository _tourRepository = tourRepository;
     private readonly ITourRequestRepository _tourRequestRepository = tourRequestRepository;
     private readonly ISupplierRepository _supplierRepository = supplierRepository;
@@ -1114,6 +1116,19 @@ public class TourInstanceService(
         var entity = await _tourInstanceRepository.FindById(id);
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        if (newStatus == TourInstanceStatus.Completed)
+        {
+            var taskRepo = _tourGuideTaskRepository ?? _serviceProvider?.GetService<ITourGuideTaskRepository>();
+            if (taskRepo is not null)
+            {
+                var tasks = await taskRepo.GetByTourInstanceIdAsync(id, cancellationToken);
+                if (tasks.Any(t => t.IsMandatory && t.Status != TourGuideTaskStatus.Completed))
+                {
+                    return Error.Validation("TourInstance.UncompletedMandatoryTasks", "Không thể hoàn thành tour vì vẫn còn nhiệm vụ bắt buộc chưa hoàn thành.");
+                }
+            }
+        }
 
         // ER-Security: If the user is a TourGuide (and not an Admin/Manager/TourOperator), they can only start/complete their assigned instances.
         if (_user.Roles.Contains("TourGuide") && !_user.Roles.Contains("Admin") && !_user.Roles.Contains("Manager") && !_user.Roles.Contains("TourOperator"))

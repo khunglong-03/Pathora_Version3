@@ -9,6 +9,8 @@ import { bookingService } from "@/api/services/bookingService";
 import type { NormalizedTourInstanceDto } from "@/types/tour";
 import { isQualifiedBooking } from "@/features/tour-operator/utils/fulfillmentHelpers";
 import { featureFlags } from "@/configs/featureFlags";
+import TourGuideTasksPortalSection from "@/features/dashboard/components/TourGuideTasksPortalSection";
+import { cn } from "@/lib/cn";
 import { 
   CheckCircleIcon, 
   WarningCircleIcon, 
@@ -33,6 +35,7 @@ export default function TourOperationDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState<"itinerary" | "tasks">("itinerary");
 
   useEffect(() => {
     let isMounted = true;
@@ -277,9 +280,31 @@ export default function TourOperationDetailPage() {
           </div>
         </div>
 
-        {/* Itinerary Timeline */}
-        <div className="space-y-6">
-          {instance.days?.map((day, dayIndex) => {
+        {/* Tabs Switcher */}
+        <div className="flex border-b border-slate-200 gap-1 bg-white p-1 rounded-xl shadow-sm border mb-6">
+          <button
+            onClick={() => setActiveTab("itinerary")}
+            className={cn(
+              "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center",
+              activeTab === "itinerary" ? "bg-slate-100 text-slate-900 font-extrabold" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            Lịch trình hoạt động
+          </button>
+          <button
+            onClick={() => setActiveTab("tasks")}
+            className={cn(
+              "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center",
+              activeTab === "tasks" ? "bg-slate-100 text-slate-900 font-extrabold" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            Nhiệm vụ vận hành
+          </button>
+        </div>
+
+        {activeTab === "itinerary" ? (
+          <div className="space-y-6">
+            {instance.days?.map((day, dayIndex) => {
             const dayDate = new Date(day.actualDate);
             dayDate.setHours(0, 0, 0, 0);
             
@@ -434,7 +459,10 @@ export default function TourOperationDetailPage() {
               </div>
             );
           })}
-        </div>
+          </div>
+        ) : (
+          <TourGuideTasksPortalSection tourInstanceId={instance.id} />
+        )}
       </div>
     </div>
   );

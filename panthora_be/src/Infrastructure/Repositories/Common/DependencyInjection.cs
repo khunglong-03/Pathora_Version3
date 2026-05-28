@@ -88,6 +88,7 @@ internal static class DependencyInjection
         services.AddScoped<ITicketImageRepository, TicketImageRepository>();
         services.AddScoped<ITourInstanceBookingTicketRepository, TourInstanceBookingTicketRepository>();
         services.AddScoped<ITourInstanceBookingRoomAssignmentRepository, TourInstanceBookingRoomAssignmentRepository>();
+        services.AddScoped<ITourGuideTaskRepository, TourGuideTaskRepository>();
 
         services.AddScoped<IBookingCancellationRequestRepository, BookingCancellationRequestRepository>();
 
