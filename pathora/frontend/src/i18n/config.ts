@@ -71,6 +71,8 @@ const handleLanguageChanged = (language: string) => {
   syncHtmlLanguage(normalizedLanguage);
   if (typeof window !== "undefined") {
     localStorage.setItem("i18nextLng", normalizedLanguage);
+    // Write cookie for Next.js middleware & SSR sync
+    document.cookie = `i18next=${normalizedLanguage}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
   }
 };
 

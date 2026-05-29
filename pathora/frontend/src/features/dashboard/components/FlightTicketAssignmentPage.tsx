@@ -352,16 +352,18 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, bookin
             >
               {/* Activity header */}
               <div className="px-6 py-4 border-b border-stone-100 flex items-center gap-3">
-                <span className="text-xl">
-                  {activity.transportType === "Flight"
-                    ? "✈️"
-                    : activity.transportType === "Boat"
-                    ? "🚢"
-                    : activity.transportType === "Train"
-                    ? "🚄"
-                    : activity.transportType === "Car"
-                    ? "🚗"
-                    : "🚌"}
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-stone-100 shrink-0">
+                  {activity.transportType === "Flight" ? (
+                    <Icon icon="AirplaneTilt" className="size-5 text-sky-500" />
+                  ) : activity.transportType === "Boat" ? (
+                    <Icon icon="Boat" className="size-5 text-indigo-500" />
+                  ) : activity.transportType === "Train" ? (
+                    <Icon icon="Train" className="size-5 text-amber-500" />
+                  ) : activity.transportType === "Car" ? (
+                    <Icon icon="Car" className="size-5 text-emerald-500" />
+                  ) : (
+                    <Icon icon="Bus" className="size-5 text-purple-500" />
+                  )}
                 </span>
                 <div className="min-w-0">
                   <p className="font-semibold text-stone-900 text-sm truncate">

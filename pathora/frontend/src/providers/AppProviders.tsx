@@ -25,7 +25,8 @@ export default function AppProviders({
   useEffect(() => {
     // 1. Sync language after component mounts to avoid hydration mismatch
     const match = document.cookie.match(/i18next=([^;]+)/);
-    const savedLang = match ? match[1].toLowerCase().split("-")[0] : null;
+    const savedLang = (match ? match[1].toLowerCase().split("-")[0] : null) || 
+      (typeof window !== "undefined" ? localStorage.getItem("i18nextLng") : null);
     if (savedLang && ["en", "vi"].includes(savedLang) && i18n.language !== savedLang) {
       i18n.changeLanguage(savedLang);
     }

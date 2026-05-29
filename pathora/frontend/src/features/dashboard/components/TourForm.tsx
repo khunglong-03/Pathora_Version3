@@ -1631,38 +1631,40 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                   {t("tourAdmin.tourScope.label")}
                 </label>
-                <select
+                <SearchableSelect
                   value={basicInfo.tourScope}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setBasicInfo((prev) => ({
                       ...prev,
-                      tourScope: e.target.value,
-                      continent: e.target.value === "1" ? "" : prev.continent,
-                      isVisa: e.target.value === "1" ? false : prev.isVisa,
+                      tourScope: val,
+                      continent: val === "1" ? "" : prev.continent,
+                      isVisa: val === "1" ? false : prev.isVisa,
                     }))
                   }
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                >
-                  <option value="1">{t("tourAdmin.tourScope.domestic")}</option>
-                  <option value="2">{t("tourAdmin.tourScope.international")}</option>
-                </select>
+                  options={[
+                    { value: "1", label: t("tourAdmin.tourScope.domestic", "Trong nước") },
+                    { value: "2", label: t("tourAdmin.tourScope.international", "Quốc tế") },
+                  ]}
+                  placeholder={t("tourAdmin.tourScope.select", "Select Scope...")}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                   {t("tourAdmin.customerSegment.label")}
                 </label>
-                <select
+                <SearchableSelect
                   value={basicInfo.customerSegment}
-                  onChange={(e) =>
-                    setBasicInfo((prev) => ({ ...prev, customerSegment: e.target.value }))
+                  onChange={(val) =>
+                    setBasicInfo((prev) => ({ ...prev, customerSegment: val }))
                   }
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                >
-                  <option value="1">{t("tourAdmin.customerSegment.individual")}</option>
-                  <option value="2">{t("tourAdmin.customerSegment.group")}</option>
-                  <option value="3">{t("tourAdmin.customerSegment.family")}</option>
-                  <option value="4">{t("tourAdmin.customerSegment.corporate")}</option>
-                </select>
+                  options={[
+                    { value: "1", label: t("tourAdmin.customerSegment.individual", "Cá nhân") },
+                    { value: "2", label: t("tourAdmin.customerSegment.group", "Nhóm") },
+                    { value: "3", label: t("tourAdmin.customerSegment.family", "Gia đình") },
+                    { value: "4", label: t("tourAdmin.customerSegment.corporate", "Doanh nghiệp") },
+                  ]}
+                  placeholder={t("tourAdmin.customerSegment.select", "Select Segment...")}
+                />
               </div>
             </div>
 
@@ -1672,21 +1674,21 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                   {t("tourAdmin.continent.label")}
                 </label>
-                <select
+                <SearchableSelect
                   value={basicInfo.continent}
-                  onChange={(e) =>
-                    setBasicInfo((prev) => ({ ...prev, continent: e.target.value }))
+                  onChange={(val) =>
+                    setBasicInfo((prev) => ({ ...prev, continent: val }))
                   }
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                >
-                  <option value="">{t("tourAdmin.continent.placeholder", "-- Chọn châu lục --")}</option>
-                  <option value="1">{t("tourAdmin.continent.asia")}</option>
-                  <option value="2">{t("tourAdmin.continent.europe")}</option>
-                  <option value="3">{t("tourAdmin.continent.africa")}</option>
-                  <option value="4">{t("tourAdmin.continent.americas")}</option>
-                  <option value="5">{t("tourAdmin.continent.oceania")}</option>
-                  <option value="6">{t("tourAdmin.continent.antarctica")}</option>
-                </select>
+                  options={[
+                    { value: "1", label: t("tourAdmin.continent.asia", "Châu Á") },
+                    { value: "2", label: t("tourAdmin.continent.europe", "Châu Âu") },
+                    { value: "3", label: t("tourAdmin.continent.africa", "Châu Phi") },
+                    { value: "4", label: t("tourAdmin.continent.americas", "Châu Mỹ") },
+                    { value: "5", label: t("tourAdmin.continent.oceania", "Châu Đại Dương") },
+                    { value: "6", label: t("tourAdmin.continent.antarctica", "Châu Nam Cực") },
+                  ]}
+                  placeholder={t("tourAdmin.continent.placeholder", "-- Chọn châu lục --")}
+                />
                 <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50/70 px-3 py-2.5 dark:border-orange-500/30 dark:bg-orange-500/10">
                   <Checkbox
                     id="tour-is-visa"

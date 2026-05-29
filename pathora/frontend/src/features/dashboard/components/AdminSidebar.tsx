@@ -33,6 +33,7 @@ import {
   HouseIcon,
   PlusIcon,
   HandCoinsIcon,
+  LockIcon,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { transportProviderService } from "@/api/services/transportProviderService";
@@ -686,9 +687,10 @@ export function AdminSidebar({
 
                 {/* ── Tour Công Cộng section ─────────────────── */}
                 <div
-                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase"
+                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase flex items-center gap-1.5"
                   style={{ color: "#9CA3AF" }}>
-                  🌐 Tour Công Cộng
+                  <GlobeHemisphereWestIcon size={12} weight="bold" />
+                  <span>Tour Công Cộng</span>
                 </div>
                 {TOUROPERATOR_PUBLIC_NAV_ITEMS.map((item) => {
                   const active = isActive(item.href);
@@ -737,9 +739,10 @@ export function AdminSidebar({
 
                 {/* ── Tour Riêng Tư section ──────────────────── */}
                 <div
-                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase"
+                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase flex items-center gap-1.5"
                   style={{ color: "#9CA3AF" }}>
-                  🔒 Tour Riêng Tư
+                  <LockIcon size={12} weight="bold" />
+                  <span>Tour Riêng Tư</span>
                 </div>
                 {TOUROPERATOR_PRIVATE_NAV_ITEMS.map((item) => {
                   const active = isActive(item.href);

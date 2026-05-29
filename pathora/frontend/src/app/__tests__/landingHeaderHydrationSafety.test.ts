@@ -44,11 +44,10 @@ describe("landing header hydration safety", () => {
     const source = readFile("src/features/shared/components/LandingHeader.tsx");
 
     const iconPatterns = [
-      /<FiSliders[\s\S]*?suppressHydrationWarning/,
-      /<FiGlobe[\s\S]*?suppressHydrationWarning/,
+      /<Globe[\s\S]*?suppressHydrationWarning/,
       /<FiChevronDown[\s\S]*?suppressHydrationWarning/,
-      /<FiMenu[\s\S]*?suppressHydrationWarning/,
       /<FiX[\s\S]*?suppressHydrationWarning/,
+      /<FiAlignRight[\s\S]*?suppressHydrationWarning/,
     ];
 
     iconPatterns.forEach((pattern) => {
