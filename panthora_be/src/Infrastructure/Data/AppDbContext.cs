@@ -132,6 +132,7 @@ public class AppDbContext(
     public DbSet<WithdrawalRequestEntity> WithdrawalRequests => Set<WithdrawalRequestEntity>();
     public DbSet<TourInstanceBookingTicketEntity> TourInstanceBookingTickets => Set<TourInstanceBookingTicketEntity>();
     public DbSet<TourInstanceBookingRoomAssignmentEntity> TourInstanceBookingRoomAssignments => Set<TourInstanceBookingRoomAssignmentEntity>();
+    public DbSet<TourGuideTaskEntity> TourGuideTasks => Set<TourGuideTaskEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

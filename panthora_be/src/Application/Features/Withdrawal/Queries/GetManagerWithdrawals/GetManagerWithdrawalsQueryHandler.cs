@@ -18,12 +18,12 @@ public sealed class GetManagerWithdrawalsQueryHandler(
         }
 
         var totalCount = await withdrawalRequestRepository.CountByUserIdAsync(userId, request.Status, cancellationToken);
-        
+
         var requests = await withdrawalRequestRepository.GetByUserIdAsync(
-            userId, 
-            request.Status, 
-            request.Page, 
-            request.PageSize, 
+            userId,
+            request.Status,
+            request.Page,
+            request.PageSize,
             cancellationToken);
 
         var items = requests.Select(x => new WithdrawalSummaryDto(

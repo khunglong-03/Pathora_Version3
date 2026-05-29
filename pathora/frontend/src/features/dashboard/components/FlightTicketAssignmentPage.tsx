@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
@@ -44,8 +44,8 @@ interface Props {
   instanceId: string;
   /** URL để back về trang detail */
   backUrl?: string;
-  /** Optional: chỉ hiện 1 booking (per-booking assignment mode) */
-  filterBookingId?: string;
+  /** Chỉ hiện 1 booking (per-booking assignment mode) */
+  bookingId: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -68,10 +68,12 @@ const resolveTransportType = (raw?: string | null): "Flight" | "Train" | "Boat" 
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function FlightTicketAssignmentPage({ instanceId, backUrl, filterBookingId }: Props) {
+export default function FlightTicketAssignmentPage({ instanceId, backUrl, bookingId }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const activityId = searchParams?.get("activityId") ?? null;
   const resolvedId = instanceId || params?.id || "";
   const headingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -119,15 +121,17 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, filter
         }
       }
 
-      setActivities(externalActivities);
+      const filteredActivities = activityId
+        ? externalActivities.filter((act) => act.activityId === activityId)
+        : externalActivities;
+
+      setActivities(filteredActivities);
       const allBookings = (bookingList ?? []).filter(
         (booking) => booking.status !== "Cancelled",
       );
-      const scopedBookings = filterBookingId
-        ? allBookings.filter((b) => b.id === filterBookingId)
-        : allBookings;
+      const scopedBookings = allBookings.filter((b) => b.id === bookingId);
 
-      if (filterBookingId && scopedBookings.length === 0) {
+      if (scopedBookings.length === 0) {
         setBookings([]);
         setError(
           t(
@@ -150,7 +154,7 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, filter
     } finally {
       setLoading(false);
     }
-  }, [filterBookingId, resolvedId, t]);
+  }, [bookingId, resolvedId, t]);
 
   useEffect(() => {
     void fetchData();
@@ -192,9 +196,7 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, filter
   );
 
   const handleBack = () => {
-    if (filterBookingId) {
-      storePublicTourReturnFocus("flight", filterBookingId);
-    }
+    storePublicTourReturnFocus("flight", bookingId);
     router.push(resolvedBackUrl);
   };
 
@@ -287,16 +289,26 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, filter
               className="mx-auto size-10 text-stone-300"
             />
             <p className="text-base font-semibold text-stone-600">
-              {t(
-                "tourInstance.flight.emptyActivity",
-                "Tour này không có phương tiện cần gán",
-              )}
+              {activityId
+                ? t(
+                    "tourInstance.bookingFlight.activityNotFound",
+                    "Hoạt động không tồn tại hoặc không thuộc booking này.",
+                  )
+                : t(
+                    "tourInstance.flight.emptyActivity",
+                    "Tour này không có phương tiện cần gán",
+                  )}
             </p>
             <p className="text-sm text-stone-400">
-              {t(
-                "tourInstance.bookingFlight.emptyActivityDescription",
-                "Tour này không có hoạt động phương tiện.",
-              )}
+              {activityId
+                ? t(
+                    "tourInstance.bookingFlight.activityNotFoundDescription",
+                    "Vui lòng kiểm tra lại ID hoạt động.",
+                  )
+                : t(
+                    "tourInstance.bookingFlight.emptyActivityDescription",
+                    "Tour này không có hoạt động phương tiện.",
+                  )}
             </p>
             <button
               type="button"
@@ -340,16 +352,18 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, filter
             >
               {/* Activity header */}
               <div className="px-6 py-4 border-b border-stone-100 flex items-center gap-3">
-                <span className="text-xl">
-                  {activity.transportType === "Flight"
-                    ? "✈️"
-                    : activity.transportType === "Boat"
-                    ? "🚢"
-                    : activity.transportType === "Train"
-                    ? "🚄"
-                    : activity.transportType === "Car"
-                    ? "🚗"
-                    : "🚌"}
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-stone-100 shrink-0">
+                  {activity.transportType === "Flight" ? (
+                    <Icon icon="AirplaneTilt" className="size-5 text-sky-500" />
+                  ) : activity.transportType === "Boat" ? (
+                    <Icon icon="Boat" className="size-5 text-indigo-500" />
+                  ) : activity.transportType === "Train" ? (
+                    <Icon icon="Train" className="size-5 text-amber-500" />
+                  ) : activity.transportType === "Car" ? (
+                    <Icon icon="Car" className="size-5 text-emerald-500" />
+                  ) : (
+                    <Icon icon="Bus" className="size-5 text-purple-500" />
+                  )}
                 </span>
                 <div className="min-w-0">
                   <p className="font-semibold text-stone-900 text-sm truncate">

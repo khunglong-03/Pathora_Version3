@@ -4,6 +4,7 @@ import React from "react";
 import { useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import Icon from "@/components/ui/Icon";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 import type { TourFormValues } from "@/schemas/tour-form";
 
 /* ── Types ──────────────────────────────────────────────────── */
@@ -170,41 +171,27 @@ export function TourClassificationsBuilder({
               {/* ── VI Column ── */}
               <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-base">🇻🇳</span>
+                  <span className="inline-flex items-center justify-center size-5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold border border-red-200 shadow-sm leading-none shrink-0">
+                    VI
+                  </span>
                   <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
                     Tiếng Việt
                   </span>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
+                  <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1.5">
                     {t("tourAdmin.packages.packageType")} <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <select
-                      value={findPackageTypeOption(cls.name)?.key ?? ""}
-                      onChange={(e) => onUpdateClassificationPackageTypeVi(clsI, e.target.value)}
-                      className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer ${
-                        errors.classifications?.[clsI]?.name
-                          ? "border-red-400 dark:border-red-500"
-                          : "border-stone-300 dark:border-stone-600"
-                      }`}>
-                      <option value="">{t("tourAdmin.packages.placeholderPackageType")}</option>
-                      {PACKAGE_TYPE_OPTIONS.map((opt) => (
-                        <option key={opt.key} value={opt.key}>{opt.vi}</option>
-                      ))}
-                    </select>
-                    {errors.classifications?.[clsI]?.name && (
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
-                        <Icon icon="heroicons:x-circle" className="size-4" />
-                      </span>
-                    )}
-                  </div>
-                  {errors.classifications?.[clsI]?.name && (
-                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                      <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                      {errors.classifications[clsI].name.message}
-                    </p>
-                  )}
+                  <SearchableSelect
+                    value={findPackageTypeOption(cls.name)?.key ?? ""}
+                    onChange={(val) => onUpdateClassificationPackageTypeVi(clsI, val)}
+                    options={PACKAGE_TYPE_OPTIONS.map((opt) => ({
+                      value: opt.key,
+                      label: opt.vi,
+                    }))}
+                    placeholder={t("tourAdmin.packages.placeholderPackageType")}
+                    error={errors.classifications?.[clsI]?.name?.message}
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
@@ -226,7 +213,9 @@ export function TourClassificationsBuilder({
               {/* ── EN Column ── */}
               <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-base">🇬🇧</span>
+                  <span className="inline-flex items-center justify-center size-5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-bold border border-sky-200 shadow-sm leading-none shrink-0">
+                    EN
+                  </span>
                   <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
                     English
                   </span>
@@ -235,18 +224,18 @@ export function TourClassificationsBuilder({
                   </span>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
+                  <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1.5">
                     {t("tourAdmin.packages.packageType")} / Type
                   </label>
-                  <select
+                  <SearchableSelect
                     value={findPackageTypeOption(cls.enName)?.key ?? ""}
-                    onChange={(e) => onUpdateClassificationPackageTypeEn(clsI, e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer">
-                    <option value="">Select type...</option>
-                    {PACKAGE_TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.key} value={opt.key}>{opt.en}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => onUpdateClassificationPackageTypeEn(clsI, val)}
+                    options={PACKAGE_TYPE_OPTIONS.map((opt) => ({
+                      value: opt.key,
+                      label: opt.en,
+                    }))}
+                    placeholder="Select type..."
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">

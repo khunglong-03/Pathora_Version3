@@ -1503,7 +1503,47 @@
       "refunded": "Đã hoàn tiền",
       "notApplicable": "Không áp dụng"
     },
-    "refundOutstanding": "Số tiền cần hoàn"
+    "refundOutstanding": "Số tiền cần hoàn",
+    "details": {
+      "tabs": {
+        "overview": "Tổng Quan",
+        "itinerary": "Lịch Trình",
+        "ticketsAndStatus": "Vé & Trạng thái"
+      },
+      "tickets": {
+        "title": "Thông Tin Vé Di Chuyển",
+        "flightNumber": "Số hiệu chuyến/vé",
+        "departure": "Khởi hành",
+        "arrival": "Đến",
+        "seat": "Số ghế",
+        "eTicket": "Vé điện tử PNR",
+        "seatClass": "Hạng ghế",
+        "passenger": "Hành khách",
+        "viewTicketImage": "Xem ảnh vé/QR",
+        "noTickets": "Chưa có vé được gán cho hoạt động này.",
+        "download": "Tải xuống",
+        "viewTicket": "Xem vé",
+        "noTicket": "Vé chưa được cập nhật",
+        "summary": "{{confirmed}}/{{total}} ngày đã hoàn thành",
+        "allConfirmed": "Tất cả các ngày đã hoàn thành"
+      },
+      "rooms": {
+        "title": "Thông Tin Phòng Ở",
+        "roomType": "Loại phòng",
+        "roomCount": "Số lượng phòng",
+        "roomNumbers": "Số phòng",
+        "noRooms": "Chưa có phòng khách sạn nào được gán cho hoạt động này."
+      },
+      "timeline": {
+        "day": "Ngày {{day}}",
+        "status": {
+          "notStarted": "Chưa bắt đầu",
+          "inProgress": "Đang diễn ra",
+          "completed": "Đã hoàn thành",
+          "cancelled": "Đã hủy"
+        }
+      }
+    }
   },
   "notification": {
     "title": "Thông báo",
@@ -1656,7 +1696,8 @@
     "required": "Bắt buộc",
     "invalidPrice": "Giá không hợp lệ",
     "visa": {
-      "label": "Yêu cầu Visa"
+      "label": "Yêu cầu Visa",
+      "pendingDestination": "Chờ Manager xác nhận quốc gia đến"
     },
     "validation": {
       "invalidBasePrice": "Giá gốc không hợp lệ",
@@ -2105,6 +2146,14 @@
     }
   },
   "tourInstance": {
+    "approvals": {
+      "accommodation": "Lưu trú",
+      "transport": "Vận chuyển",
+      "day": "Ngày {{day}}",
+      "pending": "Đang chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Đã từ chối"
+    },
     "title": "Lịch Khởi Hành",
     "description": "Quản lý lịch khởi hành tour và theo dõi các chuyến đi",
     "createInstance": "Tạo Lịch Khởi Hành",
@@ -2377,7 +2426,23 @@
       "flightAssigned": "{{count}}/{{total}} đã gán",
       "partialAssigned": "{{assigned}}/{{total}} đã gán",
       "statusLoadPartial": "Một số trạng thái gán dịch vụ chưa tải được.",
-      "statusLoadError": "Không thể tải trạng thái gán dịch vụ."
+      "statusLoadError": "Không thể tải trạng thái gán dịch vụ.",
+      "rowAriaNav": "Xem chi tiết booking {{customerName}}"
+    },
+    "bookingLanding": {
+      "title": "Phân bổ Booking",
+      "headerCustomer": "Khách hàng",
+      "headerParticipants": "Số khách",
+      "headerStatus": "Trạng thái",
+      "headerPayment": "Thanh toán",
+      "headerTotal": "Tổng tiền",
+      "activitiesTitle": "Danh sách dịch vụ cần phân bổ",
+      "activityRowDay": "Ngày {{day}}",
+      "activityRowAccom": "Khách sạn",
+      "activityRowTransport": "Phương tiện",
+      "assignButton": "Gán",
+      "editButton": "Sửa",
+      "empty": "Booking này không có hoạt động nào cần gán."
     },
     "breadcrumb": {
       "label": "Điều hướng",
@@ -3859,6 +3924,8 @@
       "viewMyBookings": "Xem đặt chỗ của tôi",
       "loginToViewBookings": "Đăng nhập để xem booking",
       "guestBookingNote": "Đặt tour không cần tài khoản. Đăng nhập bằng email {{email}} để theo dõi booking.",
+      "enterPassengerDetails": "Nhập thông tin hành khách ngay",
+      "loginToEnterPassengerDetails": "Đăng nhập để nhập thông tin hành khách",
       "statusPending": "Đang chờ",
       "statusProcessing": "Đang xử lý",
       "statusCompleted": "Hoàn tất",
@@ -4041,8 +4108,8 @@
       "guests": "Khách",
       "guest": "Khách",
       "guestsLabel": "Khách",
-      "paxBreakdown": "{adults} người lớn · {children} trẻ em · {infants} trẻ sơ sinh",
-      "totalIncludesTax": "Đã bao gồm VAT {taxRate}%",
+      "paxBreakdown": "{{adults}} người lớn · {{children}} trẻ em · {{infants}} trẻ sơ sinh",
+      "totalIncludesTax": "Đã bao gồm VAT {{taxRate}}%",
       "totalAmount": "Tổng Tiền",
       "remaining": "Còn lại",
       "payRemaining": "Thanh Toán Còn Lại",
@@ -4057,6 +4124,8 @@
       "visaStatus": "Tình Trạng Visa",
       "invoice": "Tải Hóa Đơn",
       "viewDetails": "Xem Chi Tiết",
+      "cancelBooking": "Hủy Đặt Chỗ",
+      "requestCancellation": "Yêu Cầu Hủy Đặt Chỗ",
       "cancelModal": {
         "title": "Xác Nhận Hủy Đơn",
         "unpaidWarning": "Bạn chưa thực hiện thanh toán cho đơn đặt tour này. Thao tác huỷ sẽ được xử lý ngay lập tức.",
@@ -4092,7 +4161,20 @@
       "paymentUnpaid": "Chưa Thanh Toán",
       "methodQRCode": "Mã QR",
       "methodCash": "Tiền Mặt",
-      "methodBankTransfer": "Chuyển Khoản"
+      "methodBankTransfer": "Chuyển Khoản",
+      "guestDetails": "Thông tin hành khách",
+      "adults": "Người lớn",
+      "children": "Trẻ em",
+      "infants": "Em bé",
+      "totalGuests": "Tổng số khách",
+      "missingPassengerDetailsWarning": "Thiếu thông tin hành khách (đã điền {{filled}}/{{total}}). Vui lòng cung cấp thông tin cho tất cả hành khách.",
+      "enterPassengerDetailsBtn": "Nhập thông tin hành khách ngay",
+      "editPassengerDetailsBtn": "Chỉnh sửa thông tin hành khách",
+      "passengerList": "Danh sách hành khách",
+      "noPassengers": "Chưa có thông tin hành khách nào được nhập.",
+      "ageLabelAdult": "Từ 13 tuổi trở lên",
+      "ageLabelChild": "Từ 2-12 tuổi",
+      "ageLabelInfant": "Dưới 2 tuổi"
     }
   },
   "adminSupplierModal": {
@@ -4169,7 +4251,22 @@
     "operations": {
       "title": "Hoạt động",
       "emptyState": "Chưa có tour nào được phân công",
-      "completeTour": "Hoàn thành chuyến đi"
+      "completeTour": "Hoàn thành chuyến đi",
+      "viewManifest": "Danh sách hành khách",
+      "passengerManifest": "Danh sách hành khách",
+      "searchPlaceholder": "Tìm theo tên hành khách hoặc mã booking...",
+      "bookingRef": "Mã đặt tour",
+      "adults": "Người lớn",
+      "children": "Trẻ em",
+      "infants": "Em bé",
+      "fullName": "Họ và tên",
+      "passengerType": "Phân loại",
+      "gender": "Giới tính",
+      "nationality": "Quốc tịch",
+      "dateOfBirth": "Ngày sinh",
+      "noParticipants": "Không tìm thấy hành khách phù hợp.",
+      "accessDenied": "Từ chối truy cập",
+      "notAuthorized": "Bạn không có quyền xem danh sách hành khách của tour này. Quyền truy cập chỉ dành cho hướng dẫn viên được chỉ định, quản lý hoặc quản trị viên."
     },
     "profile": {
       "title": "Tài khoản",

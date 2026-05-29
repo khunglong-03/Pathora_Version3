@@ -20,12 +20,12 @@ public sealed class GetAdminWithdrawalsQueryHandler(
         }
 
         var totalCount = await withdrawalRequestRepository.CountAllAsync(request.Status, request.Search, cancellationToken);
-        
+
         var requests = await withdrawalRequestRepository.GetAllAsync(
-            request.Status, 
-            request.Search, 
-            request.Page, 
-            request.PageSize, 
+            request.Status,
+            request.Search,
+            request.Page,
+            request.PageSize,
             cancellationToken);
 
         var items = requests.Select(x => new AdminWithdrawalSummaryDto(

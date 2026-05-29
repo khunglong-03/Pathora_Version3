@@ -11,7 +11,7 @@ public class PassportEntity : Aggregate<Guid>
     /// <summary>BookingParticipant liên quan.</summary>
     public virtual BookingParticipantEntity BookingParticipant { get; set; } = null!;
     /// <summary>Số passport (số hộ chiếu).</summary>
-    public string PassportNumber { get; set; } = null!;
+    public string? PassportNumber { get; set; }
     /// <summary>Quốc tịch (VD: Vietnam, USA).</summary>
     public string? Nationality { get; set; }
     /// <summary>Ngày cấp passport.</summary>
@@ -23,9 +23,12 @@ public class PassportEntity : Aggregate<Guid>
     /// <summary>Danh sách các đơn xin visa dùng passport này.</summary>
     public virtual List<VisaApplicationEntity> VisaApplications { get; set; } = [];
 
+    /// <summary>Token phiên bản phục vụ cho concurrency control.</summary>
+    public byte[] RowVersion { get; set; } = [];
+
     public static PassportEntity Create(
         Guid bookingParticipantId,
-        string passportNumber,
+        string? passportNumber,
         string performedBy,
         string? nationality = null,
         DateTimeOffset? issuedAt = null,
@@ -51,7 +54,7 @@ public class PassportEntity : Aggregate<Guid>
     }
 
     public void Update(
-        string passportNumber,
+        string? passportNumber,
         string performedBy,
         string? nationality = null,
         DateTimeOffset? issuedAt = null,

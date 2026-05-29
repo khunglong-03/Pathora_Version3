@@ -8,6 +8,9 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { bookingService } from "@/api/services/bookingService";
 import type { NormalizedTourInstanceDto } from "@/types/tour";
 import { isQualifiedBooking } from "@/features/tour-operator/utils/fulfillmentHelpers";
+import { featureFlags } from "@/configs/featureFlags";
+import TourGuideTasksPortalSection from "@/features/dashboard/components/TourGuideTasksPortalSection";
+import { cn } from "@/lib/cn";
 import { 
   CheckCircleIcon, 
   WarningCircleIcon, 
@@ -32,6 +35,7 @@ export default function TourOperationDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState<"itinerary" | "tasks">("itinerary");
 
   useEffect(() => {
     let isMounted = true;
@@ -261,12 +265,46 @@ export default function TourOperationDetailPage() {
                 Chưa có dữ liệu khách tham gia chi tiết từ booking.
               </div>
             )}
+
+            {featureFlags.enableGuideManifest && (
+              <button
+                onClick={() => router.push(`/tour-guide/operations/${instance.id}/manifest`)}
+                className="w-full mt-6 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              >
+                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {t("tourGuide.operations.viewManifest", { defaultValue: "Danh sách hành khách" })}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Itinerary Timeline */}
-        <div className="space-y-6">
-          {instance.days?.map((day, dayIndex) => {
+        {/* Tabs Switcher */}
+        <div className="flex border-b border-slate-200 gap-1 bg-white p-1 rounded-xl shadow-sm border mb-6">
+          <button
+            onClick={() => setActiveTab("itinerary")}
+            className={cn(
+              "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center",
+              activeTab === "itinerary" ? "bg-slate-100 text-slate-900 font-extrabold" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            Lịch trình hoạt động
+          </button>
+          <button
+            onClick={() => setActiveTab("tasks")}
+            className={cn(
+              "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center",
+              activeTab === "tasks" ? "bg-slate-100 text-slate-900 font-extrabold" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            Nhiệm vụ vận hành
+          </button>
+        </div>
+
+        {activeTab === "itinerary" ? (
+          <div className="space-y-6">
+            {instance.days?.map((day, dayIndex) => {
             const dayDate = new Date(day.actualDate);
             dayDate.setHours(0, 0, 0, 0);
             
@@ -421,7 +459,10 @@ export default function TourOperationDetailPage() {
               </div>
             );
           })}
-        </div>
+          </div>
+        ) : (
+          <TourGuideTasksPortalSection tourInstanceId={instance.id} />
+        )}
       </div>
     </div>
   );

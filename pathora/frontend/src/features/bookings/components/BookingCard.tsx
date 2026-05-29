@@ -60,12 +60,13 @@ export function BookingCard({
       <div className={cn("flex flex-col gap-6 lg:flex-row lg:items-stretch")}>
         
         {/* Asymmetric Image Box with physical hover scaling and glass overlay */}
-        <div className={cn("relative min-h-[220px] w-full shrink-0 overflow-hidden rounded-[1.5rem] lg:w-[240px]")}>
+        <div className={cn("relative h-[240px] lg:h-[280px] w-full shrink-0 overflow-hidden rounded-[1.5rem] lg:w-[240px] self-start")}>
           <Image
             src={booking.image}
             alt={booking.tourName}
             fill
             className={cn("object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105")}
+            style={{ objectFit: "cover" }}
             sizes="(max-width: 1024px) 100vw, 240px"
           />
           <div className={cn("absolute inset-0 bg-linear-to-b from-black/15 via-transparent to-black/30")} />

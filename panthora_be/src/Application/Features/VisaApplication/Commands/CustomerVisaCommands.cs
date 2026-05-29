@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using MediatR;
+using FluentValidation;
 
 namespace Application.Features.VisaApplication.Commands;
 
@@ -28,6 +29,26 @@ public sealed record SubmitCustomerVisaApplicationCommand(
     : IRequest<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+}
+
+public sealed class SubmitCustomerVisaApplicationCommandValidator : AbstractValidator<SubmitCustomerVisaApplicationCommand>
+{
+    public SubmitCustomerVisaApplicationCommandValidator()
+    {
+        RuleFor(x => x.BookingId).NotEmpty();
+        RuleFor(x => x.BookingParticipantId).NotEmpty();
+        RuleFor(x => x.PassportId).NotEmpty();
+        RuleFor(x => x.DestinationCountry)
+            .NotEmpty()
+            .Length(2, 3)
+            .Matches("^[A-Z]+$");
+        RuleFor(x => x.MaxStayDays)
+            .GreaterThan(0)
+            .When(x => x.MaxStayDays.HasValue);
+        RuleFor(x => x.ExpiresAt)
+            .GreaterThan(x => x.IssuedAt)
+            .When(x => x.IssuedAt.HasValue && x.ExpiresAt.HasValue);
+    }
 }
 
 public sealed class SubmitCustomerVisaApplicationCommandHandler(
@@ -87,7 +108,7 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
             performedBy: currentUserId.Value.ToString(),
             minReturnDate: minReturnDate,
             visaFileUrl: request.VisaFileUrl);
-            
+
         application.Update(
             destinationCountry: request.DestinationCountry,
             performedBy: currentUserId.Value.ToString(),
@@ -107,7 +128,7 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
             issuingAuthority: request.IssuingAuthority,
             fileUrl: request.VisaFileUrl,
             status: VisaStatus.Pending);
-            
+
         application.Visa = visa;
 
         await visaApplicationRepository.AddAsync(application, cancellationToken);
@@ -139,6 +160,26 @@ public sealed record UpdateCustomerVisaApplicationCommand(
     : IRequest<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+}
+
+public sealed class UpdateCustomerVisaApplicationCommandValidator : AbstractValidator<UpdateCustomerVisaApplicationCommand>
+{
+    public UpdateCustomerVisaApplicationCommandValidator()
+    {
+        RuleFor(x => x.BookingId).NotEmpty();
+        RuleFor(x => x.VisaApplicationId).NotEmpty();
+        RuleFor(x => x.PassportId).NotEmpty();
+        RuleFor(x => x.DestinationCountry)
+            .NotEmpty()
+            .Length(2, 3)
+            .Matches("^[A-Z]+$");
+        RuleFor(x => x.MaxStayDays)
+            .GreaterThan(0)
+            .When(x => x.MaxStayDays.HasValue);
+        RuleFor(x => x.ExpiresAt)
+            .GreaterThan(x => x.IssuedAt)
+            .When(x => x.IssuedAt.HasValue && x.ExpiresAt.HasValue);
+    }
 }
 
 public sealed class UpdateCustomerVisaApplicationCommandHandler(
@@ -245,6 +286,15 @@ public sealed record RequestVisaSupportCommand(
     Guid BookingParticipantId)
     : IRequest<ErrorOr<Guid>>;
 
+public sealed class RequestVisaSupportCommandValidator : AbstractValidator<RequestVisaSupportCommand>
+{
+    public RequestVisaSupportCommandValidator()
+    {
+        RuleFor(x => x.BookingId).NotEmpty();
+        RuleFor(x => x.BookingParticipantId).NotEmpty();
+    }
+}
+
 public sealed class RequestVisaSupportCommandHandler(
     IBookingRepository bookingRepository,
     IPassportRepository passportRepository,
@@ -293,7 +343,7 @@ public sealed class RequestVisaSupportCommandHandler(
         var application = VisaApplicationEntity.Create(
             bookingParticipantId: request.BookingParticipantId,
             passportId: passport.Id,
-            destinationCountry: tourInstance.Tour?.TourName ?? "Unknown",
+            destinationCountry: null,
             performedBy: currentUserId.Value.ToString(),
             minReturnDate: tourInstance.EndDate,
             isSystemAssisted: true);
@@ -311,12 +361,37 @@ public sealed class RequestVisaSupportCommandHandler(
 public sealed record UpdateCustomerPassportCommand(
     Guid BookingId,
     Guid ParticipantId,
-    string PassportNumber,
+    string? PassportNumber,
     string? Nationality,
     DateTimeOffset? IssuedAt,
     DateTimeOffset? ExpiresAt,
     string? FileUrl)
     : IRequest<ErrorOr<Guid>>;
+
+public sealed class UpdateCustomerPassportCommandValidator : AbstractValidator<UpdateCustomerPassportCommand>
+{
+    public UpdateCustomerPassportCommandValidator()
+    {
+        RuleFor(x => x.BookingId).NotEmpty();
+        RuleFor(x => x.ParticipantId).NotEmpty();
+        RuleFor(x => x.PassportNumber)
+            .NotEmpty()
+            .When(x => string.IsNullOrEmpty(x.FileUrl))
+            .WithMessage("Số hộ chiếu không được để trống khi chưa upload ảnh.");
+        RuleFor(x => x.PassportNumber)
+            .Must(x => x == null || !x.Equals("PENDING", StringComparison.OrdinalIgnoreCase))
+            .WithMessage("Số hộ chiếu không hợp lệ.")
+            .MaximumLength(50)
+            .Matches("^[A-Z0-9]+$")
+            .When(x => !string.IsNullOrEmpty(x.PassportNumber));
+        RuleFor(x => x.Nationality)
+            .NotEmpty()
+            .Length(2, 3);
+        RuleFor(x => x.ExpiresAt)
+            .GreaterThan(x => x.IssuedAt)
+            .When(x => x.IssuedAt.HasValue && x.ExpiresAt.HasValue);
+    }
+}
 
 public sealed class UpdateCustomerPassportCommandHandler(
     IBookingRepository bookingRepository,

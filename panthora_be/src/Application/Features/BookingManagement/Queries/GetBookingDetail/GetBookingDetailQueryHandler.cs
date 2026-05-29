@@ -16,6 +16,10 @@ public class GetBookingDetailQueryHandler(
     IPricingPolicyRepository pricingPolicyRepository,
     ITaxConfigRepository taxConfigRepository,
     IBookingPriceCalculator priceCalculator,
+    ITourInstanceBookingTicketRepository ticketRepository,
+    ITourInstanceBookingRoomAssignmentRepository roomAssignmentRepository,
+    ITourDayActivityStatusRepository dayActivityStatusRepository,
+    ITicketImageRepository ticketImageRepository,
     Application.Common.Interfaces.ICurrentUser currentUser) : IQueryHandler<GetBookingDetailQuery, ErrorOr<BookingDetailDto>>
 {
     public async Task<ErrorOr<BookingDetailDto>> Handle(GetBookingDetailQuery request, CancellationToken cancellationToken)
@@ -137,7 +141,11 @@ public class GetBookingDetailQueryHandler(
                 Purpose = t.Type == TransactionType.VisaServiceFee ? "Visa Service Fee" : "Tour Payment",
                 CreatedAt = t.CreatedOnUtc,
                 ExpiresAt = null // If you have an ExpiresAt logic, add it here
-            }).ToList()
+            }).ToList(),
+            RefundStatus = booking.RefundStatus.ToString(),
+            RefundOutstandingAmount = booking.RefundOutstandingAmount,
+            RefundContactedAt = booking.RefundContactedAt,
+            RefundCompletedAt = booking.RefundCompletedAt
         };
 
         var allRequests = await cancellationRequestRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
@@ -158,6 +166,55 @@ public class GetBookingDetailQueryHandler(
 
             dto.CancellationRequest = dto.CancellationRequests.FirstOrDefault();
         }
+
+        var tickets = await ticketRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
+        var roomAssignments = await roomAssignmentRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
+        var dayStatuses = await dayActivityStatusRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
+        var ticketImages = await ticketImageRepository.GetByBookingIdAsync(booking.Id, booking.TourInstanceId, cancellationToken);
+
+        dto.Tickets = tickets.Select(t => new CustomerTicketDto
+        {
+            Id = t.Id,
+            TourInstanceDayActivityId = t.TourInstanceDayActivityId,
+            FlightNumber = t.FlightNumber,
+            DepartureAt = t.DepartureAt,
+            ArrivalAt = t.ArrivalAt,
+            SeatNumbers = t.SeatNumbers,
+            ETicketNumbers = t.ETicketNumbers,
+            SeatClass = t.SeatClass,
+            Note = t.Note
+        }).ToList();
+
+        dto.RoomAssignments = roomAssignments.Select(r => new CustomerRoomAssignmentDto
+        {
+            Id = r.Id,
+            TourInstanceDayActivityId = r.TourInstanceDayActivityId,
+            RoomType = r.RoomType.ToString(),
+            RoomCount = r.RoomCount,
+            RoomNumbers = r.RoomNumbers,
+            Note = r.Note
+        }).ToList();
+
+        dto.DayStatuses = dayStatuses.Select(d => new CustomerDayStatusDto
+        {
+            Id = d.Id,
+            TourDayId = d.TourDayId,
+            ActivityStatus = d.ActivityStatus.ToString(),
+            ActualStartTime = d.ActualStartTime,
+            ActualEndTime = d.ActualEndTime,
+            CompletedAt = d.CompletedAt,
+            CancellationReason = d.CancellationReason,
+            Note = d.Note
+        }).ToList();
+
+        dto.TicketImages = ticketImages.Select(ti => new CustomerTicketImageDto
+        {
+            Id = ti.Id,
+            TourInstanceDayActivityId = ti.TourInstanceDayActivityId,
+            PublicUrl = ti.Image?.PublicURL ?? string.Empty,
+            BookingReference = ti.BookingReference,
+            Note = ti.Note
+        }).ToList();
 
         return dto;
     }

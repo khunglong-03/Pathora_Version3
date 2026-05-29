@@ -13,14 +13,16 @@ public class PassportConfiguration : IEntityTypeConfiguration<PassportEntity>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.PassportNumber)
-            .HasMaxLength(50)
-            .IsRequired();
+            .HasMaxLength(50);
 
         builder.Property(x => x.Nationality)
             .HasMaxLength(100);
 
         builder.Property(x => x.FileUrl)
             .HasMaxLength(1000);
+
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion();
 
         builder.HasIndex(x => x.BookingParticipantId).IsUnique();
         builder.HasIndex(x => x.PassportNumber).IsUnique();

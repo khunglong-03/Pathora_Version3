@@ -151,38 +151,40 @@ export function BasicInfoSection({
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             {t("tourAdmin.tourScope.label")}
           </label>
-          <select
+          <SearchableSelect
             value={basicInfo.tourScope}
-            onChange={(e) =>
+            onChange={(val) =>
               handleBasicInfoChange((prev: BasicInfoForm) => ({
                 ...prev,
-                tourScope: e.target.value,
-                continent: e.target.value === "1" ? "" : prev.continent,
-                isVisa: e.target.value === "1" ? false : prev.isVisa,
+                tourScope: val,
+                continent: val === "1" ? "" : prev.continent,
+                isVisa: val === "1" ? false : prev.isVisa,
               }))
             }
-            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-          >
-            <option value="1">{t("tourAdmin.tourScope.domestic")}</option>
-            <option value="2">{t("tourAdmin.tourScope.international")}</option>
-          </select>
+            options={[
+              { value: "1", label: t("tourAdmin.tourScope.domestic") },
+              { value: "2", label: t("tourAdmin.tourScope.international") },
+            ]}
+            placeholder={t("tourAdmin.tourScope.select", "Select Scope...")}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             {t("tourAdmin.customerSegment.label")}
           </label>
-          <select
+          <SearchableSelect
             value={basicInfo.customerSegment}
-            onChange={(e) =>
-              handleBasicInfoChange("customerSegment", e.target.value)
+            onChange={(val) =>
+              handleBasicInfoChange("customerSegment", val)
             }
-            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-          >
-            <option value="1">{t("tourAdmin.customerSegment.individual")}</option>
-            <option value="2">{t("tourAdmin.customerSegment.group")}</option>
-            <option value="3">{t("tourAdmin.customerSegment.family")}</option>
-            <option value="4">{t("tourAdmin.customerSegment.corporate")}</option>
-          </select>
+            options={[
+              { value: "1", label: t("tourAdmin.customerSegment.individual") },
+              { value: "2", label: t("tourAdmin.customerSegment.group") },
+              { value: "3", label: t("tourAdmin.customerSegment.family") },
+              { value: "4", label: t("tourAdmin.customerSegment.corporate") },
+            ]}
+            placeholder={t("tourAdmin.customerSegment.select", "Select Segment...")}
+          />
         </div>
       </div>
 
@@ -192,21 +194,21 @@ export function BasicInfoSection({
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             {t("tourAdmin.continent.label")}
           </label>
-          <select
+          <SearchableSelect
             value={basicInfo.continent}
-            onChange={(e) =>
-              handleBasicInfoChange("continent", e.target.value)
+            onChange={(val) =>
+              handleBasicInfoChange("continent", val)
             }
-            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-          >
-            <option value="">{t("tourAdmin.continent.placeholder", "-- Chọn châu lục --")}</option>
-            <option value="1">{t("tourAdmin.continent.asia")}</option>
-            <option value="2">{t("tourAdmin.continent.europe")}</option>
-            <option value="3">{t("tourAdmin.continent.africa")}</option>
-            <option value="4">{t("tourAdmin.continent.americas")}</option>
-            <option value="5">{t("tourAdmin.continent.oceania")}</option>
-            <option value="6">{t("tourAdmin.continent.antarctica")}</option>
-          </select>
+            options={[
+              { value: "1", label: t("tourAdmin.continent.asia") },
+              { value: "2", label: t("tourAdmin.continent.europe") },
+              { value: "3", label: t("tourAdmin.continent.africa") },
+              { value: "4", label: t("tourAdmin.continent.americas") },
+              { value: "5", label: t("tourAdmin.continent.oceania") },
+              { value: "6", label: t("tourAdmin.continent.antarctica") },
+            ]}
+            placeholder={t("tourAdmin.continent.placeholder", "-- Chọn châu lục --")}
+          />
           <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50/70 px-3 py-2.5 dark:border-orange-500/30 dark:bg-orange-500/10">
             <Checkbox
               id="tour-builder-is-visa"
@@ -232,18 +234,21 @@ export function BasicInfoSection({
           {t("tourAdmin.status.label", "Status")}
         </label>
         <div className="flex items-center gap-3">
-          <select
-            value={basicInfo.status}
-            onChange={(e) =>
-              handleBasicInfoChange("status", e.target.value)
-            }
-            className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-          >
-            <option value="1">{TourStatusMap[1]}</option>
-            <option value="2">{TourStatusMap[2]}</option>
-            <option value="3">{TourStatusMap[3]}</option>
-            <option value="4">{TourStatusMap[4]}</option>
-          </select>
+          <div className="flex-1">
+            <SearchableSelect
+              value={basicInfo.status}
+              onChange={(val) =>
+                handleBasicInfoChange("status", val)
+              }
+              options={[
+                { value: "1", label: TourStatusMap[1] },
+                { value: "2", label: TourStatusMap[2] },
+                { value: "3", label: TourStatusMap[3] },
+                { value: "4", label: TourStatusMap[4] },
+              ]}
+              placeholder={t("tourAdmin.status.select", "Select Status...")}
+            />
+          </div>
           {isEditMode && (
             <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
               {t("tourAdmin.status.currently", "Currently:")}{" "}

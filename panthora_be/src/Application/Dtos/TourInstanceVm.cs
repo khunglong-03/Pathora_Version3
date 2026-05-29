@@ -24,4 +24,5 @@ public sealed record TourInstanceVm(
     [property: JsonPropertyName("customizationNotes")] string? CustomizationNotes,
     [property: JsonPropertyName("instanceType")] string InstanceType,
     [property: JsonPropertyName("assignedRevenue")] decimal? AssignedRevenue = null,
-    [property: JsonPropertyName("transportApprovalStatus")] int TransportApprovalStatus = 0);
+    [property: JsonPropertyName("transportApprovalStatus")] int TransportApprovalStatus = 0,
+    [property: JsonPropertyName("assignedActivities")] List<AssignedActivityVm>? AssignedActivities = null);

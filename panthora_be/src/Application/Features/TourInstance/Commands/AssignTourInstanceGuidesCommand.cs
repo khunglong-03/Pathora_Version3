@@ -21,7 +21,7 @@ public sealed class AssignTourInstanceGuidesCommandValidator : AbstractValidator
     {
         RuleFor(x => x.Id)
             .NotEmpty().WithMessage(ValidationMessages.TourInstanceIdRequired);
-        
+
         // GuideUserIds can be empty if we want to remove all guides.
     }
 }

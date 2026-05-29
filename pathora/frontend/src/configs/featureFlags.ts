@@ -8,4 +8,11 @@ export const featureFlags = {
    */
   enablePublicTourSubRoutes:
     process.env.NEXT_PUBLIC_ENABLE_PUBLIC_TOUR_SUB_ROUTES !== "false",
+
+  /**
+   * Tour Guide passenger manifest view.
+   * Enabled by default. Set NEXT_PUBLIC_ENABLE_GUIDE_MANIFEST=false to disable.
+   */
+  enableGuideManifest:
+    process.env.NEXT_PUBLIC_ENABLE_GUIDE_MANIFEST !== "false",
 } as const;

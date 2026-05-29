@@ -1,4 +1,5 @@
 import React from "react";
+import * as Phosphor from "@phosphor-icons/react";
 import {
   ArrowBendUpLeftIcon, ArrowCounterClockwiseIcon, ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, BellIcon, BookmarkIcon,
   BuildingsIcon, CalendarIcon, CalendarBlankIcon, CaretDoubleLeftIcon, CaretDoubleRightIcon,
@@ -46,6 +47,8 @@ const iconMap: Record<string, React.ElementType> = {
   "heroicons-outline:exclamation-circle": WarningCircleIcon,
   "heroicons-outline:eye": EyeIcon,
   "heroicons-outline:eye-off": EyeSlashIcon,
+  "heroicons-outline:document-text": FileTextIcon,
+  "heroicons-outline:globe-alt": GlobeIcon,
   "heroicons-outline:home": BuildingsIcon,
   "heroicons-outline:identification": IdentificationCardIcon,
   "heroicons-outline:information-circle": InfoIcon,
@@ -62,6 +65,7 @@ const iconMap: Record<string, React.ElementType> = {
   "heroicons-outline:sun": SunIcon,
   "heroicons-outline:trophy": StarIcon,
   "heroicons-outline:user-group": UsersIcon,
+  "heroicons-outline:users": UsersIcon,
   "heroicons-outline:x": XIcon,
   "heroicons-outline:x-mark": XIcon,
   "heroicons-solid:map-pin": MapPinIcon,
@@ -179,7 +183,15 @@ export const Icon = ({
   ariaLabel,
   ...rest
 }: IconProps) => {
-  const IconComponent = iconMap[icon] || QuestionIcon;
+  let IconComponent = iconMap[icon];
+  if (!IconComponent && icon) {
+    const phosphorKey = icon.endsWith("Icon") ? icon : `${icon}Icon`;
+    IconComponent = (Phosphor as unknown as Record<string, React.ElementType>)[icon] || 
+                    (Phosphor as unknown as Record<string, React.ElementType>)[phosphorKey] || 
+                    QuestionIcon;
+  } else if (!IconComponent) {
+    IconComponent = QuestionIcon;
+  }
 
   const style: React.CSSProperties = {};
   if (rotate) {

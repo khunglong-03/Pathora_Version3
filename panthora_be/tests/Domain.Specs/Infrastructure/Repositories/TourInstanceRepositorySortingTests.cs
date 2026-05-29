@@ -69,12 +69,12 @@ public sealed class TourInstanceRepositorySortingTests
 
         instance.Tour = tour;
         instance.Classification = classification;
-        instance.Thumbnail = new ImageEntity 
-        { 
-            FileId = Guid.NewGuid().ToString(), 
-            FileName = "thumb.jpg", 
+        instance.Thumbnail = new ImageEntity
+        {
+            FileId = Guid.NewGuid().ToString(),
+            FileName = "thumb.jpg",
             OriginalFileName = "thumb.jpg",
-            PublicURL = "http://example.com/thumb.jpg" 
+            PublicURL = "http://example.com/thumb.jpg"
         };
     }
 
@@ -84,17 +84,17 @@ public sealed class TourInstanceRepositorySortingTests
         // Arrange
         var dbName = Guid.NewGuid().ToString();
         using var context = CreateContext(dbName);
-        
+
         var baseTime = DateTimeOffset.UtcNow;
-        
+
         // Entity 1: Created early, modified late (Should be 1st)
         var entity1 = CreateEntity("Modified Late", baseTime.AddMinutes(-10), baseTime.AddMinutes(5));
         SeedRelations(context, entity1);
-        
+
         // Entity 2: Created late, modified early (Should be 3rd)
         var entity2 = CreateEntity("Modified Early", baseTime.AddMinutes(-1), baseTime.AddMinutes(-5));
         SeedRelations(context, entity2);
-        
+
         // Entity 3: Created in-between, modified in-between (Should be 2nd)
         var entity3 = CreateEntity("Modified Mid", baseTime.AddMinutes(-5), baseTime.AddMinutes(0));
         SeedRelations(context, entity3);
@@ -130,17 +130,17 @@ public sealed class TourInstanceRepositorySortingTests
         // Arrange
         var dbName = Guid.NewGuid().ToString();
         using var context = CreateContext(dbName);
-        
+
         var principalId = Guid.NewGuid();
         var baseTime = DateTimeOffset.UtcNow;
 
         var tourOperatorId = Guid.NewGuid();
-        
+
         // We need custom manager assignments for the principal to see them if principalId is specified
         var entity1 = CreateEntity("Modified Late Manager", baseTime.AddMinutes(-10), baseTime.AddMinutes(5));
         SeedRelations(context, entity1);
         entity1.Tour.TourOperatorId = tourOperatorId;
-        
+
         var entity2 = CreateEntity("Modified Early Manager", baseTime.AddMinutes(-1), baseTime.AddMinutes(-5));
         SeedRelations(context, entity2);
         entity2.Tour.TourOperatorId = tourOperatorId;

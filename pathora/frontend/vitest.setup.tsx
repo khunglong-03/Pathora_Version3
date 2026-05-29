@@ -54,36 +54,32 @@ vi.mock("framer-motion", () => ({
   motionWrapper: "div",
 }));
 
-// Mock Phosphor icons
-vi.mock("@phosphor-icons/react", () => ({
-  ArrowLeft: (props: { size?: number; weight?: string; "aria-label"?: string; [key: string]: unknown }) => (
-    <span data-testid="mock-icon-arrow-left" aria-label={props["aria-label"]}>ArrowLeft</span>
-  ),
-  ArrowsClockwise: () => <span data-testid="mock-icon-refresh">ArrowsClockwise</span>,
-  Warning: () => <span data-testid="mock-icon-warning">Warning</span>,
-  Clock: () => <span data-testid="mock-icon-clock">Clock</span>,
-  Van: () => <span data-testid="mock-icon-van">Van</span>,
-  Bed: () => <span data-testid="mock-icon-bed">Bed</span>,
-  Phone: () => <span data-testid="mock-icon-phone">Phone</span>,
-  EnvelopeSimple: () => <span data-testid="mock-icon-envelope">EnvelopeSimple</span>,
-  DotsThreeVertical: () => <span data-testid="mock-icon-ellipsis">DotsThreeVertical</span>,
-  Eye: () => <span data-testid="mock-icon-eye">Eye</span>,
-  UsersThree: () => <span data-testid="mock-icon-users">UsersThree</span>,
-  PencilSimple: () => <span data-testid="mock-icon-edit">PencilSimple</span>,
-  ArrowRight: () => <span data-testid="mock-icon-arrow-right">ArrowRight</span>,
-  X: () => <span data-testid="mock-icon-x">X</span>,
-  UserPlus: () => <span data-testid="mock-icon-user-plus">UserPlus</span>,
-  User: () => <span data-testid="mock-icon-user">User</span>,
-  ArrowClockwise: () => <span data-testid="mock-icon-arrow-clockwise">ArrowClockwise</span>,
-  Check: () => <span data-testid="mock-icon-check">Check</span>,
-  CheckCircle: () => <span data-testid="mock-icon-check-circle">CheckCircle</span>,
-  XCircle: () => <span data-testid="mock-icon-x-circle">XCircle</span>,
-  AirplaneTilt: () => <span data-testid="mock-icon-airplane-tilt">AirplaneTilt</span>,
-  IdentificationCard: () => <span data-testid="mock-icon-identification-card">IdentificationCard</span>,
-  WarningCircle: () => <span data-testid="mock-icon-warning-circle">WarningCircle</span>,
-  HandHeart: () => <span data-testid="mock-icon-hand-heart">HandHeart</span>,
-  Receipt: () => <span data-testid="mock-icon-receipt">Receipt</span>,
-}));
+// Mock Phosphor icons dynamically by wrapping actual exports
+vi.mock("@phosphor-icons/react", async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, any>;
+  const mocked: Record<string, any> = {};
+
+  const IconMock = (name: string) => {
+    const Component = (props: { size?: number; weight?: string; "aria-label"?: string; [key: string]: unknown }) => (
+      <span data-testid={`mock-icon-${name}`} aria-label={props["aria-label"]}>{name}</span>
+    );
+    Component.displayName = `IconMock(${name})`;
+    return Component;
+  };
+
+  for (const key of Object.keys(actual)) {
+    const original = actual[key];
+    if (typeof original === "object" || typeof original === "function") {
+      // Normalise name (e.g. PencilIcon -> Pencil)
+      const cleanName = key.endsWith("Icon") ? key.slice(0, -4) : key;
+      mocked[key] = IconMock(cleanName);
+    } else {
+      mocked[key] = original;
+    }
+  }
+
+  return mocked;
+});
 
 // Mock next/link
 vi.mock("next/link", () => ({

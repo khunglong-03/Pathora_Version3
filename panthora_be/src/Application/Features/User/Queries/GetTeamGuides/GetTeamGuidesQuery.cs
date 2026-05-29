@@ -62,7 +62,7 @@ public sealed class GetTeamGuidesQueryHandler(
                 // Alternatively, assignmentRepository.GetAllSummariesAsync might be cached and fast
                 var allAssignments = await assignmentRepository.GetAllSummariesAsync(cancellationToken);
                 var userAssignment = allAssignments.FirstOrDefault(a => a.AssignedUserId == userId);
-                
+
                 if (userAssignment is null)
                 {
                     // User is not in any team, return empty
@@ -73,7 +73,7 @@ public sealed class GetTeamGuidesQueryHandler(
 
             // Get all assignments for this manager
             var teamAssignments = await assignmentRepository.GetByManagerIdAsync(managerId, cancellationToken);
-            
+
             allowedGuideIds = teamAssignments
                 .Where(a => a.AssignedEntityType == AssignedEntityType.TourGuide && a.AssignedUserId.HasValue)
                 .Select(a => a.AssignedUserId!.Value)

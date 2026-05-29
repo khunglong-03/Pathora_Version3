@@ -120,6 +120,7 @@ export function BookingHeroSection({ booking, getStatusLabel }: BookingHeroSecti
               alt={booking.tourName}
               fill
               className="object-cover"
+              style={{ objectFit: "cover" }}
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
             />

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  // Chỉ cho phép hoạt động ở môi trường dev để tránh rò rỉ log trên production
-  if (process.env.NODE_ENV !== "development") {
+  // Chỉ cho phép hoạt động ở môi trường dev hoặc khi được bật tường minh (ví dụ trong Docker/Staging) để tránh rò rỉ log trên production
+  const isDevLoggerEnabled =
+    process.env.NODE_ENV === "development" ||
+    process.env.ENABLE_DEV_LOGGER === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_DEV_LOGGER === "true";
+
+  if (!isDevLoggerEnabled) {
     return NextResponse.json({ success: false }, { status: 403 });
   }
 

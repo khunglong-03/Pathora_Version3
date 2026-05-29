@@ -1503,7 +1503,47 @@
       "refunded": "Refunded",
       "notApplicable": "Not applicable"
     },
-    "refundOutstanding": "Refund amount"
+    "refundOutstanding": "Refund amount",
+    "details": {
+      "tabs": {
+        "overview": "Overview",
+        "itinerary": "Itinerary",
+        "ticketsAndStatus": "Tickets & Status"
+      },
+      "tickets": {
+        "title": "Transportation Tickets",
+        "flightNumber": "Flight/Ticket No.",
+        "departure": "Departure",
+        "arrival": "Arrival",
+        "seat": "Seat No.",
+        "eTicket": "E-Ticket PNR",
+        "seatClass": "Class",
+        "passenger": "Passenger",
+        "viewTicketImage": "View scan/QR",
+        "noTickets": "No tickets assigned for this activity.",
+        "download": "Download",
+        "viewTicket": "View Ticket",
+        "noTicket": "Ticket not yet updated",
+        "summary": "{{confirmed}}/{{total}} days completed",
+        "allConfirmed": "All days completed"
+      },
+      "rooms": {
+        "title": "Hotel Room Assignment",
+        "roomType": "Room Type",
+        "roomCount": "Rooms count",
+        "roomNumbers": "Room numbers",
+        "noRooms": "No hotel rooms assigned for this activity."
+      },
+      "timeline": {
+        "day": "Day {{day}}",
+        "status": {
+          "notStarted": "Not started",
+          "inProgress": "In progress",
+          "completed": "Completed",
+          "cancelled": "Cancelled"
+        }
+      }
+    }
   },
   "notification": {
     "title": "Notifications",
@@ -1603,7 +1643,8 @@
     "required": "Required",
     "invalidPrice": "Invalid price",
     "visa": {
-      "label": "Visa Required"
+      "label": "Visa Required",
+      "pendingDestination": "Awaiting manager confirmation"
     },
     "validation": {
       "titleRequired": "Title is required",
@@ -2078,6 +2119,14 @@
     }
   },
   "tourInstance": {
+    "approvals": {
+      "accommodation": "Accommodation",
+      "transport": "Transportation",
+      "day": "Day {{day}}",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
     "title": "Tour Instances",
     "description": "Manage scheduled tour instances and track departures",
     "createInstance": "Create Instance",
@@ -2347,9 +2396,24 @@
       "accommodationAssigned": "{{roomType}} · {{roomCount}} room(s)",
       "flightAssignedNamed": "{{label}}",
       "flightAssigned": "{{count}}/{{total}} assigned",
-      "partialAssigned": "{{assigned}}/{{total}} assigned",
       "statusLoadPartial": "Some assignment statuses could not be loaded.",
-      "statusLoadError": "Could not load assignment statuses."
+      "statusLoadError": "Could not load assignment statuses.",
+      "rowAriaNav": "View details of booking {{customerName}}"
+    },
+    "bookingLanding": {
+      "title": "Booking Assignment",
+      "headerCustomer": "Customer",
+      "headerParticipants": "Guests",
+      "headerStatus": "Status",
+      "headerPayment": "Payment",
+      "headerTotal": "Total Price",
+      "activitiesTitle": "Dịch vụ cần phân bổ",
+      "activityRowDay": "Day {{day}}",
+      "activityRowAccom": "Accommodation",
+      "activityRowTransport": "Transportation",
+      "assignButton": "Assign",
+      "editButton": "Edit",
+      "empty": "No activities require assignment for this booking."
     },
     "breadcrumb": {
       "label": "Breadcrumb",
@@ -3872,6 +3936,8 @@
       "viewMyBookings": "View My Bookings",
       "loginToViewBookings": "Sign in to view booking",
       "guestBookingNote": "No account required to book. Sign in with {{email}} to track this booking.",
+      "enterPassengerDetails": "Enter Passenger Details",
+      "loginToEnterPassengerDetails": "Sign in to enter passenger details",
       "statusPending": "Pending",
       "statusProcessing": "Processing",
       "statusCompleted": "Completed",
@@ -4061,8 +4127,8 @@
       "guests": "Guests",
       "guest": "Guest",
       "guestsLabel": "Guests",
-      "paxBreakdown": "{adults} adults · {children} children · {infants} infants",
-      "totalIncludesTax": "Includes VAT {taxRate}%",
+      "paxBreakdown": "{{adults}} adults · {{children}} children · {{infants}} infants",
+      "totalIncludesTax": "Includes VAT {{taxRate}}%",
       "totalAmount": "Total Amount",
       "remaining": "Remaining",
       "payRemaining": "Pay Remaining",
@@ -4077,6 +4143,8 @@
       "visaStatus": "Visa Status",
       "invoice": "Download Invoice",
       "viewDetails": "View Details",
+      "cancelBooking": "Cancel Booking",
+      "requestCancellation": "Request Cancellation",
       "cancelModal": {
         "title": "Confirm Cancellation",
         "unpaidWarning": "You have not made any payment for this booking. Cancellation will be processed immediately.",
@@ -4112,7 +4180,20 @@
       "paymentUnpaid": "Unpaid",
       "methodQRCode": "QR Code",
       "methodCash": "Cash",
-      "methodBankTransfer": "Bank Transfer"
+      "methodBankTransfer": "Bank Transfer",
+      "guestDetails": "Guest Details",
+      "adults": "Adults",
+      "children": "Children",
+      "infants": "Infants",
+      "totalGuests": "Total Guests",
+      "missingPassengerDetailsWarning": "Missing passenger details ({{filled}}/{{total}} filled). Please provide info for all travelers.",
+      "enterPassengerDetailsBtn": "Enter Passenger Details",
+      "editPassengerDetailsBtn": "Edit Passenger Details",
+      "passengerList": "Passenger List",
+      "noPassengers": "No passengers entered yet.",
+      "ageLabelAdult": "Age 13+",
+      "ageLabelChild": "Age 2-12",
+      "ageLabelInfant": "Under 2"
     }
   },
   "adminSupplierModal": {
@@ -4189,7 +4270,22 @@
     "operations": {
       "title": "Operations",
       "emptyState": "You have not been assigned any tours yet",
-      "completeTour": "Complete Tour"
+      "completeTour": "Complete Tour",
+      "viewManifest": "Passenger Manifest",
+      "passengerManifest": "Passenger Manifest",
+      "searchPlaceholder": "Search by passenger name or reference...",
+      "bookingRef": "Booking Reference",
+      "adults": "Adults",
+      "children": "Children",
+      "infants": "Infants",
+      "fullName": "Full Name",
+      "passengerType": "Type",
+      "gender": "Gender",
+      "nationality": "Nationality",
+      "dateOfBirth": "Date of Birth",
+      "noParticipants": "No passenger matches found.",
+      "accessDenied": "Access Denied",
+      "notAuthorized": "You are not authorized to view the manifest of this tour instance. It is only accessible to the assigned tour guides, managers, or administrators."
     },
     "profile": {
       "title": "Account",

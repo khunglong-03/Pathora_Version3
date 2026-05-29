@@ -66,7 +66,7 @@ public class TourItineraryFeedbackEntity : Aggregate<Guid>
     {
         if (Status != TourItineraryFeedbackStatus.Pending)
             throw new InvalidOperationException("TourItineraryFeedback.InvalidTransition");
-        
+
         Status = TourItineraryFeedbackStatus.ManagerForwarded;
         ForwardedByManagerId = managerUserId;
         ForwardedAt = DateTimeOffset.UtcNow;
@@ -76,7 +76,7 @@ public class TourItineraryFeedbackEntity : Aggregate<Guid>
     {
         if (Status != TourItineraryFeedbackStatus.ManagerForwarded && Status != TourItineraryFeedbackStatus.ManagerRejected)
             throw new InvalidOperationException("TourItineraryFeedback.InvalidTransition");
-        
+
         Status = TourItineraryFeedbackStatus.OperatorResponded;
         RespondedByOperatorId = operatorUserId;
         RespondedAt = DateTimeOffset.UtcNow;
@@ -86,7 +86,7 @@ public class TourItineraryFeedbackEntity : Aggregate<Guid>
     {
         if (Status != TourItineraryFeedbackStatus.OperatorResponded)
             throw new InvalidOperationException("TourItineraryFeedback.InvalidTransition");
-            
+
         Status = TourItineraryFeedbackStatus.ManagerApproved;
         ApprovedByManagerId = managerUserId;
         ApprovedAt = DateTimeOffset.UtcNow;
@@ -96,7 +96,7 @@ public class TourItineraryFeedbackEntity : Aggregate<Guid>
     {
         if (Status != TourItineraryFeedbackStatus.OperatorResponded)
             throw new InvalidOperationException("TourItineraryFeedback.InvalidTransition");
-            
+
         Status = TourItineraryFeedbackStatus.ManagerRejected;
         RejectionReason = reason;
     }

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, UserCirclePlus, WarningCircle, CheckCircle, Trash, Spinner, IdentificationCard, HandHeart } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, WarningCircle, CheckCircle, Spinner, IdentificationCard, HandHeart, Info, File, UploadSimple } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { bookingService } from "@/api/services/bookingService";
 import { toast } from "react-toastify";
@@ -20,6 +20,7 @@ interface Participant {
   documentUploaded: boolean;
   hasVisaApp: boolean;
   isNew?: boolean;
+  passportId?: string;
 
   // Visa intent for this participant
   visaMode: VisaMode;
@@ -60,18 +61,50 @@ const blankVisaFields = (defaults?: { nationality?: string; minReturnDate?: stri
   visaFileUrl: "",
 });
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 20,
+    },
+  },
+};
+
 export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   const router = useRouter();
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [maxParticipants, setMaxParticipants] = useState<number>(0);
+  const [initialSnapshot, setInitialSnapshot] = useState<Participant[]>([]);
+  const [rowStatus, setRowStatus] = useState<Record<string, "idle" | "saving" | "saved" | "error">>({});
+  const [rowError, setRowError] = useState<Record<string, string>>({});
   const [isVisaRequired, setIsVisaRequired] = useState(false);
   const [tourReturnDate, setTourReturnDate] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
+  const [bookingPax, setBookingPax] = useState({ adults: 0, children: 0, infants: 0 });
+
+  const isVisaActionable = (p: Participant): boolean => {
+    if (!isVisaRequired) return false;
+    return p.isNew === true || !p.documentUploaded || !p.hasVisaApp;
+  };
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
 
   const fetchData = async () => {
@@ -85,8 +118,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
       const numAdult = (bookingData as any)?.adults ?? 0;
       const numChild = (bookingData as any)?.children ?? 0;
       const numInfant = (bookingData as any)?.infants ?? 0;
-      const totalGuests = numAdult + numChild + numInfant;
-      setMaxParticipants(totalGuests);
+      setBookingPax({ adults: numAdult, children: numChild, infants: numInfant });
       setIsVisaRequired(!!bookingData?.isVisaRequired);
       const returnDateRaw = (bookingData as any)?.returnDate ?? (bookingData as any)?.endDate ?? (bookingData as any)?.departureDate;
       const returnDateIso = returnDateRaw ? String(returnDateRaw).split("T")[0] : "";
@@ -123,6 +155,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
           destinationCountry: latestApp?.destinationCountry ?? "",
           minReturnDate: latestApp?.minReturnDate ? latestApp.minReturnDate.split("T")[0] : returnDateIso,
           visaFileUrl: latestApp?.visaFileUrl ?? "",
+          passportId: p.passport?.passportId ?? p.passport?.id ?? "",
         };
       });
 
@@ -153,12 +186,19 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
       for (let i = 0; i < remainingByType.Infant; i++) pushBlank("Infant");
 
       const merged = [...existing, ...blanks];
-      if (merged.length === 0) {
-        pushBlank("Adult");
-        setParticipants(blanks);
-      } else {
-        setParticipants(merged);
-      }
+      const finalParticipants = merged.length === 0 ? blanks : merged;
+      
+      const initialStatuses: Record<string, "idle" | "saving" | "saved" | "error"> = {};
+      finalParticipants.forEach(item => {
+        if (!item.isNew && !isVisaActionable(item)) {
+          initialStatuses[item.id] = "saved";
+        } else {
+          initialStatuses[item.id] = "idle";
+        }
+      });
+      setRowStatus(initialStatuses);
+      setInitialSnapshot(JSON.parse(JSON.stringify(finalParticipants)));
+      setParticipants(finalParticipants);
     } catch (e) {
       console.error(e);
       toast.error("Failed to load data");
@@ -181,20 +221,16 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
     return age;
   };
 
-  /** Returns { minAge, maxAge } for participant type */
   const getAgeRange = (type: string): { minAge: number; maxAge: number | null } => {
     if (type === "Infant") return { minAge: 0, maxAge: 1 };
     if (type === "Child") return { minAge: 2, maxAge: 11 };
-    return { minAge: 12, maxAge: null }; // Adult
+    return { minAge: 12, maxAge: null };
   };
 
-  /** Returns { min, max } date strings (YYYY-MM-DD) for the date input */
   const getDobDateRange = (type: string): { min: string; max: string } => {
     const today = new Date();
     const { minAge, maxAge } = getAgeRange(type);
-    // max date = today - minAge years (youngest allowed)
     const maxDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
-    // min date = today - (maxAge+1) years + 1 day (oldest allowed)
     const minDate = maxAge !== null
       ? new Date(today.getFullYear() - (maxAge + 1), today.getMonth(), today.getDate() + 1)
       : new Date(1900, 0, 1);
@@ -212,7 +248,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
 
   const isDobValidForType = (dob: string, type: string): boolean => {
     const age = getAgeFromDob(dob);
-    if (age === null) return true; // no DOB yet, skip check
+    if (age === null) return true;
     const { minAge, maxAge } = getAgeRange(type);
     if (age < minAge) return false;
     if (maxAge !== null && age > maxAge) return false;
@@ -220,7 +256,16 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   };
 
   const handleDobChange = (id: string, dob: string) => {
-    updateParticipant(id, "dob", dob);
+    const age = getAgeFromDob(dob);
+    let inferredType = "Adult";
+    if (age !== null) {
+      if (age >= 12) inferredType = "Adult";
+      else if (age >= 2) inferredType = "Child";
+      else inferredType = "Infant";
+    }
+    setParticipants(prev =>
+      prev.map(p => (p.id === id ? { ...p, dob, participantType: inferredType } : p))
+    );
   };
 
   const handleFileUpload = async (participantId: string, field: "passportFileUrl" | "visaFileUrl", file: File) => {
@@ -237,16 +282,11 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
     }
   };
 
-  const isVisaActionable = (p: Participant): boolean => {
-    if (!isVisaRequired) return false;
-    return p.isNew === true || !p.documentUploaded || !p.hasVisaApp;
-  };
-
   const validateRow = (p: Participant): string | null => {
     if (!p.fullName.trim()) return `Hành khách thiếu họ tên.`;
     if (!p.dob) return `${p.fullName || "Hành khách"}: vui lòng nhập ngày sinh.`;
-    if (!isDobValidForType(p.dob, p.participantType)) {
-      return `${p.fullName}: ngày sinh không khớp với loại "${p.participantType}" (${getAgeLabel(p.participantType)}).`;
+    if (new Date(p.dob) > new Date()) {
+      return `${p.fullName}: ngày sinh không thể ở tương lai.`;
     }
     if (!isVisaActionable(p)) return null;
     if (!p.visaMode) return `${p.fullName || "Hành khách"}: vui lòng chọn tình trạng visa.`;
@@ -269,447 +309,929 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
     return null;
   };
 
-  const handleSave = async () => {
-    const rowsToProcess = participants;
-
-    for (const p of rowsToProcess) {
-      const err = validateRow(p);
-      if (err) {
-        toast.error(err);
-        return;
-      }
+  const diffParticipant = (oldP: Participant | undefined, newP: Participant) => {
+    if (!oldP) {
+      return {
+        participantChanged: true,
+        passportChanged: !!newP.visaMode,
+        visaChanged: newP.visaMode === "has_visa" && !newP.hasVisaApp,
+        supportChanged: newP.visaMode === "needs_support" && !newP.hasVisaApp,
+      };
     }
 
-    if (rowsToProcess.length === 0) {
+    const participantChanged =
+      oldP.fullName !== newP.fullName ||
+      oldP.dob !== newP.dob ||
+      oldP.gender !== newP.gender ||
+      oldP.nationality !== newP.nationality;
+
+    const passportChanged =
+      newP.visaMode !== "" &&
+      (oldP.visaMode !== newP.visaMode ||
+        oldP.passportNumber !== newP.passportNumber ||
+        oldP.passportNationality !== newP.passportNationality ||
+        oldP.passportIssuedAt !== newP.passportIssuedAt ||
+        oldP.passportExpiresAt !== newP.passportExpiresAt ||
+        oldP.passportFileUrl !== newP.passportFileUrl);
+
+    const visaChanged =
+      newP.visaMode === "has_visa" &&
+      !newP.hasVisaApp &&
+      (oldP.visaMode !== "has_visa" ||
+        oldP.destinationCountry !== newP.destinationCountry ||
+        oldP.minReturnDate !== newP.minReturnDate ||
+        oldP.visaFileUrl !== newP.visaFileUrl);
+
+    const supportChanged =
+      newP.visaMode === "needs_support" &&
+      !newP.hasVisaApp &&
+      oldP.visaMode !== "needs_support";
+
+    return {
+      participantChanged,
+      passportChanged,
+      visaChanged,
+      supportChanged,
+    };
+  };
+
+  const getPaxCountMismatch = () => {
+    const currentCounts = {
+      Adult: participants.filter(p => p.participantType === "Adult").length,
+      Child: participants.filter(p => p.participantType === "Child").length,
+      Infant: participants.filter(p => p.participantType === "Infant").length,
+    };
+    const requiredCounts = {
+      Adult: bookingPax.adults,
+      Child: bookingPax.children,
+      Infant: bookingPax.infants,
+    };
+    const mismatches: string[] = [];
+    if (currentCounts.Adult !== requiredCounts.Adult) {
+      mismatches.push(`${currentCounts.Adult}/${requiredCounts.Adult} Người lớn`);
+    }
+    if (currentCounts.Child !== requiredCounts.Child) {
+      mismatches.push(`${currentCounts.Child}/${requiredCounts.Child} Trẻ em`);
+    }
+    if (currentCounts.Infant !== requiredCounts.Infant) {
+      mismatches.push(`${currentCounts.Infant}/${requiredCounts.Infant} Em bé`);
+    }
+    return mismatches.length > 0 ? mismatches.join(", ") : null;
+  };
+
+  const handleSave = async () => {
+    if (participants.length === 0) {
       router.push(`/bookings/${bookingId}#visa`);
       return;
     }
 
+    const mismatch = getPaxCountMismatch();
+    if (mismatch) {
+      toast.error(`Cơ cấu hành khách không khớp với đăng ký (${mismatch}). Vui lòng điều chỉnh lại ngày sinh.`);
+      return;
+    }
+
     setIsSaving(true);
-    try {
-      for (const p of rowsToProcess) {
-        let participantId: string | undefined = p.isNew ? undefined : p.id;
+    let allSucceeded = true;
 
-        if (p.isNew) {
-          participantId = await bookingService.createParticipant(bookingId, {
-            participantType: p.participantType || "Adult",
-            fullName: p.fullName,
-            dateOfBirth: p.dob ? new Date(p.dob).toISOString() : null,
-            gender: p.gender,
-            nationality: p.nationality || "VN",
-          });
-        } else {
-          // Extract real UUID, removing "existing-123-0" fallback prefix if any. 
-          // p.id might be a pure UUID if it came from DB, or something else. The DB returns pure UUIDs.
-          const realId = p.id;
-          await bookingService.updateParticipant(bookingId, realId, {
-            participantId: realId,
-            participantType: p.participantType || "Adult",
-            fullName: p.fullName,
-            dateOfBirth: p.dob ? new Date(p.dob).toISOString() : null,
-            gender: p.gender,
-            nationality: p.nationality || "VN",
-          });
-        }
+    for (const p of participants) {
+      const oldP = initialSnapshot.find(item => item.id === p.id);
+      const diff = diffParticipant(oldP, p);
+      const isDirty = p.isNew || diff.participantChanged || diff.passportChanged || diff.visaChanged || diff.supportChanged;
 
-        if (!isVisaRequired || !participantId) continue;
+      if (!isDirty) {
+        setRowStatus(prev => ({ ...prev, [p.id]: "saved" }));
+        continue;
+      }
 
-        if (p.visaMode) {
-          const passportId = await bookingService.upsertParticipantPassport(bookingId, participantId, {
-            passportNumber: p.visaMode === "needs_support" && !p.passportNumber.trim() ? "PENDING" : p.passportNumber,
-            nationality: p.passportNationality,
-            issuedAt: p.passportIssuedAt ? new Date(p.passportIssuedAt).toISOString() : null,
-            expiresAt: p.passportExpiresAt ? new Date(p.passportExpiresAt).toISOString() : null,
-            fileUrl: p.passportFileUrl || null,
-          });
+      const err = validateRow(p);
+      if (err) {
+        setRowStatus(prev => ({ ...prev, [p.id]: "error" }));
+        setRowError(prev => ({ ...prev, [p.id]: err }));
+        allSucceeded = false;
+        continue;
+      }
 
-          if (p.visaMode === "has_visa") {
-            if (!p.hasVisaApp) {
-              await bookingService.submitVisaApplication(bookingId, {
-                bookingParticipantId: participantId,
-                passportId: passportId,
-                destinationCountry: p.destinationCountry,
-                minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
-                visaFileUrl: p.visaFileUrl || undefined,
-              });
-            }
-          } else if (p.visaMode === "needs_support") {
-            if (!p.hasVisaApp) {
-              await bookingService.requestVisaSupport(bookingId, participantId);
-            }
+      setRowStatus(prev => ({ ...prev, [p.id]: "saving" }));
+      setRowError(prev => {
+        const copy = { ...prev };
+        delete copy[p.id];
+        return copy;
+      });
+
+      try {
+        let currentParticipantId = p.isNew ? undefined : p.id;
+
+        if (p.isNew || diff.participantChanged) {
+          if (p.isNew) {
+            currentParticipantId = await bookingService.createParticipant(bookingId, {
+              participantType: p.participantType || "Adult",
+              fullName: p.fullName,
+              dateOfBirth: p.dob ? new Date(p.dob).toISOString() : null,
+              gender: p.gender,
+              nationality: p.nationality || "VN",
+            });
+          } else {
+            await bookingService.updateParticipant(bookingId, p.id, {
+              participantId: p.id,
+              participantType: p.participantType || "Adult",
+              fullName: p.fullName,
+              dateOfBirth: p.dob ? new Date(p.dob).toISOString() : null,
+              gender: p.gender,
+              nationality: p.nationality || "VN",
+            });
+            currentParticipantId = p.id;
           }
         }
+
+        let passportId = p.passportId || "";
+        if (isVisaRequired && currentParticipantId && p.visaMode) {
+          if (diff.passportChanged) {
+            passportId = await bookingService.upsertParticipantPassport(bookingId, currentParticipantId, {
+              passportNumber: p.passportNumber.trim() ? p.passportNumber.trim() : null,
+              nationality: p.passportNationality || null,
+              issuedAt: p.passportIssuedAt ? new Date(p.passportIssuedAt).toISOString() : null,
+              expiresAt: p.passportExpiresAt ? new Date(p.passportExpiresAt).toISOString() : null,
+              fileUrl: p.passportFileUrl || null,
+            });
+          }
+
+          if (p.visaMode === "has_visa" && diff.visaChanged) {
+            await bookingService.submitVisaApplication(bookingId, {
+              bookingParticipantId: currentParticipantId,
+              passportId: passportId,
+              destinationCountry: p.destinationCountry,
+              minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
+              visaFileUrl: p.visaFileUrl || undefined,
+            });
+          } else if (p.visaMode === "needs_support" && diff.supportChanged) {
+            await bookingService.requestVisaSupport(bookingId, currentParticipantId);
+          }
+        }
+
+        const hasVisaAppNow = (p.visaMode === "has_visa" && diff.visaChanged) || (p.visaMode === "needs_support" && diff.supportChanged) ? true : p.hasVisaApp;
+        const updatedParticipant: Participant = {
+          ...p,
+          id: currentParticipantId!,
+          isNew: false,
+          passportId,
+          hasVisaApp: hasVisaAppNow,
+        };
+
+        setParticipants(prev => prev.map(item => item.id === p.id ? updatedParticipant : item));
+        setInitialSnapshot(prev => {
+          const exists = prev.some(item => item.id === p.id);
+          if (exists) {
+            return prev.map(item => item.id === p.id ? updatedParticipant : item);
+          } else {
+            return [...prev, updatedParticipant];
+          }
+        });
+        setRowStatus(prev => {
+          const copy = { ...prev };
+          delete copy[p.id];
+          copy[currentParticipantId!] = "saved";
+          return copy;
+        });
+        setRowError(prev => {
+          const copy = { ...prev };
+          delete copy[p.id];
+          delete copy[currentParticipantId!];
+          return copy;
+        });
+      } catch (err: any) {
+        console.error(`Failed to save participant ${p.fullName || p.id}:`, err);
+        const errMsg = err?.response?.data?.message || err?.message || "Lưu thông tin thất bại";
+        setRowStatus(prev => ({ ...prev, [p.id]: "error" }));
+        setRowError(prev => ({ ...prev, [p.id]: errMsg }));
+        allSucceeded = false;
       }
+    }
+
+    setIsSaving(false);
+
+    if (allSucceeded) {
       toast.success("Lưu thông tin hành khách thành công.");
       router.push(`/bookings/${bookingId}#visa`);
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to save participants");
-    } finally {
-      setIsSaving(false);
+    } else {
+      toast.error("Có lỗi xảy ra khi lưu một số hành khách. Vui lòng kiểm tra lại.");
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-[#f9fafb] flex items-center justify-center">
         <Spinner size={32} className="animate-spin text-slate-400" />
       </div>
     );
   }
 
+  // Count states for sidebar stats
+  const totalCount = participants.length;
+  const savedCount = Object.values(rowStatus).filter(s => s === "saved").length;
+  const errorCount = Object.values(rowStatus).filter(s => s === "error").length;
+  const savingCount = Object.values(rowStatus).filter(s => s === "saving").length;
+  const pendingCount = totalCount - savedCount - errorCount - savingCount;
+
   return (
-    <div className="min-h-screen bg-[#f9fafb]">
-      {/* Header */}
-      <div className="pt-24 pb-12 bg-white border-b border-slate-200/50">
-        <div className="max-w-[1000px] mx-auto px-4 md:px-8">
+    <div className="min-h-[100dvh] bg-[#f9fafb] font-sans antialiased text-slate-900 selection:bg-slate-900/5 selection:text-slate-900">
+      
+      {/* Outer Layout wrapper - Asymmetric split bento grid */}
+      <div className="max-w-[1280px] mx-auto px-6 py-12 pt-24">
+        
+        {/* Top navigational bar */}
+        <div className="mb-10">
           <Link
             href={`/bookings/${bookingId}`}
-            className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors mb-8"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors duration-200 active:scale-[0.98]"
           >
             <ArrowLeft weight="bold" className="size-4" />
             Back to Booking
           </Link>
-
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <motion.h1
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 leading-none"
-              >
-                Manage Participants
-              </motion.h1>
-              <p className="text-slate-500 mt-4 max-w-lg">
-                Vui lòng cung cấp thông tin từng hành khách. Booking <span className="font-bold text-slate-900">{bookingId}</span>.
-              </p>
-            </div>
-            <div className="shrink-0 bg-slate-50 px-6 py-4 rounded-2xl border border-slate-200 text-center">
-              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Total Guests</p>
-              <p className="text-3xl font-bold text-slate-900">{participants.length}</p>
-            </div>
-          </div>
         </div>
-      </div>
 
-      {/* Forms Grid */}
-      <div className="max-w-[1000px] mx-auto px-4 md:px-8 py-12">
-        {isVisaRequired && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-8 flex items-start gap-3">
-            <WarningCircle weight="fill" className="size-5 text-blue-600 shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900 leading-relaxed">
-              <p className="font-bold mb-1">Tour này yêu cầu visa</p>
-              <p>
-                Mỗi hành khách: nếu đã có visa → tự nhập passport + file visa. Nếu chưa có → chọn yêu cầu hệ thống hỗ trợ làm visa (có phí dịch vụ).
+        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-10 items-start">
+          
+          {/* STICKY SIDEBAR (Left Column) - Premium spacing & layout */}
+          <div className="lg:sticky lg:top-24 flex flex-col gap-6">
+            <div className="flex flex-col">
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-slate-900 leading-tight">
+                Manage Participants
+              </h1>
+              <p className="text-sm text-slate-500 mt-3 font-medium leading-relaxed max-w-[32ch]">
+                Cung cấp thông tin hành khách tham gia chuyến đi của booking {bookingId}.
               </p>
             </div>
-          </div>
-        )}
 
-        <div className="grid grid-cols-1 gap-8">
-          <AnimatePresence>
-            {participants.map((p, index) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95, height: 0 }}
-                className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-6 lg:p-8"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold tracking-tight text-slate-900">Guest {index + 1}</h3>
-                </div>
-
-                {/* Basic info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      value={p.fullName}
-                      
-                      onChange={(e) => updateParticipant(p.id, "fullName", e.target.value)}
-                      placeholder="As shown on passport"
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all font-medium "
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Ngày sinh <span className="font-normal text-slate-400">({getAgeLabel(p.participantType)})</span></label>
-                    <input
-                      type="date"
-                      value={p.dob}
-                      min={getDobDateRange(p.participantType).min}
-                      max={getDobDateRange(p.participantType).max}
-                      onChange={(e) => handleDobChange(p.id, e.target.value)}
-                      className={`w-full px-5 py-4 rounded-2xl border bg-slate-50 focus:bg-white focus:ring-1 transition-all font-medium ${p.dob && !isDobValidForType(p.dob, p.participantType) ? "border-red-400 focus:border-red-500 focus:ring-red-300" : "border-slate-200 focus:border-slate-900 focus:ring-slate-900"}`}
-                    />
-                    {p.dob && (() => {
-                      const age = getAgeFromDob(p.dob);
-                      const valid = isDobValidForType(p.dob, p.participantType);
-                      if (age === null) return null;
-                      return valid
-                        ? <span className="text-xs text-emerald-600 mt-1 block">✔ {age} tuổi — hợp lệ</span>
-                        : <span className="text-xs text-red-500 mt-1 block">✖ {age} tuổi — không khớp với {p.participantType} ({getAgeLabel(p.participantType)})</span>;
-                    })()}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Gender</label>
-                    <select
-                      value={p.gender}
-                      
-                      onChange={(e) => updateParticipant(p.id, "gender", Number(e.target.value))}
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all font-medium "
-                    >
-                      <option value={0}>Male</option>
-                      <option value={1}>Female</option>
-                      <option value={2}>Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Nationality (ISO code)</label>
-                    <input
-                      type="text"
-                      value={p.nationality}
-                      
-                      maxLength={3}
-                      onChange={(e) => updateParticipant(p.id, "nationality", e.target.value.toUpperCase())}
-                      placeholder="VN, US, JP..."
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all font-medium "
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Participant Type</label>
-                    <select
-                      value={p.participantType}
-                      disabled
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed transition-all font-medium rounded-2xl"
-                    >
-                      <option value="Adult">Adult (Người lớn)</option>
-                      <option value="Child">Child (Trẻ em)</option>
-                      <option value="Infant">Infant (Em bé)</option>
-                    </select>
-                    <span className="text-xs text-slate-400 mt-1 block">Tự động theo ngày sinh</span>
-                  </div>
-                </div>
-
-                {/* Visa block — show when tour needs visa AND row is new OR existing without complete visa */}
-                {isVisaActionable(p) && (
-                  <div className="mt-8 pt-8 border-t border-slate-100 border-dashed">
-                    <h4 className="text-base font-bold text-slate-900 mb-4">Tình trạng visa</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                      <button
-                        type="button"
-                        onClick={() => updateParticipant(p.id, "visaMode", "has_visa")}
-                        className={`flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
-                          p.visaMode === "has_visa"
-                            ? "border-slate-900 bg-slate-900 text-white"
-                            : "border-slate-200 hover:border-slate-400"
-                        }`}
-                      >
-                        <IdentificationCard weight="bold" className="size-6 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-bold">Đã có visa</p>
-                          <p className={`text-xs ${p.visaMode === "has_visa" ? "text-white/80" : "text-slate-500"}`}>
-                            Tự nhập passport + file visa
-                          </p>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateParticipant(p.id, "visaMode", "needs_support")}
-                        className={`flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
-                          p.visaMode === "needs_support"
-                            ? "border-amber-600 bg-amber-50 text-amber-900"
-                            : "border-slate-200 hover:border-amber-300"
-                        }`}
-                      >
-                        <HandHeart weight="bold" className="size-6 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-bold">Cần hệ thống hỗ trợ</p>
-                          <p className={`text-xs ${p.visaMode === "needs_support" ? "text-amber-800" : "text-slate-500"}`}>
-                            Yêu cầu làm visa, có phí dịch vụ
-                          </p>
-                        </div>
-                      </button>
+            {/* Visual Progress Dashboard Bento Widget */}
+            <div className="p-1.5 rounded-[2.5rem] bg-slate-100 border border-slate-200/50 shadow-[0_15px_30px_-10px_rgba(0,0,0,0.02)]">
+              <div className="bg-white rounded-[calc(2.5rem-0.375rem)] p-8 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] flex flex-col gap-6">
+                <div>
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Status Overview</h2>
+                  <div className="flex flex-col gap-4">
+                    
+                    {/* Visual grid status list */}
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="size-2 rounded-full bg-slate-900 block"></span>
+                        <span className="text-sm font-bold text-slate-700">Total Guests</span>
+                      </div>
+                      <span className="font-mono text-base font-bold text-slate-900">{totalCount}</span>
                     </div>
 
-                    {p.visaMode && (
-                      <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 mt-4 flex flex-col gap-4">
-                        <p className="text-sm font-bold text-slate-700">Thông tin passport</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {p.visaMode === "has_visa" && (
-                            <>
-                              <div>
-                                <label className="text-xs font-bold text-slate-600 mb-1 block">Passport Number</label>
-                                <input
-                                  type="text"
-                                  value={p.passportNumber}
-                                  onChange={(e) => updateParticipant(p.id, "passportNumber", e.target.value)}
-                                  placeholder="C1234567"
-                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-bold text-slate-600 mb-1 block">Passport Nationality</label>
-                                <input
-                                  type="text"
-                                  maxLength={3}
-                                  value={p.passportNationality}
-                                  onChange={(e) => updateParticipant(p.id, "passportNationality", e.target.value.toUpperCase())}
-                                  placeholder="VN"
-                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-bold text-slate-600 mb-1 block">Issued Date</label>
-                                <input
-                                  type="date"
-                                  value={p.passportIssuedAt}
-                                  onChange={(e) => updateParticipant(p.id, "passportIssuedAt", e.target.value)}
-                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-bold text-slate-600 mb-1 block">
-                                  Expires Date {tourReturnDate && <span className="font-normal text-slate-400">(sau {tourReturnDate})</span>}
-                                </label>
-                                <input
-                                  type="date"
-                                  value={p.passportExpiresAt}
-                                  onChange={(e) => updateParticipant(p.id, "passportExpiresAt", e.target.value)}
-                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-                                />
-                              </div>
-                            </>
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="size-2 rounded-full bg-emerald-500 block"></span>
+                        <span className="text-sm font-bold text-slate-700">Saved Successfully</span>
+                      </div>
+                      <span className="font-mono text-base font-bold text-slate-900">{savedCount}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="size-2 rounded-full bg-amber-500 block"></span>
+                        <span className="text-sm font-bold text-slate-700">Pending Changes</span>
+                      </div>
+                      <span className="font-mono text-base font-bold text-slate-900">{pendingCount}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between pb-1">
+                      <div className="flex items-center gap-3">
+                        <span className="size-2 rounded-full bg-red-500 block"></span>
+                        <span className="text-sm font-bold text-slate-700">Failed / Errors</span>
+                      </div>
+                      <span className="font-mono text-base font-bold text-slate-900">{errorCount}</span>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Action Progress Bar */}
+                <div className="border-t border-slate-100 pt-6">
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
+                    <div
+                      style={{ width: `${totalCount ? (savedCount / totalCount) * 100 : 0}%` }}
+                      className="h-full bg-emerald-500 transition-all duration-750 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                    />
+                    <div
+                      style={{ width: `${totalCount ? (savingCount / totalCount) * 100 : 0}%` }}
+                      className="h-full bg-slate-400 animate-pulse"
+                    />
+                    <div
+                      style={{ width: `${totalCount ? (errorCount / totalCount) * 100 : 0}%` }}
+                      className="h-full bg-red-500 transition-all duration-750 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                    />
+                  </div>
+                  <div className="flex justify-between items-center mt-3 text-[10px] font-bold text-slate-400 tracking-wider">
+                    <span>PROGRESS</span>
+                    <span>{Math.round(totalCount ? (savedCount / totalCount) * 100 : 0)}%</span>
+                  </div>
+                </div>
+
+                {/* Passenger Configuration Widget */}
+                <div className="border-t border-slate-100 pt-6 font-sans">
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 font-sans">Cơ cấu hành khách</h2>
+                  <div className="flex flex-col gap-3 font-sans">
+                    <div className="flex items-center justify-between text-xs font-bold font-sans">
+                      <span className="text-slate-500">Người lớn (≥ 12t)</span>
+                      <span className={`text-[11px] font-bold transition-colors ${
+                        participants.filter(p => p.participantType === "Adult").length === bookingPax.adults 
+                          ? "text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md" 
+                          : "text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md"
+                      }`}>
+                        {participants.filter(p => p.participantType === "Adult").length} / {bookingPax.adults}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs font-bold font-sans">
+                      <span className="text-slate-500">Trẻ em (2 - 11t)</span>
+                      <span className={`text-[11px] font-bold transition-colors ${
+                        participants.filter(p => p.participantType === "Child").length === bookingPax.children 
+                          ? "text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md" 
+                          : "text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md"
+                      }`}>
+                        {participants.filter(p => p.participantType === "Child").length} / {bookingPax.children}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs font-bold font-sans">
+                      <span className="text-slate-500">Em bé (&lt; 2t)</span>
+                      <span className={`text-[11px] font-bold transition-colors ${
+                        participants.filter(p => p.participantType === "Infant").length === bookingPax.infants 
+                          ? "text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md" 
+                          : "text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md"
+                      }`}>
+                        {participants.filter(p => p.participantType === "Infant").length} / {bookingPax.infants}
+                      </span>
+                    </div>
+                  </div>
+
+                  {getPaxCountMismatch() && (
+                    <div className="mt-4 p-3 rounded-2xl bg-amber-50 border border-amber-100 text-[11px] text-amber-800 font-bold leading-relaxed flex items-start gap-2">
+                      <WarningCircle weight="fill" className="size-4 shrink-0 mt-0.5 text-amber-600" />
+                      <span>
+                        Chưa khớp cơ cấu đăng ký! Hãy kiểm tra lại ngày sinh của các hành khách.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Tour visa information bento widget */}
+            {isVisaRequired && (
+              <div className="p-1.5 rounded-[2.5rem] bg-slate-900 border border-slate-950 shadow-[0_20px_40px_-15px_rgba(15,23,42,0.15)] relative overflow-hidden">
+                <div className="bg-slate-850 rounded-[calc(2.5rem-0.375rem)] p-8 relative overflow-hidden flex flex-col gap-4">
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 text-amber-400 mb-3">
+                      <Info weight="fill" className="size-5 shrink-0" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Visa Requirement Note</span>
+                    </div>
+                    <h3 className="text-lg font-bold tracking-tight text-white mb-2">Tour này yêu cầu Visa</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                      Mỗi hành khách: nếu đã tự có visa, vui lòng nhập số passport và cập nhật hình ảnh. Nếu chưa có visa, hãy chọn &quot;Cần hệ thống hỗ trợ&quot; để nhân viên của chúng tôi chuẩn bị các bước thủ tục cho bạn.
+                    </p>
+                  </div>
+                  {/* Abstract shape graphic */}
+                  <div className="absolute -bottom-12 -right-12 size-36 bg-slate-800 rounded-full blur-2xl opacity-40 pointer-events-none"></div>
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          {/* MAIN FORM GRID STREAM (Right Column) - Staggered waterfall reveals */}
+          <div className="flex flex-col">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-1 gap-8"
+            >
+              {participants.map((p, index) => (
+                <motion.div
+                  key={p.id}
+                  variants={cardVariants}
+                  className="p-1.5 rounded-[2.5rem] bg-slate-200/50 border border-slate-300/30 shadow-[0_15px_30px_-10px_rgba(28,25,23,0.03)] hover:shadow-[0_25px_45px_-15px_rgba(28,25,23,0.06)] transition-all duration-750 ease-[cubic-bezier(0.32,0.72,0,1)] relative overflow-hidden"
+                >
+                  <div className="bg-white rounded-[calc(2.5rem-0.375rem)] p-8 md:p-10 relative overflow-hidden border border-slate-100/50 flex flex-col gap-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)]">
+                    
+                    {/* Decorative color border on side matching status */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-2 ${
+                      rowStatus[p.id] === "saved" ? "bg-emerald-500" :
+                      rowStatus[p.id] === "error" ? "bg-red-500" :
+                      rowStatus[p.id] === "saving" ? "bg-slate-400" :
+                      "bg-slate-200/60"
+                    }`} />
+
+                    {/* Title & Top indicators */}
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-2xl font-bold tracking-tight text-slate-900">Guest {index + 1}</h3>
+                      
+                      <div className="flex items-center gap-2">
+                        <AnimatePresence mode="wait">
+                          {rowStatus[p.id] === "saving" && (
+                            <motion.span
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.9 }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 text-xs font-extrabold rounded-full border border-slate-200"
+                            >
+                              <Spinner className="animate-spin size-3.5" />
+                              Đang lưu...
+                            </motion.span>
                           )}
-                          <div className={p.visaMode === "needs_support" ? "md:col-span-1" : "md:col-span-2"}>
-                            <label className="text-xs font-bold text-slate-600 mb-1 block">
-                              {p.visaMode === "needs_support" ? "Upload ảnh mặt Passport (Bắt buộc)" : "Ảnh Passport (tùy chọn)"}
-                            </label>
-                            {p.passportFileUrl ? (
-                              <div className="flex items-center gap-3 mt-2">
-                                <a href={p.passportFileUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline text-sm truncate max-w-[200px]">
-                                  Xem ảnh đã tải
-                                </a>
-                                <label className="cursor-pointer px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors">
-                                  Đổi ảnh
-                                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                    if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
-                                  }} />
-                                </label>
+                          {rowStatus[p.id] === "saved" && (
+                            <motion.span
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.9 }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-100"
+                            >
+                              <CheckCircle weight="fill" className="size-4 text-emerald-600" />
+                              Đã lưu
+                            </motion.span>
+                          )}
+                          {rowStatus[p.id] === "error" && (
+                            <motion.span
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.9 }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 text-xs font-extrabold rounded-full border border-red-100"
+                            >
+                              <WarningCircle weight="fill" className="size-4 text-red-600" />
+                              Lỗi
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+
+                    {/* Basic user details grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Full Name</label>
+                        <input
+                          type="text"
+                          value={p.fullName}
+                          onChange={(e) => updateParticipant(p.id, "fullName", e.target.value)}
+                          placeholder="As shown on passport"
+                          className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest font-sans">
+                          Ngày sinh
+                        </label>
+                        <input
+                          type="date"
+                          value={p.dob}
+                          min="1900-01-01"
+                          max={new Date().toISOString().split("T")[0]}
+                          onChange={(e) => handleDobChange(p.id, e.target.value)}
+                          className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900 font-sans"
+                        />
+                        {p.dob && (() => {
+                          const age = getAgeFromDob(p.dob);
+                          if (age === null) return null;
+                          return (
+                            <span className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1.5 font-sans">
+                              <CheckCircle weight="fill" className="size-3.5 text-emerald-600" />
+                              {age} tuổi — {p.participantType === "Adult" ? "Người lớn" : p.participantType === "Child" ? "Trẻ em" : "Em bé"}
+                            </span>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Gender</label>
+                        <select
+                          value={p.gender}
+                          onChange={(e) => updateParticipant(p.id, "gender", Number(e.target.value))}
+                          className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900"
+                        >
+                          <option value={0}>Male</option>
+                          <option value={1}>Female</option>
+                          <option value={2}>Other</option>
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Nationality (ISO)</label>
+                        <input
+                          type="text"
+                          value={p.nationality}
+                          maxLength={3}
+                          onChange={(e) => updateParticipant(p.id, "nationality", e.target.value.toUpperCase())}
+                          placeholder="VN, US, JP..."
+                          className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-2 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest font-sans">Phân loại hành khách</label>
+                        <div className="flex p-1 rounded-2xl bg-slate-100/80 border border-slate-200/50 w-full relative">
+                          {["Adult", "Child", "Infant"].map((type) => {
+                            const isActive = p.participantType === type;
+                            const labels: Record<string, string> = {
+                              Adult: "Người lớn (≥12t)",
+                              Child: "Trẻ em (2-11t)",
+                              Infant: "Em bé (<2t)"
+                            };
+                            const activeClass = type === "Adult" 
+                              ? "bg-slate-900 text-white shadow-sm" 
+                              : type === "Child" 
+                                ? "bg-indigo-600 text-white shadow-sm" 
+                                : "bg-emerald-600 text-white shadow-sm";
+                            return (
+                              <div
+                                key={type}
+                                className={`flex-1 text-center py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-300 select-none font-sans ${
+                                  isActive 
+                                    ? activeClass 
+                                    : "text-slate-400 opacity-60"
+                                }`}
+                              >
+                                {labels[type]}
                               </div>
-                            ) : (
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
-                                }}
-                                disabled={uploadingFiles[`${p.id}-passportFileUrl`]}
-                                className="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-xl"
-                              />
-                            )}
-                            {uploadingFiles[`${p.id}-passportFileUrl`] && <span className="text-xs text-slate-500 mt-2 flex items-center gap-1"><Spinner size={12} className="animate-spin"/> Đang tải...</span>}
-                          </div>
+                            );
+                          })}
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider pl-1 font-sans font-medium">Phân loại tự động cập nhật theo ngày sinh</span>
+                      </div>
+
+                    </div>
+
+                    {/* Visa Selection blocks - Beautiful interactive options */}
+                    {isVisaActionable(p) && (
+                      <div className="mt-4 pt-6 border-t border-slate-100 border-dashed">
+                        <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Tình trạng visa</h4>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                          
+                          <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            type="button"
+                            onClick={() => updateParticipant(p.id, "visaMode", "has_visa")}
+                            className={`group/btn flex items-start gap-3 p-5 rounded-3xl border-2 text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                              p.visaMode === "has_visa"
+                                ? "border-slate-950 bg-slate-900 text-white shadow-[0_12px_24px_-10px_rgba(15,23,42,0.15)]"
+                                : "border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50/30 text-slate-800"
+                            }`}
+                          >
+                            <div className={`center size-10 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-500 group-hover/btn:scale-105 ${
+                              p.visaMode === "has_visa" ? "bg-white/10" : "bg-slate-50 border border-slate-200"
+                            }`}>
+                              <IdentificationCard weight="bold" className="size-5" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm">Đã có visa</p>
+                              <p className={`text-[11px] mt-0.5 ${p.visaMode === "has_visa" ? "text-slate-300" : "text-slate-400"}`}>
+                                Tự nhập passport + file visa
+                              </p>
+                            </div>
+                          </motion.button>
+
+                          <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            type="button"
+                            onClick={() => updateParticipant(p.id, "visaMode", "needs_support")}
+                            className={`group/btn flex items-start gap-3 p-5 rounded-3xl border-2 text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                              p.visaMode === "needs_support"
+                                ? "border-amber-600 bg-amber-50 text-amber-950 shadow-[0_12px_24px_-10px_rgba(217,119,6,0.15)]"
+                                : "border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/5 text-slate-800"
+                            }`}
+                          >
+                            <div className={`center size-10 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-500 group-hover/btn:scale-105 ${
+                              p.visaMode === "needs_support" ? "bg-amber-100/80" : "bg-slate-50 border border-slate-200"
+                            }`}>
+                              <HandHeart weight="bold" className={`size-5 ${p.visaMode === "needs_support" ? "text-amber-700" : "text-slate-500"}`} />
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm">Cần hệ thống hỗ trợ</p>
+                              <p className={`text-[11px] mt-0.5 ${p.visaMode === "needs_support" ? "text-amber-800/80" : "text-slate-400"}`}>
+                                Yêu cầu làm visa (có tính phí dịch vụ)
+                              </p>
+                            </div>
+                          </motion.button>
+
                         </div>
 
-                        {p.visaMode === "has_visa" && (
-                          <div className="mt-4 pt-4 border-t border-slate-200">
-                            <p className="text-sm font-bold text-slate-700 mb-4">Hồ sơ visa</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-xs font-bold text-slate-600 mb-1 block">Destination Country (ISO)</label>
-                                <input
-                                  type="text"
-                                  maxLength={3}
-                                  value={p.destinationCountry}
-                                  onChange={(e) => updateParticipant(p.id, "destinationCountry", e.target.value.toUpperCase())}
-                                  placeholder="JP, US, KR..."
-                                  disabled={!p.isNew && p.hasVisaApp}
-                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all "
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-bold text-slate-600 mb-1 block">Min Return Date</label>
-                                <input
-                                  type="date"
-                                  value={p.minReturnDate}
-                                  onChange={(e) => updateParticipant(p.id, "minReturnDate", e.target.value)}
-                                  disabled={!p.isNew && p.hasVisaApp}
-                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all "
-                                />
-                              </div>
-                              <div className="md:col-span-2">
-                                <label className="text-xs font-bold text-slate-600 mb-1 block">Ảnh File Visa (tùy chọn)</label>
-                                {p.visaFileUrl ? (
-                                  <div className="flex items-center gap-3 mt-2">
-                                    <a href={p.visaFileUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline text-sm truncate max-w-[200px]">
-                                      Xem visa đã tải
-                                    </a>
-                                    <label className="cursor-pointer px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors">
-                                      Đổi ảnh
-                                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                        if (e.target.files?.[0]) handleFileUpload(p.id, "visaFileUrl", e.target.files[0]);
-                                      }} />
-                                    </label>
-                                  </div>
-                                ) : (
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                      if (e.target.files?.[0]) handleFileUpload(p.id, "visaFileUrl", e.target.files[0]);
-                                    }}
-                                    disabled={uploadingFiles[`${p.id}-visaFileUrl`]}
-                                    className="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-xl"
-                                  />
-                                )}
-                                {uploadingFiles[`${p.id}-visaFileUrl`] && <span className="text-xs text-slate-500 mt-2 flex items-center gap-1"><Spinner size={12} className="animate-spin"/> Đang tải...</span>}
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                        {/* Accordion form panels for visa specifics */}
+                        <AnimatePresence initial={false}>
+                          {p.visaMode && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="overflow-hidden"
+                              transition={{ type: "spring", stiffness: 120, damping: 20 }}
+                            >
+                              <div className="bg-slate-50/80 rounded-[2rem] p-6 border border-slate-200/60 flex flex-col gap-4 mt-2">
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Thông tin passport</p>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  {p.visaMode === "has_visa" && (
+                                    <>
+                                      <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-bold text-slate-500">Passport Number</label>
+                                        <input
+                                          type="text"
+                                          value={p.passportNumber}
+                                          onChange={(e) => updateParticipant(p.id, "passportNumber", e.target.value)}
+                                          placeholder="C1234567"
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm"
+                                        />
+                                      </div>
+                                      <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-bold text-slate-500">Passport Nationality</label>
+                                        <input
+                                          type="text"
+                                          maxLength={3}
+                                          value={p.passportNationality}
+                                          onChange={(e) => updateParticipant(p.id, "passportNationality", e.target.value.toUpperCase())}
+                                          placeholder="VN"
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm"
+                                        />
+                                      </div>
+                                      <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-bold text-slate-500">Issued Date</label>
+                                        <input
+                                          type="date"
+                                          value={p.passportIssuedAt}
+                                          onChange={(e) => updateParticipant(p.id, "passportIssuedAt", e.target.value)}
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm"
+                                        />
+                                      </div>
+                                      <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-bold text-slate-500">
+                                          Expires Date {tourReturnDate && <span className="font-semibold text-slate-400 text-[10px] tracking-tight">(sau {tourReturnDate})</span>}
+                                        </label>
+                                        <input
+                                          type="date"
+                                          value={p.passportExpiresAt}
+                                          onChange={(e) => updateParticipant(p.id, "passportExpiresAt", e.target.value)}
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm"
+                                        />
+                                      </div>
+                                    </>
+                                  )}
 
-                        {p.visaMode === "needs_support" && (
-                          <div className="mt-2 bg-amber-50 rounded-xl p-4 border border-amber-200 text-sm text-amber-900">
-                            <p className="font-bold mb-1">Yêu cầu hỗ trợ làm visa</p>
-                            <p>
-                              Hệ thống sẽ dùng thông tin passport trên để tạo yêu cầu hỗ trợ. Operator sẽ báo phí dịch vụ sau.
-                            </p>
-                          </div>
-                        )}
+                                  <div className={p.visaMode === "needs_support" ? "sm:col-span-1" : "sm:col-span-2"}>
+                                    <label className="text-[11px] font-bold text-slate-500 block mb-1.5">
+                                      {p.visaMode === "needs_support" ? "Upload ảnh mặt Passport (Bắt buộc)" : "Ảnh Passport (tùy chọn)"}
+                                    </label>
+                                    {p.passportFileUrl ? (
+                                      <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]">
+                                        <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
+                                          <File className="size-5 text-slate-400" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <a href={p.passportFileUrl} target="_blank" rel="noreferrer" className="text-slate-900 hover:text-slate-700 text-xs font-bold truncate block hover:underline">
+                                            Xem ảnh đã tải
+                                          </a>
+                                          <p className="text-[10px] text-slate-400 font-semibold uppercase">ĐÃ TẢI LÊN</p>
+                                        </div>
+                                        <label className="cursor-pointer px-3.5 py-2 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 text-[10px] font-extrabold rounded-xl hover:bg-slate-100 transition-colors active:scale-[0.98] shrink-0 select-none">
+                                          Đổi ảnh
+                                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                            if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
+                                          }} />
+                                        </label>
+                                      </div>
+                                    ) : (
+                                      <div className="relative">
+                                        <label className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 ${
+                                          uploadingFiles[`${p.id}-passportFileUrl`] ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
+                                        }`}>
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                              if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
+                                            }}
+                                            disabled={uploadingFiles[`${p.id}-passportFileUrl`]}
+                                            className="hidden"
+                                          />
+                                          <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2.5 group-hover/upload:scale-105 transition-transform duration-500">
+                                            <UploadSimple weight="bold" className="size-5 text-slate-400" />
+                                          </div>
+                                          <span className="text-xs font-bold text-slate-700">Tải ảnh mặt Passport</span>
+                                          <span className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider">PNG, JPG, JPEG</span>
+                                        </label>
+                                      </div>
+                                    )}
+                                    {uploadingFiles[`${p.id}-passportFileUrl`] && (
+                                      <span className="text-[10px] font-bold text-slate-400 mt-2 flex items-center gap-1.5 uppercase tracking-wider pl-1">
+                                        <Spinner size={12} className="animate-spin"/> Đang tải...
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {p.visaMode === "has_visa" && (
+                                  <div className="mt-4 pt-4 border-t border-slate-200/80">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Hồ sơ visa</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                      <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-bold text-slate-500">Destination Country (ISO)</label>
+                                        <input
+                                          type="text"
+                                          maxLength={3}
+                                          value={p.destinationCountry}
+                                          onChange={(e) => updateParticipant(p.id, "destinationCountry", e.target.value.toUpperCase())}
+                                          placeholder="JP, US, KR..."
+                                          disabled={!p.isNew && p.hasVisaApp}
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm disabled:bg-slate-100 disabled:text-slate-400"
+                                        />
+                                      </div>
+                                      <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-bold text-slate-500">Min Return Date</label>
+                                        <input
+                                          type="date"
+                                          value={p.minReturnDate}
+                                          onChange={(e) => updateParticipant(p.id, "minReturnDate", e.target.value)}
+                                          disabled={!p.isNew && p.hasVisaApp}
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm disabled:bg-slate-100 disabled:text-slate-400"
+                                        />
+                                      </div>
+                                      <div className="sm:col-span-2">
+                                        <label className="text-[11px] font-bold text-slate-500 block mb-1.5">Ảnh File Visa (tùy chọn)</label>
+                                        {p.visaFileUrl ? (
+                                          <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]">
+                                            <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
+                                              <File className="size-5 text-slate-400" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <a href={p.visaFileUrl} target="_blank" rel="noreferrer" className="text-slate-900 hover:text-slate-700 text-xs font-bold truncate block hover:underline">
+                                                Xem visa đã tải
+                                              </a>
+                                              <p className="text-[10px] text-slate-400 font-semibold uppercase">ĐÃ TẢI LÊN</p>
+                                            </div>
+                                            <label className="cursor-pointer px-3.5 py-2 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 text-[10px] font-extrabold rounded-xl hover:bg-slate-100 transition-colors active:scale-[0.98] shrink-0 select-none">
+                                              Đổi ảnh
+                                              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                                if (e.target.files?.[0]) handleFileUpload(p.id, "visaFileUrl", e.target.files[0]);
+                                              }} />
+                                            </label>
+                                          </div>
+                                        ) : (
+                                          <div className="relative">
+                                            <label className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 ${
+                                              uploadingFiles[`${p.id}-visaFileUrl`] ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
+                                            }`}>
+                                              <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                  if (e.target.files?.[0]) handleFileUpload(p.id, "visaFileUrl", e.target.files[0]);
+                                                }}
+                                                disabled={uploadingFiles[`${p.id}-visaFileUrl`]}
+                                                className="hidden"
+                                              />
+                                              <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2.5 group-hover/upload:scale-105 transition-transform duration-500">
+                                                <UploadSimple weight="bold" className="size-5 text-slate-400" />
+                                              </div>
+                                              <span className="text-xs font-bold text-slate-700">Tải ảnh File Visa</span>
+                                              <span className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider">PNG, JPG, JPEG</span>
+                                            </label>
+                                          </div>
+                                        )}
+                                        {uploadingFiles[`${p.id}-visaFileUrl`] && (
+                                          <span className="text-[10px] font-bold text-slate-400 mt-2 flex items-center gap-1.5 uppercase tracking-wider pl-1">
+                                            <Spinner size={12} className="animate-spin"/> Đang tải...
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {p.visaMode === "needs_support" && (
+                                  <div className="mt-2 bg-amber-50/50 rounded-xl p-4 border border-amber-200/50 text-xs text-amber-900 leading-relaxed font-semibold">
+                                    <div className="flex items-center gap-1.5 mb-1 text-amber-700">
+                                      <Info weight="fill" className="size-4 shrink-0" />
+                                      <span>Yêu cầu hỗ trợ làm visa</span>
+                                    </div>
+                                    Hệ thống sẽ dùng thông tin passport trên để tạo yêu cầu hỗ trợ. Operator sẽ báo phí dịch vụ sau.
+                                  </div>
+                                )}
+
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     )}
-                  </div>
-                )}
 
-                {!p.isNew && !isVisaActionable(p) && (
-                  <div className="mt-8 pt-8 border-t border-slate-100 border-dashed">
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 text-slate-600 rounded-xl border border-slate-200 font-medium text-sm w-fit">
-                      <CheckCircle weight="fill" className="size-5" />
-                      Saved
+                    {/* Individual card save log/error status message panels */}
+                    {rowStatus[p.id] && rowStatus[p.id] !== "idle" && (
+                      <div className="mt-4 pt-6 border-t border-slate-100 border-dashed">
+                        <AnimatePresence mode="wait">
+                          {rowStatus[p.id] === "saving" && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="flex items-center gap-2.5 px-4 py-3 bg-slate-50 text-slate-700 rounded-2xl border border-slate-200 font-bold text-xs w-fit"
+                            >
+                              <Spinner className="animate-spin size-4 text-slate-400" />
+                              Đang lưu thông tin...
+                            </motion.div>
+                          )}
+                          {rowStatus[p.id] === "saved" && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="flex items-center gap-2.5 px-4 py-3 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-200 font-bold text-xs w-fit"
+                            >
+                              <CheckCircle weight="fill" className="size-4 text-emerald-600" />
+                              Đã lưu thành công
+                            </motion.div>
+                          )}
+                          {rowStatus[p.id] === "error" && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="flex flex-col gap-2"
+                            >
+                              <div className="flex items-center gap-2.5 px-4 py-3 bg-red-50 text-red-800 rounded-2xl border border-red-200 font-bold text-xs w-fit">
+                                <WarningCircle weight="fill" className="size-4 text-red-600" />
+                                Lưu thất bại
+                              </div>
+                              {rowError[p.id] && (
+                                <p className="text-[11px] text-red-600 font-extrabold ml-1 leading-snug max-w-[50ch]">
+                                  Chi tiết: {rowError[p.id]}
+                                </p>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Bottom Stream CTA Buttons */}
+            <div className="mt-12 flex justify-end items-center gap-4 border-t border-slate-200/50 pt-8">
+              <Link
+                href={`/bookings/${bookingId}`}
+                className="px-6 py-3 rounded-full font-bold text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+              >
+                Hủy bỏ
+              </Link>
+              
+              <AnimatePresence>
+                {Object.values(rowStatus).some(status => status === "error") && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="group/err flex items-center gap-3 rounded-full bg-amber-600 pl-6 pr-2.5 py-2.5 text-sm font-bold text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-amber-700 shadow-[0_12px_24px_-10px_rgba(217,119,6,0.2)] hover:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    <span>Thử lại các dòng lỗi</span>
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 transition-transform duration-500 group-hover/err:translate-x-0.5">
+                      {isSaving ? (
+                        <Spinner className="animate-spin size-4 text-white" />
+                      ) : (
+                        <WarningCircle weight="bold" className="size-4 text-white" />
+                      )}
                     </div>
-                  </div>
+                  </motion.button>
                 )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
+              </AnimatePresence>
+
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                onClick={handleSave}
+                disabled={isSaving}
+                className="group/save flex items-center gap-3 rounded-full bg-slate-900 pl-6 pr-2.5 py-2.5 text-sm font-bold text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-800 shadow-[0_12px_24px_-10px_rgba(15,23,42,0.2)] hover:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <span>{isSaving ? "Đang lưu..." : "Lưu thông tin hành khách"}</span>
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 transition-transform duration-500 group-hover/save:translate-x-0.5">
+                  {isSaving ? (
+                    <Spinner className="animate-spin size-4 text-white" />
+                  ) : (
+                    <ArrowRight weight="bold" className="size-4 text-white" />
+                  )}
+                </div>
+              </motion.button>
+            </div>
+
+          </div>
+
         </div>
 
-        <div className="mt-12 flex justify-end gap-4">
-          <Link href={`/bookings/${bookingId}`} className="px-8 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-100 transition-colors">
-            Cancel
-          </Link>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="px-8 py-4 rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 shadow-lg shadow-slate-900/20 hover:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-70"
-          >
-            {isSaving && <Spinner className="animate-spin" />}
-            {isSaving ? "Saving..." : "Save Participants"}
-          </button>
-        </div>
       </div>
+
     </div>
   );
 }

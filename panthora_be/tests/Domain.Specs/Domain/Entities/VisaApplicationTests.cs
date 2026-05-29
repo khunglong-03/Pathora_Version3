@@ -13,7 +13,7 @@ public class VisaApplicationTests
         // Arrange
         var participantId = Guid.NewGuid();
         var passportId = Guid.NewGuid();
-        
+
         // Act
         var application = VisaApplicationEntity.Create(
             bookingParticipantId: participantId,
@@ -89,7 +89,7 @@ public class VisaApplicationTests
             minReturnDate: DateTimeOffset.UtcNow.AddDays(10),
             isSystemAssisted: false
         );
-        
+
         // Act
         application.Update("Korea", "Manager", VisaStatus.Approved, DateTimeOffset.UtcNow.AddDays(15), null, "url");
 

@@ -429,6 +429,35 @@ export interface DynamicPricingResolutionDto {
   maxParticipants: number | null;
 }
 
+export interface AccommodationSnapshot {
+  roomType?: string | null;
+  quantity: number;
+  checkInTime?: string | null;
+  checkOutTime?: string | null;
+}
+
+export interface TransportSnapshot {
+  vehicleType?: string | null;
+  seatCount: number;
+  vehicleCount?: number | null;
+  fromLocationName?: string | null;
+  toLocationName?: string | null;
+}
+
+export interface AssignedActivityVm {
+  activityId: string;
+  tourInstanceDayId: string;
+  dayNumber: number;
+  actualDate: string;
+  activityType: string;
+  supplierId: string;
+  supplierName: string;
+  approvalStatus: number | string;
+  approvalNote?: string | null;
+  accommodation?: AccommodationSnapshot | null;
+  transport?: TransportSnapshot | null;
+}
+
 export interface TourInstanceVm {
   id: string;
   tourId: string;
@@ -451,6 +480,7 @@ export interface TourInstanceVm {
   instanceType: string;
   /** @deprecated Instance-level approval status is a transition artifact. Per-activity status on days[].activities[].transportationApprovalStatus is authoritative. Used by the rollup pill (section 1) only as a downscope pending backend DTO enrichment. */
   transportApprovalStatus: number;
+  assignedActivities?: AssignedActivityVm[];
 }
 
 export interface TourInstanceDayDto {
@@ -690,3 +720,28 @@ export const TourInstanceStatusMap: Record<string, { label: string; bg: string; 
   pendingcustomerapproval: { label: "Chờ khách duyệt", bg: "bg-sky-100", text: "text-sky-700", dot: "bg-sky-500" },
   draft: { label: "Bản nháp", bg: "bg-slate-100", text: "text-slate-700", dot: "bg-slate-500" },
 };
+
+export interface TourGuideManifestParticipantDto {
+  participantId: string;
+  fullName: string;
+  participantType: string;
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  nationality?: string | null;
+}
+
+export interface TourGuideManifestBookingDto {
+  bookingId: string;
+  reference: string;
+  adults: number;
+  children: number;
+  infants: number;
+  participants: TourGuideManifestParticipantDto[];
+}
+
+export interface TourGuideManifestDto {
+  tourInstanceId: string;
+  generatedAt: string;
+  bookings: TourGuideManifestBookingDto[];
+}
+

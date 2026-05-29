@@ -18,7 +18,7 @@ public class VisaApplicationEntity : Aggregate<Guid>
     /// <summary>Passport liên quan.</summary>
     public virtual PassportEntity Passport { get; set; } = null!;
     /// <summary>Quốc gia cần xin visa.</summary>
-    public string DestinationCountry { get; set; } = null!;
+    public string? DestinationCountry { get; set; }
     /// <summary>Trạng thái: Pending, Processing, Approved, Rejected, Cancelled.</summary>
     public VisaStatus Status { get; set; } = VisaStatus.Pending;
     /// <summary>Ngày về tối thiểu (visa phải có hiệu lực ít nhất đến ngày này).</summary>
@@ -45,7 +45,7 @@ public class VisaApplicationEntity : Aggregate<Guid>
     public static VisaApplicationEntity Create(
         Guid bookingParticipantId,
         Guid passportId,
-        string destinationCountry,
+        string? destinationCountry,
         string performedBy,
         DateTimeOffset? minReturnDate = null,
         string? visaFileUrl = null,
@@ -90,9 +90,9 @@ public class VisaApplicationEntity : Aggregate<Guid>
         ServiceFeeQuotedAt = DateTimeOffset.UtcNow;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
-        
+
         AddDomainEvent(new VisaServiceFeeQuotedEvent(Id, fee, performedBy));
-        
+
         return true;
     }
 
@@ -114,7 +114,7 @@ public class VisaApplicationEntity : Aggregate<Guid>
     }
 
     public void Update(
-        string destinationCountry,
+        string? destinationCountry,
         string performedBy,
         VisaStatus? status = null,
         DateTimeOffset? minReturnDate = null,
@@ -142,21 +142,21 @@ public class VisaApplicationEntity : Aggregate<Guid>
     {
         if (Status != VisaStatus.Rejected)
             throw new InvalidOperationException("Chỉ có thể nộp lại đơn đã bị từ chối.");
-            
+
         var oldStatus = Status;
         Status = VisaStatus.Pending;
         RefusalReason = null;
         if (visaFileUrl != null)
             VisaFileUrl = visaFileUrl;
-            
+
         if (Visa != null)
         {
             Visa.Update(performedBy: performedBy, status: VisaStatus.Pending);
         }
-        
+
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
-        
+
         AddDomainEvent(new VisaApplicationStatusChangedEvent(Id, oldStatus, Status, performedBy));
     }
 }

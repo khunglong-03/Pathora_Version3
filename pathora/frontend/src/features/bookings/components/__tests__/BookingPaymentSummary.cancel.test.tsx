@@ -105,4 +105,19 @@ describe("BookingPaymentSummary cancellation", () => {
       expect(onCancellationChanged).toHaveBeenCalledTimes(1);
     });
   });
+
+  it("renders 'Request Cancellation' if the booking has a paid amount > 0", () => {
+    const paidBooking = { ...booking, paidAmount: 500_000, remainingBalance: 1_500_000 };
+    render(
+      <BookingPaymentSummary
+        booking={paidBooking}
+        totalGuests={2}
+        showPayRemaining={false}
+        showCancelBooking={true}
+        getPaymentStatusLabel={(status) => status}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /request cancellation/i })).toBeInTheDocument();
+  });
 });

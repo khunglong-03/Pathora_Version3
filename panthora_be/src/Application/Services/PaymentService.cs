@@ -305,7 +305,7 @@ public class PaymentService : IPaymentService
         // regardless of expiration. The expiration sweep handles auto-cancellation separately.
 
         var booking = transaction.Booking ?? await _bookingRepository.GetByIdAsync(transaction.BookingId);
-        
+
         if (booking != null && (booking.Status == BookingStatus.PendingCancellation || booking.Status == BookingStatus.Cancelled))
         {
             _logger.LogWarning("Payment webhook received for booking {Id} in {Status} state — skipping update", booking.Id, booking.Status);

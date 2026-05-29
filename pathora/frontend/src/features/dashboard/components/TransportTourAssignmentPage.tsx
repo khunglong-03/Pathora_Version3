@@ -1009,7 +1009,7 @@ export default function TransportTourAssignmentPage() {
   }
 
   return (
-    <div className={cn("mx-auto max-w-7xl px-4 md:px-6 lg:px-8 py-8 md:py-10", "v-stack gap-8 font-sans text-slate-800")}>
+    <div className={cn("mx-auto min-h-[100dvh] max-w-7xl px-4 md:px-6 lg:px-8 py-8 md:py-10 bg-[#f9fafb]", "v-stack gap-8 font-sans text-slate-800")}>
       <div className="v-stack lg:h-stack lg:items-end lg:justify-between gap-6 mb-10">
         <div className="relative">
           <button
@@ -1020,16 +1020,16 @@ export default function TransportTourAssignmentPage() {
             <Icon icon="heroicons:arrow-left" className="size-6 stroke-[1.5]" />
           </button>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
               {t("tourInstance.transport.assignmentLabel", "Transport approval")}
             </p>
-            <h1 className="mt-2 text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 leading-none">
+            <h1 className="mt-2 text-4xl md:text-5xl font-bold tracking-tight text-slate-900 leading-none">
               {tour.title}
             </h1>
             <p className="mt-3 text-sm font-medium text-slate-500 h-stack items-center gap-2">
-              <span className="rounded-full bg-slate-100 px-3 py-1 font-mono text-xs">{tour.tourCode}</span>
+              <span className="rounded-full bg-slate-200/50 px-3 py-1 font-mono text-xs">{tour.tourCode}</span>
               <span>•</span>
-              <span className="font-semibold text-slate-700">{tour.currentParticipation}/{tour.maxParticipation}</span> {t("tourInstance.transport.guests", "khach")}
+              <span className="font-semibold text-slate-700 font-mono">{tour.currentParticipation}/{tour.maxParticipation}</span> {t("tourInstance.transport.guests", "khach")}
               <span>•</span>
               {formatDateLabel(tour.startDate)} - {formatDateLabel(tour.endDate)}
             </p>
@@ -1063,43 +1063,55 @@ export default function TransportTourAssignmentPage() {
         {/* LEFT COLUMN: BENTO STATS */}
         <div className="v-stack gap-6 lg:sticky lg:top-10 lg:h-max">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, type: "spring", stiffness: 100 }} className="grid grid-cols-2 gap-4">
-            <div className="rounded-[1.5rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Activities</p>
-              <p className="mt-2 font-mono text-4xl font-bold tracking-tight text-slate-900">{transportActivities.length}</p>
+            <div className="rounded-[2.5rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.04)]">
+              <div className="h-stack items-center gap-2">
+                <span className="size-2 rounded-full bg-slate-400" />
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Total Activities</p>
+              </div>
+              <p className="mt-3 font-mono text-4xl font-bold tracking-tight text-slate-900">{transportActivities.length}</p>
             </div>
-            <div className="rounded-[1.5rem] border border-amber-200/50 bg-amber-50/50 p-6 shadow-[0_20px_40px_-15px_rgba(251,191,36,0.1)]">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-600">Pending</p>
-              <p className="mt-2 font-mono text-4xl font-bold tracking-tight text-amber-900">{approvalSummary.pending}</p>
+            <div className="rounded-[2.5rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.04)]">
+              <div className="h-stack items-center gap-2">
+                <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Pending</p>
+              </div>
+              <p className="mt-3 font-mono text-4xl font-bold tracking-tight text-slate-900">{approvalSummary.pending}</p>
             </div>
-            <div className="rounded-[1.5rem] border border-emerald-200/50 bg-emerald-50/50 p-6 shadow-[0_20px_40px_-15px_rgba(16,185,129,0.1)]">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Approved</p>
-              <p className="mt-2 font-mono text-4xl font-bold tracking-tight text-emerald-900">{approvalSummary.approved}</p>
+            <div className="rounded-[2.5rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.04)]">
+              <div className="h-stack items-center gap-2">
+                <span className="size-2 rounded-full bg-emerald-500" />
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Approved</p>
+              </div>
+              <p className="mt-3 font-mono text-4xl font-bold tracking-tight text-slate-900">{approvalSummary.approved}</p>
             </div>
-            <div className="rounded-[1.5rem] border border-rose-200/50 bg-rose-50/50 p-6 shadow-[0_20px_40px_-15px_rgba(244,63,94,0.1)]">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-rose-600">Rejected</p>
-              <p className="mt-2 font-mono text-4xl font-bold tracking-tight text-rose-900">{approvalSummary.rejected}</p>
+            <div className="rounded-[2.5rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.04)]">
+              <div className="h-stack items-center gap-2">
+                <span className="size-2 rounded-full bg-rose-500" />
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Rejected</p>
+              </div>
+              <p className="mt-3 font-mono text-4xl font-bold tracking-tight text-slate-900">{approvalSummary.rejected}</p>
             </div>
           </motion.div>
           
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1, type: "spring", stiffness: 100 }} className="rounded-[1.5rem] border border-slate-200/50 bg-white p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-slate-900" />
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex size-10 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1, type: "spring", stiffness: 100 }} className="rounded-[2.5rem] border border-slate-200/50 bg-white/70 backdrop-blur-md p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.03)] relative overflow-hidden">
+            <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]" />
+            <div className="relative z-10 flex items-center gap-3 mb-6">
+              <div className="flex size-10 items-center justify-center rounded-full bg-slate-50 border border-slate-100/80 text-slate-500">
                 <Icon icon="heroicons:information-circle" className="size-5" />
               </div>
               <h3 className="text-lg font-bold tracking-tight text-slate-900">Quy định phê duyệt</h3>
             </div>
-            <ul className="space-y-4 text-sm text-slate-600 leading-relaxed">
+            <ul className="relative z-10 space-y-4 text-sm text-slate-600 leading-relaxed">
               <li className="h-stack items-start gap-3">
-                <Icon icon="heroicons:check-badge" className="size-5 text-slate-900 shrink-0 mt-0.5" />
-                <span>Nếu <strong>bên quản lý</strong> đã gán nhà xe + loại + số lượng, bạn <strong>chỉ phân đủ tài xế</strong> (bao nhiêu xe được yêu cầu bấy nhiêu tài xế, mỗi dòng một tài xế). Các hoạt động không chế độ đó phải chọn đủ <strong>Xe</strong> và <strong>Tài xế</strong> trước khi duyệt.</span>
+                <Icon icon="heroicons:check-badge" className="size-5 text-slate-400 shrink-0 mt-0.5" />
+                <span>Nếu <strong>bên quản lý</strong> đã gán nhà xe + loại + số lượng, bạn <strong>chỉ phân đủ tài xế</strong>. Các hoạt động không chế độ đó phải chọn đủ <strong>Xe</strong> và <strong>Tài xế</strong> trước khi duyệt.</span>
               </li>
               <li className="h-stack items-start gap-3">
-                <Icon icon="heroicons:squares-2x2" className="size-5 text-slate-900 shrink-0 mt-0.5" />
+                <Icon icon="heroicons:squares-2x2" className="size-5 text-slate-400 shrink-0 mt-0.5" />
                 <span>Số lượng ghế tổng cộng phải <strong>{">="} {tour.maxParticipation}</strong> hoặc bằng số ghế yêu cầu.</span>
               </li>
               <li className="h-stack items-start gap-3">
-                <Icon icon="heroicons:truck" className="size-5 text-slate-900 shrink-0 mt-0.5" />
+                <Icon icon="heroicons:truck" className="size-5 text-slate-400 shrink-0 mt-0.5" />
                 <span>Nên ưu tiên gán các xe có ghi chú <strong>Còn trống</strong> để tối ưu hiệu suất.</span>
               </li>
             </ul>
@@ -1133,7 +1145,7 @@ export default function TransportTourAssignmentPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.5, delay: index * 0.05, type: "spring", stiffness: 100, damping: 20 }}
-                      className="group relative overflow-hidden rounded-[2.5rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] md:p-8"
+                      className="group relative overflow-hidden rounded-[2.5rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] md:p-8"
                     >
                       {/* Inner Glass Refraction */}
                       <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]" />
@@ -1182,7 +1194,7 @@ export default function TransportTourAssignmentPage() {
                             type="button"
                             disabled={actionKey === `approve:${item.activity.id}` || actionKey === "bulk-approve"}
                             onClick={() => openApproveModal(item.activity)}
-                            className="group/btn h-stack items-center gap-2 rounded-[1.5rem] bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400"
+                            className="group/btn h-stack items-center gap-2 rounded-[1.5rem] bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-slate-800 hover:-translate-y-[1px] active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400"
                           >
                             <Icon icon={actionKey === `approve:${item.activity.id}` ? "heroicons:arrow-path" : isApproved ? "heroicons:pencil-square" : "heroicons:plus"} className={`size-4 ${actionKey === `approve:${item.activity.id}` ? "animate-spin" : ""}`} />
                             {isApproved ? t("tourInstance.transport.updateApproval", "Cap nhat") : t("tourInstance.transport.approveAction", "Gan xe")}
@@ -1192,31 +1204,31 @@ export default function TransportTourAssignmentPage() {
 
                       {/* Info Bento Blocks inside Card */}
                       <div className="relative z-10 mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <div className="rounded-2xl bg-slate-50 p-4">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Yêu cầu xe</p>
-                          <p className="mt-1 font-semibold text-slate-900">{item.activity.requestedVehicleType || "Bất kỳ"}</p>
+                        <div className="rounded-2xl bg-[#f9fafb] p-4 border border-slate-100/50">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Yêu cầu xe</p>
+                          <p className="mt-1 font-semibold tracking-tight text-slate-900">{item.activity.requestedVehicleType || "Bất kỳ"}</p>
                         </div>
-                        <div className="rounded-2xl bg-slate-50 p-4">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Số ghế yêu cầu</p>
-                          <p className="mt-1 font-semibold text-slate-900">{item.activity.requestedSeatCount ?? tour.maxParticipation}</p>
+                        <div className="rounded-2xl bg-[#f9fafb] p-4 border border-slate-100/50">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Số ghế yêu cầu</p>
+                          <p className="mt-1 font-mono font-semibold text-slate-900">{item.activity.requestedSeatCount ?? tour.maxParticipation}</p>
                         </div>
                         {item.activity.requestedVehicleCount != null && (
-                          <div className="rounded-2xl bg-slate-50 p-4">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Số lượng xe</p>
-                            <p className="mt-1 font-semibold text-slate-900">{item.activity.requestedVehicleCount}</p>
+                          <div className="rounded-2xl bg-[#f9fafb] p-4 border border-slate-100/50">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Số lượng xe</p>
+                            <p className="mt-1 font-mono font-semibold text-slate-900">{item.activity.requestedVehicleCount}</p>
                           </div>
                         )}
-                        <div className="rounded-2xl bg-slate-50 p-4 sm:col-span-2 lg:col-span-1">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tuyến đi</p>
-                          <p className="mt-1 font-semibold text-slate-900 truncate" title={item.activity.pickupLocation && item.activity.dropoffLocation ? `${item.activity.pickupLocation} → ${item.activity.dropoffLocation}` : item.activity.description}>
+                        <div className="rounded-2xl bg-[#f9fafb] p-4 border border-slate-100/50 sm:col-span-2 lg:col-span-1">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tuyến đi</p>
+                          <p className="mt-1 font-semibold tracking-tight text-slate-900 truncate" title={item.activity.pickupLocation && item.activity.dropoffLocation ? `${item.activity.pickupLocation} \u2192 ${item.activity.dropoffLocation}` : item.activity.description}>
                             {item.activity.pickupLocation && item.activity.dropoffLocation
-                              ? `${item.activity.pickupLocation} → ${item.activity.dropoffLocation}`
+                              ? `${item.activity.pickupLocation} \u2192 ${item.activity.dropoffLocation}`
                               : item.activity.description || "Chưa cập nhật"}
                           </p>
                         </div>
-                        <div className="rounded-2xl bg-indigo-50 p-4 border border-indigo-100/50">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Doanh thu dự kiến</p>
-                          <p className="mt-1 font-semibold text-indigo-900">
+                        <div className="rounded-2xl bg-slate-950/90 p-4 shadow-sm sm:col-span-2 lg:col-span-1">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Doanh thu dự kiến</p>
+                          <p className="mt-1 font-mono font-semibold text-white">
                             {(item.activity.price || 0).toLocaleString("vi-VN")} đ
                           </p>
                         </div>
@@ -1224,24 +1236,24 @@ export default function TransportTourAssignmentPage() {
 
                       {/* Current Assignments */}
                       {((item.activity.transportAssignments && item.activity.transportAssignments.length > 0) || item.activity.vehicleId || item.activity.driverId) && (
-                        <div className="relative z-10 mt-4 rounded-[1.5rem] border border-indigo-100 bg-indigo-50/50 p-5">
+                        <div className="relative z-10 mt-6 border-t border-slate-100/80 pt-6">
                           <div className="mb-4 h-stack items-center gap-2">
-                            <div className="center size-6 rounded-full bg-indigo-200/50 text-indigo-700">
+                            <div className="center size-6 rounded-full bg-slate-50 border border-slate-100 text-slate-500">
                               <Icon icon="heroicons:truck" className="size-3.5" />
                             </div>
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-900">Đã phân công</p>
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Đã phân công</p>
                           </div>
                           <div className="grid gap-3 sm:grid-cols-2">
                             {item.activity.transportAssignments && item.activity.transportAssignments.length > 0 ? (
                               item.activity.transportAssignments.map((ta) => (
-                                <div key={ta.id} className="v-stack gap-1 rounded-xl bg-white p-3 shadow-sm border border-indigo-100/50">
-                                  <span className="text-sm font-bold text-slate-900">{ta.vehicleType || "Chưa chọn xe"}</span>
+                                <div key={ta.id} className="v-stack gap-1 rounded-2xl bg-[#f9fafb] p-4 border border-slate-100/50">
+                                  <span className="text-sm font-bold tracking-tight text-slate-900">{ta.vehicleType || "Chưa chọn xe"}</span>
                                   <span className="text-xs font-medium text-slate-500">{ta.driverName || "Chưa chọn tài xế"}</span>
                                 </div>
                               ))
                             ) : (
-                              <div className="v-stack gap-1 rounded-xl bg-white p-3 shadow-sm border border-indigo-100/50">
-                                <span className="text-sm font-bold text-slate-900">{item.activity.vehicleType || item.activity.vehicleBrand ? `${item.activity.vehicleType || ""} ${item.activity.vehicleBrand || ""}`.trim() : "Chưa chọn xe"}</span>
+                              <div className="v-stack gap-1 rounded-2xl bg-[#f9fafb] p-4 border border-slate-100/50">
+                                <span className="text-sm font-bold tracking-tight text-slate-900">{item.activity.vehicleType || item.activity.vehicleBrand ? `${item.activity.vehicleType || ""} ${item.activity.vehicleBrand || ""}`.trim() : "Chưa chọn xe"}</span>
                                 <span className="text-xs font-medium text-slate-500">{item.activity.driverName || "Chưa chọn tài xế"}</span>
                               </div>
                             )}
@@ -1285,7 +1297,7 @@ export default function TransportTourAssignmentPage() {
             <button
               type="button"
               onClick={() => setApproveActivityId(null)}
-              className="spacer sm:flex-none rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-[0.98]"
+              className="spacer sm:flex-none rounded-2xl border border-slate-200/60 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-[0.98]"
             >
               {t("common.cancel", "Huy")}
             </button>
@@ -1297,7 +1309,7 @@ export default function TransportTourAssignmentPage() {
                 type="button"
                 onClick={handleApproveActivity}
                 disabled={approvePrimaryDisabled}
-                className="w-full h-full rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98] disabled:pointer-events-none disabled:bg-slate-100 disabled:text-slate-400"
+                className="w-full h-full rounded-2xl bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 hover:-translate-y-[1px] active:scale-[0.98] disabled:pointer-events-none disabled:bg-slate-100 disabled:text-slate-400"
               >
                 {actionKey === `approve:${approveActivityId}`
                   ? t("common.processing", "Dang xu ly...")
@@ -1311,14 +1323,15 @@ export default function TransportTourAssignmentPage() {
       >
         {activeApproveItem && (
           <div className="space-y-6 pt-2">
-            <div className="rounded-[1.5rem] bg-slate-50 p-5 border border-slate-100">
+            <div className="rounded-[2rem] bg-[#f9fafb] p-6 border border-slate-100/50">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                 {`Day ${activeApproveItem.dayNumber} • ${activeApproveItem.dayTitle}`}
               </p>
-              <h3 className="mt-1 text-lg font-bold text-slate-900 leading-tight">
+              <h3 className="mt-1 text-xl tracking-tight font-bold text-slate-900 leading-tight">
                 {activeApproveItem.activity.title}
               </h3>
-              <p className="mt-1 text-sm font-medium text-slate-500">
+              <p className="mt-2 text-sm font-medium text-slate-500 flex items-center gap-1.5">
+                <Icon icon="heroicons:calendar" className="size-4" />
                 {formatDateLabel(activeApproveItem.date)}
               </p>
             </div>
@@ -1383,7 +1396,7 @@ export default function TransportTourAssignmentPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="grid gap-4 overflow-hidden rounded-[1.5rem] border border-slate-200/60 bg-white p-5 shadow-sm md:grid-cols-[1fr_auto] md:items-start"
+                    className="grid gap-4 overflow-hidden rounded-[2rem] border border-slate-100/60 bg-white p-5 shadow-[0_10px_20px_-10px_rgba(0,0,0,0.03)] md:grid-cols-[1fr_auto] md:items-start"
                   >
                     <Select
                       label={t("tourInstance.transport.driverNumbered", "Tai xe thu {{n}}", { n: rowIndex + 1 })}
@@ -1413,7 +1426,7 @@ export default function TransportTourAssignmentPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="grid gap-4 overflow-hidden rounded-[1.5rem] border border-slate-200/60 bg-white p-5 shadow-sm md:grid-cols-[1fr_1fr_auto] md:items-start"
+                    className="grid gap-4 overflow-hidden rounded-[2rem] border border-slate-100/60 bg-white p-5 shadow-[0_10px_20px_-10px_rgba(0,0,0,0.03)] md:grid-cols-[1fr_1fr_auto] md:items-start"
                   >
                     <Select
                       label={t("tourInstance.transport.vehicle", "Xe")}
@@ -1482,18 +1495,18 @@ export default function TransportTourAssignmentPage() {
               )}
             </div>
 
-            <div className="grid gap-3 rounded-[1.5rem] bg-slate-50 p-5 border border-slate-100 sm:grid-cols-3">
+            <div className="grid gap-3 rounded-[2rem] bg-[#f9fafb] p-6 border border-slate-100/50 sm:grid-cols-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Loại xe yêu cầu</p>
-                <p className="mt-1 text-sm font-semibold text-slate-900">{activeApproveItem.activity.requestedVehicleType || "Chưa chọn"}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Loại xe yêu cầu</p>
+                <p className="mt-1 text-sm tracking-tight font-semibold text-slate-900">{activeApproveItem.activity.requestedVehicleType || "Chưa chọn"}</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ghế yêu cầu</p>
-                <p className="mt-1 text-sm font-semibold text-slate-900">{approveModalValidation.requiredSeats}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Ghế yêu cầu</p>
+                <p className="mt-1 text-sm font-mono font-semibold text-slate-900">{approveModalValidation.requiredSeats}</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ghế đã chọn</p>
-                <p className={`mt-1 text-sm font-semibold ${approveModalValidation.seatShortfall ? 'text-rose-600' : 'text-emerald-600'}`}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Ghế đã chọn</p>
+                <p className={`mt-1 text-sm font-mono font-semibold ${approveModalValidation.seatShortfall ? 'text-rose-600' : 'text-emerald-600'}`}>
                   {approveModalValidation.totalSeats}
                 </p>
               </div>
@@ -1538,7 +1551,7 @@ export default function TransportTourAssignmentPage() {
             <button
               type="button"
               onClick={() => setRejectActivityId(null)}
-              className="flex-1 sm:flex-none rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              className="flex-1 sm:flex-none rounded-2xl border border-slate-200/60 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-[0.98]"
             >
               {t("common.cancel", "Huy")}
             </button>
@@ -1546,7 +1559,7 @@ export default function TransportTourAssignmentPage() {
               type="button"
               onClick={handleRejectActivity}
               disabled={actionKey === `reject:${rejectActivityId}`}
-              className="flex-1 sm:flex-none rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300"
+              className="flex-1 sm:flex-none rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-rose-700 hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:bg-rose-300"
             >
               {actionKey === `reject:${rejectActivityId}`
                 ? t("common.processing", "Dang xu ly...")
@@ -1557,11 +1570,11 @@ export default function TransportTourAssignmentPage() {
       >
         {activeRejectItem && (
           <div className="space-y-6 pt-2">
-            <div className="rounded-[1.5rem] bg-slate-50 p-5 border border-slate-100">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="rounded-[2rem] bg-[#f9fafb] p-6 border border-slate-100/50">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                 {`Day ${activeRejectItem.dayNumber} • ${activeRejectItem.dayTitle}`}
               </p>
-              <h3 className="mt-1 text-lg font-bold text-slate-900 leading-tight">
+              <h3 className="mt-1 text-xl font-bold tracking-tight text-slate-900 leading-tight">
                 {activeRejectItem.activity.title}
               </h3>
             </div>

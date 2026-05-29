@@ -19,7 +19,7 @@ public sealed class GetAllBookingsQueryHandlerTests
     public GetAllBookingsQueryHandlerTests()
     {
         _handler = new GetAllBookingsQueryHandler(_bookingRepository, _pricingPolicyRepository, _taxConfigRepository, _priceCalculator);
-        
+
         // Setup default mock for price calculator
         _priceCalculator.Calculate(Arg.Any<BookingEntity>(), Arg.Any<TourInstanceEntity>(), Arg.Any<IReadOnlyList<global::Domain.ValueObjects.PricingPolicyTier>>(), Arg.Any<TaxConfigEntity>(), Arg.Any<decimal>())
             .Returns(callInfo =>

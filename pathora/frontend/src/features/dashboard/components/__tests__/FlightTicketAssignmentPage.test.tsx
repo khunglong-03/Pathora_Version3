@@ -8,20 +8,25 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 import FlightTicketAssignmentPage from "../FlightTicketAssignmentPage";
 
 const routerPush = vi.fn();
+const mockUseParams = vi.fn().mockReturnValue({ id: "instance-1" });
+const mockGet = vi.fn();
 
 vi.mock("next/navigation", () => ({
-  useParams: () => ({ id: "instance-1" }),
+  useParams: () => mockUseParams(),
   useRouter: () => ({ push: routerPush }),
+  useSearchParams: () => ({ get: mockGet }),
 }));
+
+const stableT = (_key: string, fallback?: string | Record<string, unknown>) =>
+  typeof fallback === "string"
+    ? fallback
+    : typeof fallback?.defaultValue === "string"
+      ? fallback.defaultValue
+      : _key;
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (_key: string, fallback?: string | Record<string, unknown>) =>
-      typeof fallback === "string"
-        ? fallback
-        : typeof fallback?.defaultValue === "string"
-          ? fallback.defaultValue
-          : _key,
+    t: stableT,
   }),
 }));
 
@@ -106,6 +111,15 @@ const instance = {
           endTime: "10:00",
           externalTransportConfirmed: false,
         },
+        {
+          id: "flight-2",
+          activityType: "Transportation",
+          title: "Flight from Da Nang",
+          transportationType: "Flight",
+          startTime: "16:00",
+          endTime: "18:00",
+          externalTransportConfirmed: false,
+        },
       ],
     },
   ],
@@ -139,29 +153,39 @@ const bookings = [
 describe("FlightTicketAssignmentPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGet.mockReturnValue(null);
     routerPush.mockReset();
+    mockUseParams.mockReturnValue({ id: "instance-1" });
     vi.mocked(tourInstanceService.getInstanceDetail).mockResolvedValue(instance as any);
     vi.mocked(tourInstanceService.saveBookingTicket).mockResolvedValue({});
     vi.mocked(tourInstanceService.confirmExternalTransport).mockResolvedValue({});
     vi.mocked(bookingService.getBookingsByTourInstance).mockResolvedValue(bookings);
   });
 
+  it("verifies mocked services resolve correctly", async () => {
+    const detail = await tourInstanceService.getInstanceDetail("instance-1");
+    expect(detail).toBe(instance);
+
+    const bookingList = await bookingService.getBookingsByTourInstance("instance-1");
+    expect(bookingList).toBe(bookings);
+  });
+
   it("filters to the route booking and saves the ticket with that booking id", async () => {
     render(
       <FlightTicketAssignmentPage
         instanceId="instance-1"
-        filterBookingId="booking-2"
+        bookingId="booking-2"
       />,
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId("ticket-panel")).toBeInTheDocument();
+      expect(screen.getAllByTestId("ticket-panel")[0]).toBeInTheDocument();
     });
 
     expect(screen.queryByText("Lan Nguyen")).not.toBeInTheDocument();
-    expect(screen.getByText("Minh Pham")).toBeInTheDocument();
+    expect(screen.getAllByText("Minh Pham")[0]).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Save ticket" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Save ticket" })[0]);
 
     await waitFor(() => {
       expect(tourInstanceService.saveBookingTicket).toHaveBeenCalledWith(
@@ -185,7 +209,7 @@ describe("FlightTicketAssignmentPage", () => {
     render(
       <FlightTicketAssignmentPage
         instanceId="instance-1"
-        filterBookingId="missing-booking"
+        bookingId="missing-booking"
       />,
     );
 
@@ -193,5 +217,51 @@ describe("FlightTicketAssignmentPage", () => {
       await screen.findByText("Booking does not belong to this tour instance."),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("ticket-panel")).not.toBeInTheDocument();
+  });
+
+  it("does not fetch or crash when instanceId is empty", async () => {
+    mockUseParams.mockReturnValue({});
+    render(
+      <FlightTicketAssignmentPage
+        instanceId=""
+        bookingId="booking-1"
+      />,
+    );
+
+    expect(tourInstanceService.getInstanceDetail).not.toHaveBeenCalled();
+  });
+
+  it("scopes UI to a single activity when valid activityId is passed as search param", async () => {
+    mockGet.mockReturnValue("flight-2");
+
+    render(
+      <FlightTicketAssignmentPage
+        instanceId="instance-1"
+        bookingId="booking-1"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ticket-panel")).toBeInTheDocument();
+    });
+
+    // It should render successfully and the panel matches the single flight-2 activity
+    expect(screen.getByText("Flight from Da Nang")).toBeInTheDocument();
+    expect(screen.queryByText("Flight to Da Nang")).not.toBeInTheDocument();
+  });
+
+  it("shows activity not found error when non-matching activityId is passed", async () => {
+    mockGet.mockReturnValue("flight-invalid");
+
+    render(
+      <FlightTicketAssignmentPage
+        instanceId="instance-1"
+        bookingId="booking-1"
+      />,
+    );
+
+    expect(
+      await screen.findByText("Hoạt động không tồn tại hoặc không thuộc booking này."),
+    ).toBeInTheDocument();
   });
 });

@@ -9,7 +9,7 @@ public sealed record VisaApplicationDto(
     [property: JsonPropertyName("participantName")] string? ParticipantName,
     [property: JsonPropertyName("passportId")] Guid PassportId,
     [property: JsonPropertyName("passportNumber")] string? PassportNumber,
-    [property: JsonPropertyName("destinationCountry")] string DestinationCountry,
+    [property: JsonPropertyName("destinationCountry")] string? DestinationCountry,
     [property: JsonPropertyName("status")] VisaStatus Status,
     [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate,
     [property: JsonPropertyName("refusalReason")] string? RefusalReason,

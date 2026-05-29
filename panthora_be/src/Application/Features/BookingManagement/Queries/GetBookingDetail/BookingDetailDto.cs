@@ -45,6 +45,15 @@ public class BookingDetailDto
     public List<PendingTransactionDto> PendingTransactions { get; set; } = [];
     public BookingCancellationRequestSummaryDto? CancellationRequest { get; set; }
     public List<BookingCancellationRequestSummaryDto> CancellationRequests { get; set; } = [];
+    public string? RefundStatus { get; set; }
+    public decimal? RefundOutstandingAmount { get; set; }
+    public DateTimeOffset? RefundContactedAt { get; set; }
+    public DateTimeOffset? RefundCompletedAt { get; set; }
+
+    public List<CustomerTicketDto> Tickets { get; set; } = [];
+    public List<CustomerRoomAssignmentDto> RoomAssignments { get; set; } = [];
+    public List<CustomerDayStatusDto> DayStatuses { get; set; } = [];
+    public List<CustomerTicketImageDto> TicketImages { get; set; } = [];
 }
 
 public class PendingTransactionDto
@@ -68,5 +77,49 @@ public class BookingCancellationRequestSummaryDto
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? ReviewedAt { get; set; }
     public DateTimeOffset? RefundConfirmedAt { get; set; }
+}
+
+public class CustomerTicketDto
+{
+    public Guid Id { get; set; }
+    public Guid TourInstanceDayActivityId { get; set; }
+    public string? FlightNumber { get; set; }
+    public DateTimeOffset? DepartureAt { get; set; }
+    public DateTimeOffset? ArrivalAt { get; set; }
+    public string? SeatNumbers { get; set; }
+    public string? ETicketNumbers { get; set; }
+    public string? SeatClass { get; set; }
+    public string? Note { get; set; }
+}
+
+public class CustomerRoomAssignmentDto
+{
+    public Guid Id { get; set; }
+    public Guid TourInstanceDayActivityId { get; set; }
+    public string RoomType { get; set; } = string.Empty;
+    public int RoomCount { get; set; }
+    public string? RoomNumbers { get; set; }
+    public string? Note { get; set; }
+}
+
+public class CustomerDayStatusDto
+{
+    public Guid Id { get; set; }
+    public Guid TourDayId { get; set; }
+    public string ActivityStatus { get; set; } = string.Empty;
+    public DateTimeOffset? ActualStartTime { get; set; }
+    public DateTimeOffset? ActualEndTime { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+    public string? CancellationReason { get; set; }
+    public string? Note { get; set; }
+}
+
+public class CustomerTicketImageDto
+{
+    public Guid Id { get; set; }
+    public Guid TourInstanceDayActivityId { get; set; }
+    public string PublicUrl { get; set; } = string.Empty;
+    public string? BookingReference { get; set; }
+    public string? Note { get; set; }
 }
 

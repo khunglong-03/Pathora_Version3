@@ -197,6 +197,7 @@ export const managerService = {
     expiresAt: string;
     category: string;
     format: string;
+    destinationCountry: string;
     entryType?: string;
     maxStayDays?: number;
     issuingAuthority?: string;

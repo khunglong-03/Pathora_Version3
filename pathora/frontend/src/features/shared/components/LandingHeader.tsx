@@ -40,6 +40,7 @@ import {
   FiUser,
   FiSettings,
   FiLock,
+  FiAlignRight,
 } from "react-icons/fi";
 
 const languages = [
@@ -149,12 +150,14 @@ const MobileSidebar = ({
   open,
   onClose,
   onOpenAuth,
+  onLogout,
   dialogId,
   logoVariant = "svg",
 }: {
   open: boolean;
   onClose: () => void;
   onOpenAuth: (view: "signup" | "login" | "forgot") => void;
+  onLogout: () => void;
   dialogId: string;
   logoVariant?: "svg" | "text";
 }) => {
@@ -278,13 +281,14 @@ const MobileSidebar = ({
                   </>
                 )}
               </Link>
-              <Button
+              <button
+                type="button"
                 onClick={onClose}
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors bg-transparent"
-                icon="heroicons-outline:x"
-                iconClass="text-xl text-white"
-                ariaLabel={t("landing.a11y.closeMenu")}
-              />
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors bg-transparent text-white focus-visible:outline-none"
+                aria-label={t("landing.a11y.closeMenu")}
+              >
+                <FiX className="text-xl" />
+              </button>
             </div>
 
             {/* User info */}
@@ -359,10 +363,10 @@ const MobileSidebar = ({
                 </span>
                 <div className="flex rounded-full bg-white/10 p-0.5">
                   {languages.map((lang) => (
-                    <Button
+                    <button
                       key={lang.code}
                       type="button"
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all focus-visible:outline-none ${
                         mounted && normalizedLanguage === lang.code
                           ? "bg-[#fa8b02] text-white"
                           : "text-gray-300 hover:text-white"
@@ -371,14 +375,28 @@ const MobileSidebar = ({
                       aria-pressed={normalizedLanguage === lang.code}
                     >
                       {lang.code.toUpperCase()}
-                    </Button>
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
 
             {/* Actions */}
-            {!isAuth && (
+            {isAuth ? (
+              <div className="p-6 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onLogout();
+                    onClose();
+                  }}
+                  className="w-full py-3 text-center bg-red-500/10 text-red-400 border border-red-500/20 rounded-full font-medium hover:bg-red-500/20 active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2 focus-visible:outline-none"
+                >
+                  <FiLogOut className="w-4 h-4" />
+                  <span>{t("common.signOut") || "Đăng xuất"}</span>
+                </button>
+              </div>
+            ) : (
               <div className="flex gap-3 p-6 border-t border-white/10">
                 <Button
                   onClick={() => onOpenAuth("login")}
@@ -700,11 +718,9 @@ export const LandingHeader = () => {
             <div className="hidden lg:flex items-center gap-3">
               {/* Language Switcher */}
               <div className="relative" ref={languageMenuRef}>
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  suppressHydrationWarning
-                  className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all text-white"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all text-white focus-visible:outline-none"
                   onClick={() => {
                     setLanguageMenuOpen((prev) => !prev);
                     setUserMenuOpen(false);
@@ -726,7 +742,7 @@ export const LandingHeader = () => {
                     suppressHydrationWarning
                     className={`w-3.5 h-3.5 text-white/50 transition-transform ${languageMenuOpen ? "rotate-180" : ""}`}
                   />
-                </Button>
+                </button>
                 {/* Language Dropdown */}
                 <div
                   id={languageMenuId}
@@ -741,7 +757,7 @@ export const LandingHeader = () => {
                     const isActive =
                       mounted && lang.code === normalizedLanguage;
                     return (
-                      <Button
+                      <button
                         key={lang.code}
                         type="button"
                         onClick={() => {
@@ -752,12 +768,12 @@ export const LandingHeader = () => {
                           isActive
                             ? "text-[#fa8b02] bg-[#fa8b02]/10"
                             : "text-white"
-                        }`}
+                        } focus-visible:outline-none text-left`}
                       >
                         <span className="text-lg">{lang.flag}</span>
                         <span className="font-medium">{lang.label}</span>
                         {isActive && <FiCheck className="w-4 h-4 ml-auto" />}
-                      </Button>
+                      </button>
                     );
                   })}
                 </div>
@@ -766,7 +782,7 @@ export const LandingHeader = () => {
               {/* User Menu - When Logged In */}
               {clientIsAuth && (
                 <div className="relative" ref={userMenuRef}>
-                  <Button
+                  <button
                     type="button"
                     onClick={() => {
                       setUserMenuOpen((prev) => !prev);
@@ -789,7 +805,7 @@ export const LandingHeader = () => {
                         {userInitial}
                       </span>
                     )}
-                  </Button>
+                  </button>
 
                   {/* User Dropdown */}
                   <div
@@ -874,14 +890,14 @@ export const LandingHeader = () => {
                         </span>
                       </Link>
 
-                      <Button
+                      <button
                         type="button"
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors focus-visible:outline-none text-left"
                       >
                         <FiLogOut className="w-4 h-4" />
                         <span>{t("common.signOut") || "Đăng xuất"}</span>
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -907,10 +923,10 @@ export const LandingHeader = () => {
             </div>
 
             {/* Mobile Menu Button */}
-            <Button
-              ref={menuButtonRef}
+            <button
+              ref={menuButtonRef as unknown as React.Ref<HTMLButtonElement>}
               type="button"
-              className="lg:hidden w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors"
+              className="lg:hidden w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors focus-visible:outline-none"
               onClick={() => setMobileMenuOpen(true)}
               aria-label={t("landing.a11y.openMenu")}
               aria-expanded={mobileMenuOpen}
@@ -919,9 +935,9 @@ export const LandingHeader = () => {
               {mobileMenuOpen ? (
                 <FiX suppressHydrationWarning className="w-6 h-6" />
               ) : (
-                <FiMenu suppressHydrationWarning className="w-6 h-6" />
+                <FiAlignRight suppressHydrationWarning className="w-6 h-6" />
               )}
-            </Button>
+            </button>
           </div>
         </div>
       </header>
@@ -932,6 +948,7 @@ export const LandingHeader = () => {
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         onOpenAuth={openAuth}
+        onLogout={handleLogout}
         dialogId="landing-mobile-menu"
         logoVariant="svg"
       />

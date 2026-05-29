@@ -134,7 +134,8 @@ public sealed class ManagerCancelCascadeIntegrationTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
 
-        var handler = new UpdateBookingRefundStatusCommandHandler(bookingRepository, user, unitOfWork);
+        var paymentTransactionRepository = Substitute.For<IPaymentTransactionRepository>();
+        var handler = new UpdateBookingRefundStatusCommandHandler(bookingRepository, paymentTransactionRepository, user, unitOfWork);
         var cmd = new UpdateBookingRefundStatusCommand(booking.Id, RefundStatus.Contacted);
 
         // Act

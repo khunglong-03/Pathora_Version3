@@ -7,6 +7,7 @@ import type { ReactNode, CSSProperties } from "react";
 export * from "./api";
 export * from "./booking";
 export * from "./admin";
+export * from "./tour-guide-tasks";
 
 // ==================== Common Types ====================
 

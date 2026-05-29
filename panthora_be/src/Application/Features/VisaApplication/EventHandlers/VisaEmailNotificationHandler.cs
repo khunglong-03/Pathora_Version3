@@ -31,11 +31,11 @@ public sealed class VisaEmailNotificationHandler(
             try
             {
                 var customerName = application.BookingParticipant.Booking.User?.FullName ?? "Customer";
-                
+
                 var approvedMail = new VisaApplicationApprovedMail(
                     CustomerName: customerName,
                     ParticipantName: application.BookingParticipant.FullName,
-                    DestinationCountry: application.DestinationCountry,
+                    DestinationCountry: application.DestinationCountry ?? "Unknown",
                     ViewLink: "/bookings");
 
                 var mail = approvedMail.ToMail(email);
@@ -58,11 +58,11 @@ public sealed class VisaEmailNotificationHandler(
             try
             {
                 var customerName = application.BookingParticipant.Booking.User?.FullName ?? "Customer";
-                
+
                 var rejectedMail = new VisaApplicationRejectedMail(
                     CustomerName: customerName,
                     ParticipantName: application.BookingParticipant.FullName,
-                    DestinationCountry: application.DestinationCountry,
+                    DestinationCountry: application.DestinationCountry ?? "Unknown",
                     RefusalReason: application.RefusalReason ?? "Not specified.",
                     ResubmitLink: "/bookings"); // Assuming they manage visas from their bookings page
 
@@ -100,11 +100,11 @@ public sealed class VisaEmailNotificationHandler(
         {
             var customerName = application.BookingParticipant.Booking.User?.FullName ?? "Customer";
             var feeStr = notification.Fee.ToString("N0");
-            
+
             var quoteMail = new VisaServiceFeeQuotedMail(
                 CustomerName: customerName,
                 ParticipantName: application.BookingParticipant.FullName,
-                DestinationCountry: application.DestinationCountry,
+                DestinationCountry: application.DestinationCountry ?? "Unknown",
                 Fee: feeStr,
                 PaymentLink: "/bookings"); // Link to booking to pay the fee
 

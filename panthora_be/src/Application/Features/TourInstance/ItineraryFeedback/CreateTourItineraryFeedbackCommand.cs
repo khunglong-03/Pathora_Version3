@@ -9,6 +9,9 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
+using Contracts.Interfaces;
+using Application.Common;
+
 namespace Application.Features.TourInstance.ItineraryFeedback;
 
 public sealed record CreateTourItineraryFeedbackCommand(
@@ -17,7 +20,10 @@ public sealed record CreateTourItineraryFeedbackCommand(
     [property: JsonPropertyName("bookingId")] Guid? BookingId,
     [property: JsonPropertyName("content")] string Content,
     [property: JsonPropertyName("isFromCustomer")] bool IsFromCustomer)
-    : IRequest<ErrorOr<TourItineraryFeedbackDto>>;
+    : IRequest<ErrorOr<TourItineraryFeedbackDto>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{TourInstanceId}"];
+}
 
 public sealed class CreateTourItineraryFeedbackCommandValidator : AbstractValidator<CreateTourItineraryFeedbackCommand>
 {
@@ -61,7 +67,7 @@ public sealed class CreateTourItineraryFeedbackCommandHandler(
 #pragma warning disable CS0618
         var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
 #pragma warning restore CS0618
-        var isGlobalManager = user.Roles.Any(r => 
+        var isGlobalManager = user.Roles.Any(r =>
             string.Equals(r, RoleConstants.TourOperator, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(r, RoleConstants.Manager, StringComparison.OrdinalIgnoreCase));
 

@@ -35,3 +35,5 @@ export type {
   CreateRolePayload,
   UpdateRolePayload,
 } from "./roleService";
+export { tourGuideManifestService } from "./tourGuideManifestService";
+export { tourGuideService } from "./tourGuideService";

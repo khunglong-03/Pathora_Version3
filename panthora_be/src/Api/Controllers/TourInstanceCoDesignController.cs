@@ -24,7 +24,7 @@ public sealed class TourInstanceCoDesignController : BaseApiController
     public sealed record PrivateSettlementBody([property: JsonPropertyName("bookingId")] Guid BookingId);
 
     public sealed record FeedbackRejectBody([property: JsonPropertyName("reason")] string Reason, [property: JsonPropertyName("rowVersion")] string RowVersion);
-    
+
     public sealed record FeedbackTransitionBody([property: JsonPropertyName("rowVersion")] string RowVersion);
     [HttpGet(TourInstanceEndpoint.DayFeedback)]
     public async Task<IActionResult> ListFeedback(Guid id, Guid dayId)

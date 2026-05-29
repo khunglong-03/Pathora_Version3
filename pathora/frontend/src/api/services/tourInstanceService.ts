@@ -259,6 +259,7 @@ const normalizeInstanceVm = (item: TourInstanceVm): NormalizedTourInstanceVm => 
   maxParticipation: item.maxParticipation ?? 0,
   status: normalizeStatus(item.status),
   registeredParticipants: item.currentParticipation ?? 0,
+  assignedActivities: item.assignedActivities ?? [],
 });
 
 const normalizeInstanceDetail = (

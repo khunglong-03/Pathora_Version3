@@ -73,7 +73,7 @@ public class TourInstanceServiceDayActivityTests
             }
         };
         var command = new CreateTourInstanceDayCommand(instanceId, "Day 2", date, "Desc");
-        
+
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
 
         var result = await _sut.AddCustomDay(command);
@@ -95,7 +95,7 @@ public class TourInstanceServiceDayActivityTests
             InstanceDays = new List<TourInstanceDayEntity>()
         };
         var command = new CreateTourInstanceDayCommand(instanceId, "Day 2", date, "Desc");
-        
+
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
         _user.Id.Returns("test-user");
 
@@ -126,7 +126,7 @@ public class TourInstanceServiceDayActivityTests
         var instanceId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var command = new CreateTourInstanceActivityCommand(instanceId, dayId, "Act", global::Domain.Enums.TourDayActivityType.Sightseeing, null, null, null, null);
-        
+
         var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity>() };
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
 
@@ -144,7 +144,7 @@ public class TourInstanceServiceDayActivityTests
         var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity>() };
         var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
         var command = new CreateTourInstanceActivityCommand(instanceId, dayId, "Act", global::Domain.Enums.TourDayActivityType.Sightseeing, null, null, null, null);
-        
+
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
         _user.Id.Returns("test-user");
         _mapper.Map<TourInstanceDayActivityDto>(Arg.Any<TourInstanceDayActivityEntity>()).Returns(default(TourInstanceDayActivityDto)!);
@@ -170,11 +170,11 @@ public class TourInstanceServiceDayActivityTests
             null, null,
             DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(2),
             null, null, "VN123");
-        
+
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
-        
+
         var result = await _sut.CreateActivity(command);
-        
+
         Assert.False(result.IsError);
         await _tourInstanceRepository.Received(1).AddInstanceDayActivity(Arg.Is<TourInstanceDayActivityEntity>(a =>
             a.TransportationType == global::Domain.Enums.TransportationType.Flight &&
@@ -200,11 +200,11 @@ public class TourInstanceServiceDayActivityTests
             null, null,
             null, null,
             global::Domain.Enums.VehicleType.Car, 4, null);
-        
+
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
-        
+
         var result = await _sut.CreateActivity(command);
-        
+
         Assert.False(result.IsError);
         await _tourInstanceRepository.Received(1).AddInstanceDayActivity(Arg.Is<TourInstanceDayActivityEntity>(a =>
             a.TransportationType == global::Domain.Enums.TransportationType.Car &&
@@ -232,7 +232,7 @@ public class TourInstanceServiceDayActivityTests
         var instanceId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var command = new UpdateTourInstanceActivityCommand(instanceId, dayId, Guid.NewGuid());
-        
+
         var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity>() };
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
 
@@ -250,7 +250,7 @@ public class TourInstanceServiceDayActivityTests
         var dayId = Guid.NewGuid();
         var activityId = Guid.NewGuid();
         var command = new UpdateTourInstanceActivityCommand(instanceId, dayId, activityId);
-        
+
         var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity>() };
         var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
@@ -269,11 +269,11 @@ public class TourInstanceServiceDayActivityTests
         var dayId = Guid.NewGuid();
         var activityId = Guid.NewGuid();
         var command = new UpdateTourInstanceActivityCommand(instanceId, dayId, activityId, Note: "Updated Note");
-        
+
         var activity = new TourInstanceDayActivityEntity { Id = activityId };
         var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity> { activity } };
         var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
-        
+
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
         _user.Id.Returns("test-user");
 
@@ -290,7 +290,7 @@ public class TourInstanceServiceDayActivityTests
         var instanceId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var command = new DeleteTourInstanceActivityCommand(instanceId, dayId, Guid.NewGuid());
-        
+
         var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity>() };
         var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
@@ -309,7 +309,7 @@ public class TourInstanceServiceDayActivityTests
         var dayId = Guid.NewGuid();
         var activityId = Guid.NewGuid();
         var command = new DeleteTourInstanceActivityCommand(instanceId, dayId, activityId);
-        
+
         var activity = new TourInstanceDayActivityEntity { Id = activityId };
         var day = new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity> { activity } };
         var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { day } };
@@ -329,24 +329,29 @@ public class TourInstanceServiceDayActivityTests
         var dayId = Guid.NewGuid();
         var activityId = Guid.NewGuid();
 
-        var activity = new TourInstanceDayActivityEntity { 
-            Id = activityId, 
+        var activity = new TourInstanceDayActivityEntity
+        {
+            Id = activityId,
             ActivityType = global::Domain.Enums.TourDayActivityType.Transportation,
             TransportationType = global::Domain.Enums.TransportationType.Car,
             TransportSupplierId = Guid.NewGuid() // Supplier assigned
         };
 
-        var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { 
+        var instance = new TourInstanceEntity
+        {
+            Id = instanceId,
+            InstanceDays = new List<TourInstanceDayEntity> {
             new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity> { activity } }
-        }};
+        }
+        };
 
-        var command = new UpdateTourInstanceActivityCommand(instanceId, dayId, activityId, 
+        var command = new UpdateTourInstanceActivityCommand(instanceId, dayId, activityId,
             TransportationType: global::Domain.Enums.TransportationType.Flight); // Changing Ground -> External
-        
+
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
-        
+
         var result = await _sut.UpdateActivity(command);
-        
+
         Assert.True(result.IsError);
         Assert.Equal("TourInstanceActivity.CannotChangeTransportGroupWithSupplierAssigned", result.FirstError.Code);
     }
@@ -358,26 +363,31 @@ public class TourInstanceServiceDayActivityTests
         var dayId = Guid.NewGuid();
         var activityId = Guid.NewGuid();
 
-        var activity = new TourInstanceDayActivityEntity { 
-            Id = activityId, 
+        var activity = new TourInstanceDayActivityEntity
+        {
+            Id = activityId,
             ActivityType = global::Domain.Enums.TourDayActivityType.Transportation,
             TransportationType = global::Domain.Enums.TransportationType.Car,
             TransportSupplierId = null // No supplier
         };
 
-        var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = new List<TourInstanceDayEntity> { 
+        var instance = new TourInstanceEntity
+        {
+            Id = instanceId,
+            InstanceDays = new List<TourInstanceDayEntity> {
             new TourInstanceDayEntity { Id = dayId, Activities = new List<TourInstanceDayActivityEntity> { activity } }
-        }};
+        }
+        };
 
-        var command = new UpdateTourInstanceActivityCommand(instanceId, dayId, activityId, 
+        var command = new UpdateTourInstanceActivityCommand(instanceId, dayId, activityId,
             TransportationType: global::Domain.Enums.TransportationType.Flight,
             ExternalTransportReference: "VN123");
-        
+
         _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId).Returns(instance);
         _user.Id.Returns("test-user");
-        
+
         var result = await _sut.UpdateActivity(command);
-        
+
         Assert.False(result.IsError);
         Assert.Equal(global::Domain.Enums.TransportationType.Flight, activity.TransportationType);
         Assert.Equal("VN123", activity.ExternalTransportReference);

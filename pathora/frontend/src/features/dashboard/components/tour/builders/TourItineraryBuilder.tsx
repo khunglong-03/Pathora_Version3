@@ -296,8 +296,9 @@ export function TourItineraryBuilder({
                 <div className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                     <div className="space-y-1">
-                      <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
-                        🇻🇳 {t("tourAdmin.itineraries.dayDescription")} (VI)
+                      <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                        <span className="inline-flex items-center justify-center size-4 rounded-full bg-red-100 text-red-700 text-[8px] font-bold border border-red-200 shadow-sm leading-none shrink-0">VI</span>
+                        {t("tourAdmin.itineraries.dayDescription")}
                       </span>
                       <textarea
                         value={day.description}
@@ -308,8 +309,9 @@ export function TourItineraryBuilder({
                       />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
-                        🇬🇧 Description (EN)
+                      <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                        <span className="inline-flex items-center justify-center size-4 rounded-full bg-sky-100 text-sky-700 text-[8px] font-bold border border-sky-200 shadow-sm leading-none shrink-0">EN</span>
+                        Description
                       </span>
                       <textarea
                         value={day.enDescription}
@@ -502,9 +504,9 @@ export function TourItineraryBuilder({
                         {/* Title — VI / EN */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                           <div className="space-y-1">
-                            <div className="flex items-center gap-1 text-xs font-medium text-stone-500 dark:text-stone-400">
-                              <span>🇻🇳</span>
-                              <span>{t("tourAdmin.itineraries.title")} (VI)</span>
+                            <div className="flex items-center gap-1.5 text-xs font-medium text-stone-500 dark:text-stone-400">
+                              <span className="inline-flex items-center justify-center size-4 rounded-full bg-red-100 text-red-700 text-[8px] font-bold border border-red-200 shadow-sm leading-none shrink-0">VI</span>
+                              <span>{t("tourAdmin.itineraries.title")}</span>
                               <span className="text-red-500">*</span>
                             </div>
                             <input
@@ -516,8 +518,9 @@ export function TourItineraryBuilder({
                             />
                           </div>
                           <div className="space-y-1">
-                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
-                              🇬🇧 Title (EN)
+                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                              <span className="inline-flex items-center justify-center size-4 rounded-full bg-sky-100 text-sky-700 text-[8px] font-bold border border-sky-200 shadow-sm leading-none shrink-0">EN</span>
+                              Title
                             </span>
                             <input
                               type="text"
@@ -532,8 +535,9 @@ export function TourItineraryBuilder({
                         {/* Description — VI / EN */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                           <div className="space-y-1">
-                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                              🇻🇳 {t("tourAdmin.itineraries.description")} (VI)
+                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                              <span className="inline-flex items-center justify-center size-4 rounded-full bg-red-100 text-red-700 text-[8px] font-bold border border-red-200 shadow-sm leading-none shrink-0">VI</span>
+                              {t("tourAdmin.itineraries.description")}
                             </span>
                             <textarea
                               value={act.description}
@@ -544,8 +548,9 @@ export function TourItineraryBuilder({
                             />
                           </div>
                           <div className="space-y-1">
-                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                              🇬🇧 Description (EN)
+                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                              <span className="inline-flex items-center justify-center size-4 rounded-full bg-sky-100 text-sky-700 text-[8px] font-bold border border-sky-200 shadow-sm leading-none shrink-0">EN</span>
+                              Description
                             </span>
                             <textarea
                               value={act.enDescription}
@@ -560,8 +565,9 @@ export function TourItineraryBuilder({
                         {/* Note — VI / EN */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                           <div className="space-y-1">
-                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                              🇻🇳 {t("tourAdmin.itineraries.note")} (VI)
+                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                              <span className="inline-flex items-center justify-center size-4 rounded-full bg-red-100 text-red-700 text-[8px] font-bold border border-red-200 shadow-sm leading-none shrink-0">VI</span>
+                              {t("tourAdmin.itineraries.note")}
                             </span>
                             <input
                               type="text"
@@ -572,8 +578,9 @@ export function TourItineraryBuilder({
                             />
                           </div>
                           <div className="space-y-1">
-                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                              🇬🇧 Note (EN)
+                            <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                              <span className="inline-flex items-center justify-center size-4 rounded-full bg-sky-100 text-sky-700 text-[8px] font-bold border border-sky-200 shadow-sm leading-none shrink-0">EN</span>
+                              Note
                             </span>
                             <input
                               type="text"

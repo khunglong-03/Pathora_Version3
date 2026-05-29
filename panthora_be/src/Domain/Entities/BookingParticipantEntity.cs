@@ -30,6 +30,9 @@ public class BookingParticipantEntity : Aggregate<Guid>
     /// <summary>Danh sách các hồ sơ xin visa của participant.</summary>
     public virtual List<VisaApplicationEntity> VisaApplications { get; set; } = [];
 
+    /// <summary>Token phiên bản phục vụ cho concurrency control.</summary>
+    public byte[] RowVersion { get; set; } = [];
+
     public static BookingParticipantEntity Create(
         Guid bookingId,
         string participantType,

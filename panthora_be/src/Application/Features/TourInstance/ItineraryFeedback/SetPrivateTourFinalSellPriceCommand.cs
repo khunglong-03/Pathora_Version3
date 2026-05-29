@@ -8,6 +8,9 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
+using Contracts.Interfaces;
+using Application.Common;
+
 namespace Application.Features.TourInstance.ItineraryFeedback;
 
 /// <summary>
@@ -17,7 +20,10 @@ namespace Application.Features.TourInstance.ItineraryFeedback;
 public sealed record SetPrivateTourFinalSellPriceCommand(
     [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
     [property: JsonPropertyName("finalSellPrice")] decimal FinalSellPrice)
-    : IRequest<ErrorOr<Success>>;
+    : IRequest<ErrorOr<Success>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{TourInstanceId}"];
+}
 
 public sealed class SetPrivateTourFinalSellPriceCommandValidator : AbstractValidator<SetPrivateTourFinalSellPriceCommand>
 {
@@ -50,11 +56,11 @@ public sealed class SetPrivateTourFinalSellPriceCommandHandler(
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
-        var isGlobalManager = user.Roles.Any(r => 
+        var isGlobalManager = user.Roles.Any(r =>
             string.Equals(r, RoleConstants.TourOperator, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(r, RoleConstants.Manager, StringComparison.OrdinalIgnoreCase));
         var isOperator = PrivateTourCoDesignAccess.EnsureInstanceOperatorOnly(instance, userId);
-        
+
         if (!isAdmin && !isGlobalManager && !isOperator && !PrivateTourCoDesignAccess.EnsureInstanceManagerOnly(instance, userId))
             return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
 
@@ -69,13 +75,13 @@ public sealed class SetPrivateTourFinalSellPriceCommandHandler(
             instance.BasePrice = request.FinalSellPrice;
             instance.LastModifiedBy = userId.ToString();
             instance.LastModifiedOnUtc = DateTimeOffset.UtcNow;
-            
+
             if (isOperator)
             {
                 var feedbacks = await feedbackRepository.ListByInstanceAsync(request.TourInstanceId, cancellationToken);
                 foreach (var feedback in feedbacks)
                 {
-                    if (feedback.Status == TourItineraryFeedbackStatus.ManagerForwarded || 
+                    if (feedback.Status == TourItineraryFeedbackStatus.ManagerForwarded ||
                         feedback.Status == TourItineraryFeedbackStatus.ManagerRejected)
                     {
                         feedback.RecordOperatorResponse(userId);

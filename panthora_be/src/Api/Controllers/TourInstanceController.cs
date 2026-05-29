@@ -3,6 +3,7 @@ using Application.Common.Constant;
 using Application.Dtos;
 using Application.Features.TourInstance.Commands;
 using Application.Features.TourInstance.Queries;
+using Application.Features.BookingManagement.Queries.GetTourGuideManifest;
 using Contracts;
 using Domain.Enums;
 using ErrorOr;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers;
 
@@ -181,6 +183,22 @@ public class TourInstanceController : BaseApiController
     public async Task<IActionResult> GuideApprove(Guid id)
     {
         var result = await Sender.Send(new GuideApproveTourInstanceCommand(id));
+        return HandleResult(result);
+    }
+
+    [Authorize(Policy = "TourGuideOnly")]
+    [EnableRateLimiting("GuideManifestPolicy")]
+    [HttpGet("{tourInstanceId:guid}/manifest")]
+    public async Task<IActionResult> GetManifest(Guid tourInstanceId)
+    {
+        Response.Headers["Cache-Control"] = "no-store";
+
+        if (!Guid.TryParse(CurrentUserId, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await Sender.Send(new GetTourGuideManifestQuery(tourInstanceId, userId));
         return HandleResult(result);
     }
 

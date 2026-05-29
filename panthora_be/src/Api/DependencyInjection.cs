@@ -63,7 +63,7 @@ public static class DependencyInjection
                 var options = ConfigurationOptions.Parse(redisConnection);
                 options.AbortOnConnectFail = true; // Fail fast if Redis is unreachable
                 options.ConnectTimeout = 3000;
-                
+
                 var multiplexer = ConnectionMultiplexer.Connect(options);
                 dpBuilder.PersistKeysToStackExchangeRedis(multiplexer, "panthora-dp-keys");
             }
@@ -126,6 +126,17 @@ public static class DependencyInjection
                         Window = TimeSpan.FromSeconds(rateLimitOptions.WindowSeconds),
                         QueueLimit = 0
                     }));
+
+            options.AddPolicy("GuideManifestPolicy", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    context.User.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 30,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 5
+                    }));
+
 
             options.OnRejected = async (context, cancellationToken) =>
             {

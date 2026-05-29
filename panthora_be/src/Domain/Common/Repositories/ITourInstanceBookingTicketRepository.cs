@@ -6,4 +6,5 @@ public interface ITourInstanceBookingTicketRepository : IRepository<TourInstance
 {
     Task<List<TourInstanceBookingTicketEntity>> GetByActivityIdAsync(Guid activityId, CancellationToken cancellationToken = default);
     Task<TourInstanceBookingTicketEntity?> GetByActivityAndBookingAsync(Guid activityId, Guid bookingId, CancellationToken cancellationToken = default);
+    Task<List<TourInstanceBookingTicketEntity>> GetByBookingIdAsync(Guid bookingId, CancellationToken cancellationToken = default);
 }

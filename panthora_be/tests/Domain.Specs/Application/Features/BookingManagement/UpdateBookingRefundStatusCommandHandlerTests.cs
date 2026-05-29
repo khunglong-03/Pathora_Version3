@@ -15,13 +15,14 @@ namespace Domain.Specs.Application.Features.BookingManagement;
 public sealed class UpdateBookingRefundStatusCommandHandlerTests
 {
     private readonly IBookingRepository _bookingRepository = Substitute.For<IBookingRepository>();
+    private readonly IPaymentTransactionRepository _paymentTransactionRepository = Substitute.For<IPaymentTransactionRepository>();
     private readonly IUser _user = Substitute.For<IUser>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly UpdateBookingRefundStatusCommandHandler _handler;
 
     public UpdateBookingRefundStatusCommandHandlerTests()
     {
-        _handler = new UpdateBookingRefundStatusCommandHandler(_bookingRepository, _user, _unitOfWork);
+        _handler = new UpdateBookingRefundStatusCommandHandler(_bookingRepository, _paymentTransactionRepository, _user, _unitOfWork);
     }
 
     [Fact]
@@ -85,7 +86,7 @@ public sealed class UpdateBookingRefundStatusCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ContactedToRefunded_Succeeds()
+    public async Task Handle_ContactedToRefunded_SucceedsAndCreatesRefundTransaction()
     {
         // Arrange
         var bookingId = Guid.NewGuid();
@@ -101,6 +102,14 @@ public sealed class UpdateBookingRefundStatusCommandHandlerTests
         result.IsError.Should().BeFalse();
         booking.RefundStatus.Should().Be(RefundStatus.Refunded);
         booking.RefundCompletedAt.Should().NotBeNull();
+
+        await _paymentTransactionRepository.Received(1).AddAsync(
+            Arg.Is<PaymentTransactionEntity>(t =>
+                t.BookingId == bookingId &&
+                t.Type == TransactionType.Refund &&
+                t.Amount == 7000000m &&
+                t.Status == TransactionStatus.Completed),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

@@ -20,7 +20,7 @@ import { BookingOverviewTab } from "./BookingOverviewTab";
 import { BookingImportantInfo } from "./BookingImportantInfo";
 import { BookingPaymentSummary } from "./BookingPaymentSummary";
 import { BookingNeedHelp } from "./BookingNeedHelp";
-import { BookingFloatingSocial } from "./BookingFloatingSocial";
+
 import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
 import { CancellationRequestTimeline } from "./CancellationRequestTimeline";
 import { BookingRefundSection } from "./BookingRefundSection";
@@ -177,6 +177,10 @@ export function BookingDetailPage() {
     visaServiceFeeTotal: booking.visaServiceFeeTotal,
     cancellationRequest: booking.cancellationRequest,
     cancellationRequests: booking.cancellationRequests,
+    tickets: booking.tickets ?? [],
+    roomAssignments: booking.roomAssignments ?? [],
+    dayStatuses: booking.dayStatuses ?? [],
+    ticketImages: booking.ticketImages ?? [],
   };
 
   const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =
@@ -255,7 +259,7 @@ export function BookingDetailPage() {
         </div>
       </main>
 
-      <BookingFloatingSocial />
+
     </>
   );
 }

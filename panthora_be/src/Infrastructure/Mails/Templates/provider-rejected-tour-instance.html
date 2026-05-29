@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Nhà cung cấp từ chối dịch vụ - Thông báo từ Pathora</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2>Kính gửi {{ operator_name }},</h2>
+        <p>Chúng tôi xin thông báo rằng nhà cung cấp <strong>{{ supplier_name }}</strong> (Loại dịch vụ: <strong>{{ provider_type }}</strong>) đã từ chối duyệt yêu cầu cho tour dưới đây.</p>
+
+        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
+            <strong>Tên tour:</strong> {{ tour_name }}<br />
+            <strong>Mã tour:</strong> {{ tour_code }}<br />
+            <strong>Ngày khởi hành:</strong> {{ start_date }}<br />
+            <strong>Lý do từ chối:</strong> {{ rejection_note }}
+        </div>
+
+        <h3>Danh sách hoạt động bị từ chối:</h3>
+        <ul style="padding-left: 20px;">
+            {{ for line in activity_lines }}
+            <li>{{ line }}</li>
+            {{ end }}
+            {{ if overflow_count > 0 }}
+            <li style="list-style-type: none; font-style: italic; color: #777;">... và {{ overflow_count }} hoạt động khác</li>
+            {{ end }}
+        </ul>
+
+        <p>Vui lòng nhấp vào liên kết dưới đây để xem chi tiết và điều chỉnh lịch trình hoặc gán nhà cung cấp khác:</p>
+
+        <p style="margin: 20px 0;">
+            <a href="{{ deep_link }}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">Xem chi tiết Tour Instance</a>
+        </p>
+
+        <p>Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ với chúng tôi qua hotline:</p>
+
+        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0;">
+            <strong>Hotline:</strong> {{ hotline_phone }}
+        </div>
+
+        <p>Trân trọng,<br />Đội ngũ Pathora</p>
+    </div>
+</body>
+</html>

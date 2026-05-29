@@ -13,8 +13,7 @@ public class VisaApplicationConfiguration : IEntityTypeConfiguration<VisaApplica
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.DestinationCountry)
-            .HasMaxLength(100)
-            .IsRequired();
+            .HasMaxLength(100);
 
         builder.Property(x => x.Status)
             .HasConversion<string>()

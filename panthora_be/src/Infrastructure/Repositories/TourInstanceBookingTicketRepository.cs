@@ -20,4 +20,11 @@ public class TourInstanceBookingTicketRepository(AppDbContext context) : Reposit
         return await _context.TourInstanceBookingTickets
             .FirstOrDefaultAsync(x => x.TourInstanceDayActivityId == activityId && x.BookingId == bookingId, cancellationToken);
     }
+
+    public async Task<List<TourInstanceBookingTicketEntity>> GetByBookingIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstanceBookingTickets
+            .Where(x => x.BookingId == bookingId)
+            .ToListAsync(cancellationToken);
+    }
 }

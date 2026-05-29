@@ -66,11 +66,11 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         var paymentStats = await BuildPaymentStats(tourInstanceIds, cancellationToken);
 
         return new AdminOverviewReport(
-            stats, 
-            customers, 
+            stats,
+            customers,
             payments,
             paymentStats,
-            insurances, 
+            insurances,
             visaApplications);
     }
 
@@ -237,13 +237,18 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
                 Customer: row.CustomerName,
                 Method: row.PaymentMethod.ToString(),
                 Amount: row.PaidAmount > 0 ? row.PaidAmount : row.Amount,
-                Status: MapTransactionStatus(row.Status),
+                Status: MapTransactionStatus(row.Status, row.Type),
                 Date: FormatDate(row.PaidAt ?? row.CreatedAt)))
             .ToList();
     }
 
-    private static string MapTransactionStatus(TransactionStatus status)
+    private static string MapTransactionStatus(TransactionStatus status, TransactionType type)
     {
+        if (type == TransactionType.Refund)
+        {
+            return "refunded";
+        }
+
         return status switch
         {
             TransactionStatus.Completed => "completed",
@@ -265,18 +270,20 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         }
 
         var totalRevenue = await query
-            .Where(x => x.Status == TransactionStatus.Completed)
+            .Where(x => x.Status == TransactionStatus.Completed && x.Type != TransactionType.Refund)
             .SumAsync(x => x.PaidAmount ?? x.Amount, cancellationToken);
 
         var pendingAmount = await query
             .Where(x => x.Status == TransactionStatus.Pending || x.Status == TransactionStatus.Processing)
             .SumAsync(x => x.PaidAmount ?? x.Amount, cancellationToken);
 
-        var completedCount = await query.CountAsync(x => x.Status == TransactionStatus.Completed, cancellationToken);
+        var completedCount = await query.CountAsync(x => x.Status == TransactionStatus.Completed && x.Type != TransactionType.Refund, cancellationToken);
         var pendingCount = await query.CountAsync(
             x => x.Status == TransactionStatus.Pending || x.Status == TransactionStatus.Processing,
             cancellationToken);
-        var refundedCount = await query.CountAsync(x => x.Status == TransactionStatus.Refunded, cancellationToken);
+        var refundedCount = await query.CountAsync(
+            x => x.Status == TransactionStatus.Refunded || x.Type == TransactionType.Refund,
+            cancellationToken);
 
         return new AdminPaymentStatsReport(
             totalRevenue,
@@ -346,8 +353,8 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         var visaQuery = _context.VisaApplications.AsNoTracking();
         if (tourInstanceIds != null)
         {
-            visaQuery = visaQuery.Where(x => x.BookingParticipant != null 
-                                             && x.BookingParticipant.Booking != null 
+            visaQuery = visaQuery.Where(x => x.BookingParticipant != null
+                                             && x.BookingParticipant.Booking != null
                                              && tourInstanceIds.Contains(x.BookingParticipant.Booking.TourInstanceId));
         }
 
@@ -483,11 +490,11 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
     private sealed record VisaApplicationRow(
         Guid Id,
         string CustomerName,
-        string Destination,
+        string? Destination,
         VisaStatus Status,
         DateTimeOffset CreatedOnUtc,
         DateTimeOffset? ReviewedAt,
         Guid? BookingId,
-        string PassportNumber,
+        string? PassportNumber,
         TourType? TourType);
 }

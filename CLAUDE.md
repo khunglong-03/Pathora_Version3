@@ -143,7 +143,7 @@ dotnet run --project "panthora_be/src/Api/Api.csproj"                    # Chạ
 - **`SupplierReassignmentModal` (`src/features/dashboard/components/SupplierReassignmentModal.tsx`)**: Reusable modal for reassigning suppliers. Handles backend API calls and re-renders smoothly.
 - **`handleApiError` (`src/utils/apiResponse.ts`)**: Extended to localize backend error codes via a sentinel-list pattern (`TOUR_INSTANCE_TRANSPORT_ERROR_CODES`). Do not use raw error messages in `toast`; instead map through `handleApiError` and translate via `t()`.
 - **Bulk Approve Button**: Present in `TransportTourAssignmentPage`. Provides a `BulkApproveConfirmationModal` with inline error localization, `failedState` tracking, and a disabled-state warning list for incomplete drafts.
-- **Tour Operator public instance routes**: public tour detail and per-booking assignment use `/tour-operator/tour-instances/public/[id]`, `/public/[id]/bookings/[bookingId]/assign-accommodation`, and `/public/[id]/bookings/[bookingId]/assign-flight-tickets`. The namespace is guarded by `NEXT_PUBLIC_ENABLE_PUBLIC_TOUR_SUB_ROUTES` (default enabled); set it to `false` to roll public row clicks back to the generic `/tour-operator/tour-instances/[id]` fallback.
+- **Tour Operator public instance routes**: public tour detail and per-booking assignment use `/tour-operator/tour-instances/public/[id]`, the landing page `/tour-operator/tour-instances/public/[id]/bookings/[bookingId]`, and sub-routes `/bookings/[bookingId]/assign-accommodation` and `/bookings/[bookingId]/assign-flight-tickets`. The namespace is guarded by `NEXT_PUBLIC_ENABLE_PUBLIC_TOUR_SUB_ROUTES` (default enabled); set it to `false` to roll public row clicks back to the generic `/tour-operator/tour-instances/[id]` fallback.
 
 ---
 
@@ -234,7 +234,7 @@ This workspace is configured to use **gstack** for all web browsing and design t
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Pathora_Version3** (27106 symbols, 62194 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Pathora_Version3** (27302 symbols, 62689 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -332,6 +332,8 @@ Cleanup rules (ER-3):
   supplier's block when the supplier actually changes.
 
 Error code registry: `Application/Common/Constant/ErrorConstants.TourInstanceTransport.cs`.
+
+- **Email Rejection Notifications**: When a provider rejects any activity (Hotel or Transport) in a TourInstance, a Vietnamese HTML email notification (`ProviderRejectedTourInstanceMail`) is queued to the outbox for the Tour Operator (falling back to the first Manager). Handlers (`ProviderRejectedTourInstanceEventHandler`) process the event asynchronously post-commit, safely catching mailing database failures and logging structured telemetry.
 
 ---
 

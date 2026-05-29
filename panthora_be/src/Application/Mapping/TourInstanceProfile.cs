@@ -13,7 +13,8 @@ public sealed class TourInstanceProfile : Profile
     {
         CreateMap<TourInstanceEntity, TourInstanceVm>()
             .ForCtorParam(nameof(TourInstanceVm.Status), opt => opt.MapFrom(src => src.Status.ToString()))
-            .ForCtorParam(nameof(TourInstanceVm.InstanceType), opt => opt.MapFrom(src => src.InstanceType.ToString()));
+            .ForCtorParam(nameof(TourInstanceVm.InstanceType), opt => opt.MapFrom(src => src.InstanceType.ToString()))
+            .ForCtorParam(nameof(TourInstanceVm.AssignedActivities), opt => opt.MapFrom(_ => (List<AssignedActivityVm>?)null));
 
         CreateMap<TourInstanceEntity, DuplicateInstanceSummaryDto>()
             .ForCtorParam(nameof(DuplicateInstanceSummaryDto.Id), opt => opt.MapFrom(src => src.Id))

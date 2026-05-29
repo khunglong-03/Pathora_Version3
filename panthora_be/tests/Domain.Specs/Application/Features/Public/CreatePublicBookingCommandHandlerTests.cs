@@ -37,6 +37,10 @@ public sealed class CreatePublicBookingCommandHandlerTests
         _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(1));
 
+        var breakdown = new BookingPriceBreakdown(1000m, 1000m, 1000m, 2000m, 0m, 0m, 2000m, 0m, 0m, 0m, 2000m, 0m, 2000m);
+        _priceCalculator.Calculate(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<decimal>(), Arg.Any<IReadOnlyList<global::Domain.ValueObjects.PricingPolicyTier>?>(), Arg.Any<TaxConfigEntity?>(), Arg.Any<decimal>(), Arg.Any<decimal>())
+            .Returns(breakdown);
+
         _user.Id.Returns((string?)null);
 
         var handler = CreateHandler();
@@ -89,8 +93,8 @@ public sealed class CreatePublicBookingCommandHandlerTests
             tourCode: "TC",
             classificationName: "Std",
             instanceType: TourType.Public,
-            startDate: DateTimeOffset.UtcNow,
-            endDate: DateTimeOffset.UtcNow.AddDays(2),
+            startDate: DateTimeOffset.UtcNow.AddDays(15),
+            endDate: DateTimeOffset.UtcNow.AddDays(17),
             maxParticipation: 100,
             basePrice: 1000m,
             performedBy: "system");
@@ -119,6 +123,9 @@ public sealed class CreatePublicBookingCommandHandlerTests
             .Returns(Task.CompletedTask);
         _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(1));
+        var breakdown = new BookingPriceBreakdown(1000m, 1000m, 1000m, 2000m, 0m, 0m, 2000m, 0m, 0m, 0m, 2000m, 0m, 2000m);
+        _priceCalculator.Calculate(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<decimal>(), Arg.Any<IReadOnlyList<global::Domain.ValueObjects.PricingPolicyTier>?>(), Arg.Any<TaxConfigEntity?>(), Arg.Any<decimal>(), Arg.Any<decimal>())
+            .Returns(breakdown);
     }
 
     [Fact]

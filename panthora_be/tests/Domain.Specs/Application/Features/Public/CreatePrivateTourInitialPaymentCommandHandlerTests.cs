@@ -41,6 +41,7 @@ public sealed class CreatePrivateTourInitialPaymentCommandHandlerTests
             performedBy: "op",
             thumbnail: new ImageEntity { FileId = "f", FileName = "n", PublicURL = "u" });
         instance.Id = instanceId;
+        instance.Status = TourInstanceStatus.PendingCustomerApproval;
 
         var booking = BookingEntity.Create(
             instance.Id,
@@ -170,6 +171,7 @@ public sealed class CreatePrivateTourInitialPaymentCommandHandlerTests
             performedBy: "op",
             thumbnail: new ImageEntity { FileId = "f", FileName = "n", PublicURL = "u" });
         instance.Id = instanceId;
+        instance.Status = TourInstanceStatus.PendingCustomerApproval;
         // Mock Tour to have a specific TourScope
         var tour = TourEntity.Create(
             "Sample",

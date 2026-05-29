@@ -60,7 +60,7 @@ public static class DependencyInjection
                 var options = StackExchange.Redis.ConfigurationOptions.Parse(redisConnectionString);
                 options.AbortOnConnectFail = true; // Fail fast if Redis is unreachable
                 options.ConnectTimeout = 3000;
-                
+
                 var multiplexer = StackExchange.Redis.ConnectionMultiplexer.Connect(options);
                 dpBuilder.PersistKeysToStackExchangeRedis(multiplexer, "panthora-dp-keys");
             }

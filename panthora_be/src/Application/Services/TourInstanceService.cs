@@ -79,9 +79,11 @@ public class TourInstanceService(
     Domain.Common.Repositories.IBookingCancellationRequestRepository? bookingCancellationRequestRepository = null,
     Domain.Common.Repositories.ITaxConfigRepository? taxConfigRepository = null,
     Domain.Common.Repositories.IPricingPolicyRepository? pricingPolicyRepository = null,
-    Application.Common.Pricing.IBookingPriceCalculator? priceCalculator = null) : ITourInstanceService
+    Application.Common.Pricing.IBookingPriceCalculator? priceCalculator = null,
+    ITourGuideTaskRepository? tourGuideTaskRepository = null) : ITourInstanceService
 {
     private readonly ITourInstanceRepository _tourInstanceRepository = tourInstanceRepository;
+    private readonly ITourGuideTaskRepository? _tourGuideTaskRepository = tourGuideTaskRepository;
     private readonly ITourRepository _tourRepository = tourRepository;
     private readonly ITourRequestRepository _tourRequestRepository = tourRequestRepository;
     private readonly ISupplierRepository _supplierRepository = supplierRepository;
@@ -1115,6 +1117,19 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
+        if (newStatus == TourInstanceStatus.Completed)
+        {
+            var taskRepo = _tourGuideTaskRepository ?? _serviceProvider?.GetService<ITourGuideTaskRepository>();
+            if (taskRepo is not null)
+            {
+                var tasks = await taskRepo.GetByTourInstanceIdAsync(id, cancellationToken);
+                if (tasks.Any(t => t.IsMandatory && t.Status != TourGuideTaskStatus.Completed))
+                {
+                    return Error.Validation("TourInstance.UncompletedMandatoryTasks", "Không thể hoàn thành tour vì vẫn còn nhiệm vụ bắt buộc chưa hoàn thành.");
+                }
+            }
+        }
+
         // ER-Security: If the user is a TourGuide (and not an Admin/Manager/TourOperator), they can only start/complete their assigned instances.
         if (_user.Roles.Contains("TourGuide") && !_user.Roles.Contains("Admin") && !_user.Roles.Contains("Manager") && !_user.Roles.Contains("TourOperator"))
         {
@@ -1409,42 +1424,58 @@ public class TourInstanceService(
                     if (fullInstance is null) return;
 
                     var requestedTransportActivityIds = transportationActivityIds?.ToHashSet();
-                    var transportActivities = fullInstance.InstanceDays
-                        .Where(d => !d.IsDeleted)
-                        .SelectMany(d => d.Activities)
-                        .Where(a => a.ActivityType == TourDayActivityType.Transportation
-                                 && a.TransportSupplierId.HasValue
-                                 && ownerSupplierIds.Contains(a.TransportSupplierId.Value)
-                                 && (requestedTransportActivityIds is null || requestedTransportActivityIds.Contains(a.Id)))
-                        .ToList();
+                    var rejectedActivities = new List<Domain.Events.RejectedActivityInfo>();
+                    int index = 0;
 
-                    for (int i = 0; i < transportActivities.Count; i++)
+                    foreach (var day in fullInstance.InstanceDays)
                     {
-                        var act = transportActivities[i];
-                        if (isApproved)
-                        {
-                            if (!act.HasCompleteVehicleAndDriverAssignment())
-                            {
-                                throw new BulkApproveValidationException(
-                                    "TourInstance.BulkApproveFailed",
-                                    $"Activity '{act.Title}' (#{i}) chưa được gán xe/tài xế. Hãy gán trước khi duyệt.");
-                            }
+                        if (day.IsDeleted) continue;
 
-                            if (act.TransportAssignments.Count > 0)
-                            {
-                                var first = act.TransportAssignments.OrderBy(x => x.Id).First();
-                                act.ApproveTransportation(first.VehicleId, first.DriverId, note);
-                            }
-                            else
-                            {
-                                act.ApproveTransportation(act.VehicleId!.Value, act.DriverId, note);
-                            }
-                        }
-                        else
+                        foreach (var act in day.Activities)
                         {
-                            act.RejectTransportation(note);
+                            if (act.ActivityType == TourDayActivityType.Transportation
+                                && act.TransportSupplierId.HasValue
+                                && ownerSupplierIds.Contains(act.TransportSupplierId.Value)
+                                && (requestedTransportActivityIds is null || requestedTransportActivityIds.Contains(act.Id)))
+                            {
+                                if (isApproved)
+                                {
+                                    if (!act.HasCompleteVehicleAndDriverAssignment())
+                                    {
+                                        throw new BulkApproveValidationException(
+                                            "TourInstance.BulkApproveFailed",
+                                            $"Activity '{act.Title}' (#{index}) chưa được gán xe/tài xế. Hãy gán trước khi duyệt.");
+                                    }
+
+                                    if (act.TransportAssignments.Count > 0)
+                                    {
+                                        var first = act.TransportAssignments.OrderBy(x => x.Id).First();
+                                        act.ApproveTransportation(first.VehicleId, first.DriverId, note);
+                                    }
+                                    else
+                                    {
+                                        act.ApproveTransportation(act.VehicleId!.Value, act.DriverId, note);
+                                    }
+                                }
+                                else
+                                {
+                                    var alreadyAtTarget = act.TransportationApprovalStatus == ProviderApprovalStatus.Rejected;
+                                    if (!alreadyAtTarget)
+                                    {
+                                        act.RejectTransportation(note);
+                                        rejectedActivities.Add(new Domain.Events.RejectedActivityInfo(act.Id, day.InstanceDayNumber, act.Title));
+                                    }
+                                }
+                                index++;
+                            }
                         }
                     }
+
+                    if (rejectedActivities.Count > 0)
+                    {
+                        fullInstance.RaiseProviderRejectedEvent(supplier.Id, supplier.Name, "Transport", note, rejectedActivities);
+                    }
+
                     fullInstance.CheckAndActivateTourInstance();
                     instance = fullInstance;
                 });
@@ -1472,6 +1503,8 @@ public class TourInstanceService(
                         .Distinct()
                         .ToList();
 
+                    var rejectedActivities = new List<Domain.Events.RejectedActivityInfo>();
+
                     foreach (var day in fullInst.InstanceDays)
                     {
                         foreach (var act in day.Activities)
@@ -1489,6 +1522,10 @@ public class TourInstanceService(
                                 if (!alreadyAtTarget)
                                 {
                                     act.Accommodation.ApproveBySupplier(isApproved, note);
+                                    if (!isApproved)
+                                    {
+                                        rejectedActivities.Add(new Domain.Events.RejectedActivityInfo(act.Id, day.InstanceDayNumber, act.Title));
+                                    }
                                 }
 
                                 if (isApproved)
@@ -1524,6 +1561,12 @@ public class TourInstanceService(
                             }
                         }
                     }
+
+                    if (rejectedActivities.Count > 0)
+                    {
+                        fullInst.RaiseProviderRejectedEvent(supplier.Id, supplier.Name, "Hotel", note, rejectedActivities);
+                    }
+
                     fullInst.CheckAndActivateTourInstance();
                     instance = fullInst;
                     notificationProviderName = BuildHotelApprovalNotificationLabel(ownerSuppliers, approvedSupplierIds);
@@ -1584,18 +1627,97 @@ public class TourInstanceService(
         }
 
         var supplierIds = suppliers.Select(s => s.Id).ToList();
+        var supplierIdSet = new HashSet<Guid>(supplierIds);
 
         var entities = await _tourInstanceRepository.FindProviderAssigned(supplierIds, pageNumber, pageSize, approvalStatus, cancellationToken);
         var total = await _tourInstanceRepository.CountProviderAssigned(supplierIds, approvalStatus, cancellationToken);
 
-        var vms = entities.Select(e =>
+        var vms = new List<TourInstanceVm>();
+        foreach (var e in entities)
         {
             var vm = _mapper.Map<TourInstanceVm>(e);
-            var supplierIdSet = new HashSet<Guid>(supplierIds);
             var rollup = ComputeTransportApprovalRollup(e, supplierIdSet);
             var assignedRevenue = ComputeAssignedRevenue(e, supplierIdSet);
-            return vm with { TransportApprovalStatus = rollup, AssignedRevenue = assignedRevenue };
-        }).ToList();
+
+            var activities = new List<AssignedActivityVm>();
+            var sortedDays = e.InstanceDays.Where(d => !d.IsDeleted).OrderBy(d => d.InstanceDayNumber).ToList();
+
+            foreach (var d in sortedDays)
+            {
+                var sortedActivities = d.Activities.OrderBy(a => a.Order).ToList();
+                foreach (var a in sortedActivities)
+                {
+                    // Check Accommodation
+                    if (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && supplierIdSet.Contains(a.Accommodation.SupplierId.Value))
+                    {
+                        var status = a.Accommodation.SupplierApprovalStatus;
+                        if (!approvalStatus.HasValue || status == approvalStatus.Value)
+                        {
+                            activities.Add(new AssignedActivityVm(
+                                a.Id,
+                                d.Id,
+                                d.InstanceDayNumber,
+                                new DateTimeOffset(d.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+                                a.ActivityType,
+                                a.Accommodation.SupplierId.Value,
+                                a.Accommodation.Supplier?.Name ?? "Accommodation Supplier",
+                                status,
+                                a.Accommodation.SupplierApprovalNote,
+                                new AccommodationSnapshot(
+                                    a.Accommodation.RoomType,
+                                    a.Accommodation.Quantity,
+                                    a.Accommodation.CheckInTime,
+                                    a.Accommodation.CheckOutTime
+                                ),
+                                null
+                            ));
+                        }
+                    }
+
+                    // Check Transport
+                    if (a.TransportSupplierId.HasValue && supplierIdSet.Contains(a.TransportSupplierId.Value))
+                    {
+                        var status = a.TransportationApprovalStatus;
+                        if (!approvalStatus.HasValue || status == approvalStatus.Value)
+                        {
+                            activities.Add(new AssignedActivityVm(
+                                a.Id,
+                                d.Id,
+                                d.InstanceDayNumber,
+                                new DateTimeOffset(d.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+                                a.ActivityType,
+                                a.TransportSupplierId.Value,
+                                a.TransportSupplier?.Name ?? "Transport Supplier",
+                                status,
+                                a.TransportationApprovalNote,
+                                null,
+                                new TransportSnapshot(
+                                    a.RequestedVehicleType,
+                                    a.RequestedSeatCount ?? 0,
+                                    a.RequestedVehicleCount,
+                                    a.FromLocation?.LocationName,
+                                    a.ToLocation?.LocationName
+                                )
+                            ));
+                        }
+                    }
+                }
+            }
+
+            // Sort AssignedActivities according to (DayNumber ASC, ActivityType ASC)
+            activities = activities
+                .OrderBy(act => act.DayNumber)
+                .ThenBy(act => act.ActivityType)
+                .ToList();
+
+            if (approvalStatus.HasValue && activities.Count == 0)
+            {
+                continue;
+            }
+
+            vms.Add(vm with { AssignedActivities = activities, TransportApprovalStatus = rollup, AssignedRevenue = assignedRevenue });
+        }
+
         return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);
     }
 
@@ -1655,7 +1777,7 @@ public class TourInstanceService(
         }
 
         var isAdminOrManager = _user.Roles != null && (_user.Roles.Contains("Admin") || _user.Roles.Contains("Manager"));
-        
+
         // Determine effective principal ID for scoping:
         // 1. Admin/Manager viewing custom requests (wantsCustomization = true) → see all (null)
         // 2. Tour Operator viewing public tours (wantsCustomization = false) → see all public tours (null)
@@ -1893,8 +2015,8 @@ public class TourInstanceService(
         var tour = await _tourRepository.FindByIdForUpdate(tourId);
         if (tour != null)
         {
-            var existingByName = tour.PlanLocations.FirstOrDefault(l => 
-                !l.IsDeleted && 
+            var existingByName = tour.PlanLocations.FirstOrDefault(l =>
+                !l.IsDeleted &&
                 l.LocationName.Trim().Equals(locationName!.Trim(), StringComparison.OrdinalIgnoreCase));
             if (existingByName != null)
             {
@@ -2228,7 +2350,7 @@ public class TourInstanceService(
                 else
                 {
                     // Fallback: chỉ nhân đơn giản nếu thiếu dependencies (không nên xảy ra trong production)
-                    totalPrice = (instance.BasePrice * booking.NumberAdult + instance.BasePrice * booking.NumberChild * 0.75m) + instance.BasePrice*0.1m;
+                    totalPrice = (instance.BasePrice * booking.NumberAdult + instance.BasePrice * booking.NumberChild * 0.75m) + instance.BasePrice * 0.1m;
                 }
 
                 booking.TotalPrice = totalPrice;

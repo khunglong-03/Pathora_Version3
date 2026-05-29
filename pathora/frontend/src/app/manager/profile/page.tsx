@@ -13,10 +13,8 @@ function ProfileLoading() {
 
 export default function ManagerProfilePage() {
   return (
-    <div className="-mt-20"> {/* Negative margin to counteract the pt-20 in ProfilePage */}
-      <Suspense fallback={<ProfileLoading />}>
-        <ProfilePageContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={<ProfileLoading />}>
+      <ProfilePageContent />
+    </Suspense>
   );
 }

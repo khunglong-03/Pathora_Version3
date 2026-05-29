@@ -37,7 +37,7 @@ public class VisaApplicationCommandsTests
     public async Task UpdateVisaStatus_WhenRejectingAfterGateClosed_ShouldReturnConflict()
     {
         var handler = new UpdateVisaApplicationStatusCommandHandler(_visaRepoMock, _currentUserMock, _visaGateMock, _uowMock);
-        
+
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
         _currentUserMock.IsInRole(global::Application.Common.Constant.RoleConstants.Admin).Returns(true);
@@ -70,7 +70,7 @@ public class VisaApplicationCommandsTests
     public async Task QuoteFee_WhenNotSystemAssisted_ShouldReturnValidation()
     {
         var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
-        
+
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
         _currentUserMock.IsInRole(global::Application.Common.Constant.RoleConstants.Admin).Returns(true);
@@ -102,7 +102,7 @@ public class VisaApplicationCommandsTests
     public async Task QuoteFee_WhenAlreadyQuoted_ShouldReturnExistingTransactionId()
     {
         var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
-        
+
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
         _currentUserMock.IsInRole(global::Application.Common.Constant.RoleConstants.Admin).Returns(true);
@@ -130,7 +130,7 @@ public class VisaApplicationCommandsTests
 
         result.IsError.Should().BeFalse();
         result.Value.Should().Be(transactionId);
-        
+
         // Ensure no new transaction is created
         await _transactionRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!);
     }

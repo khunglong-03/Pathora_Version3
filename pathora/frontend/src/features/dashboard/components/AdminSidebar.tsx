@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
+import { featureFlags } from "@/configs/featureFlags";
 import { RootState } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -32,6 +33,7 @@ import {
   HouseIcon,
   PlusIcon,
   HandCoinsIcon,
+  LockIcon,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { transportProviderService } from "@/api/services/transportProviderService";
@@ -269,6 +271,22 @@ export function AdminSidebar({
     setMounted(true);
   }, []);
 
+  const getTourGuideNavItems = () => {
+    const items = [...TOURGUIDE_NAV_ITEMS];
+    if (featureFlags.enableGuideManifest) {
+      const match = pathname.match(/^\/tour-guide\/operations\/([0-9a-fA-F-]+)/);
+      if (match && match[1]) {
+        const instanceId = match[1];
+        items.splice(2, 0, {
+          label: "Danh Sách Hành Khách",
+          icon: ListChecksIcon,
+          href: `/tour-guide/operations/${instanceId}/manifest`,
+        } as any);
+      }
+    }
+    return items;
+  };
+
   const navItems =
     variant === "admin"
       ? ADMIN_NAV_ITEMS
@@ -279,7 +297,7 @@ export function AdminSidebar({
         : variant === "tour-operator"
           ? TOUROPERATOR_NAV_ITEMS
           : variant === "tour-guide"
-            ? TOURGUIDE_NAV_ITEMS
+            ? getTourGuideNavItems()
             : MANAGER_NAV_ITEMS;
 
   const loadCompanyName = useCallback(async () => {
@@ -669,9 +687,10 @@ export function AdminSidebar({
 
                 {/* ── Tour Công Cộng section ─────────────────── */}
                 <div
-                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase"
+                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase flex items-center gap-1.5"
                   style={{ color: "#9CA3AF" }}>
-                  🌐 Tour Công Cộng
+                  <GlobeHemisphereWestIcon size={12} weight="bold" />
+                  <span>Tour Công Cộng</span>
                 </div>
                 {TOUROPERATOR_PUBLIC_NAV_ITEMS.map((item) => {
                   const active = isActive(item.href);
@@ -720,9 +739,10 @@ export function AdminSidebar({
 
                 {/* ── Tour Riêng Tư section ──────────────────── */}
                 <div
-                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase"
+                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase flex items-center gap-1.5"
                   style={{ color: "#9CA3AF" }}>
-                  🔒 Tour Riêng Tư
+                  <LockIcon size={12} weight="bold" />
+                  <span>Tour Riêng Tư</span>
                 </div>
                 {TOUROPERATOR_PRIVATE_NAV_ITEMS.map((item) => {
                   const active = isActive(item.href);

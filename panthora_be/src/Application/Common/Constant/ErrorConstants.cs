@@ -96,7 +96,7 @@ public static class ErrorConstants
         public const string InvalidTransitionCode = "TourItineraryFeedback.InvalidTransition";
         public static readonly LocalizedMessage InvalidTransitionDescription =
             new("Chuyển đổi trạng thái không hợp lệ.", "Invalid status transition.");
-        
+
         public const string ManagerOnlyCode = "TourItineraryFeedback.ManagerOnly";
         public static readonly LocalizedMessage ManagerOnlyDescription =
             new("Chỉ Manager mới được thực hiện thao tác này.", "Only Manager can perform this action.");
@@ -333,6 +333,13 @@ public static class ErrorConstants
             new("Hướng dẫn viên hiện không khả dụng.", "Tour guide is currently unavailable.");
     }
 
+    public static class TourGuideManifest
+    {
+        public const string NotAuthorizedCode = "TourGuideManifest.NotAuthorized";
+        public static readonly LocalizedMessage NotAuthorizedDescription =
+            new("Bạn không được phân công cho tour này", "You are not assigned to this tour");
+    }
+
     public static class BookingTeam
     {
         public const string AssignmentExistsCode = "BookingTeam.AssignmentExists";
@@ -357,6 +364,12 @@ public static class ErrorConstants
         public const string NotFoundCode = "BookingParticipant.NotFound";
         public static readonly LocalizedMessage NotFoundDescription =
             new("Không tìm thấy participant.", "Participant not found.");
+
+        public const string ConcurrencyConflictCode = "BookingParticipant.ConcurrencyConflict";
+        public static readonly LocalizedMessage ConcurrencyConflictDescription =
+            new(
+                "Thông tin hành khách này đã được thay đổi bởi yêu cầu khác. Vui lòng tải lại trang và thử lại.",
+                "This participant was modified by another request. Please refresh and try again.");
     }
 
     public static class Passport
@@ -666,6 +679,7 @@ public static class ErrorConstants
             var value when value == BookingTeam.AssignmentNotFoundCode => BookingTeam.AssignmentNotFoundDescription,
             var value when value == BookingTeam.TourManagerNotFoundCode => BookingTeam.TourManagerNotFoundDescription,
             var value when value == BookingParticipant.NotFoundCode => BookingParticipant.NotFoundDescription,
+            var value when value == BookingParticipant.ConcurrencyConflictCode => BookingParticipant.ConcurrencyConflictDescription,
             var value when value == Passport.NotFoundCode => Passport.NotFoundDescription,
             var value when value == Passport.ExistsCode => Passport.ExistsDescription,
             var value when value == Passport.ExpiryBeforeTourStartCode => Passport.ExpiryBeforeTourStartDescription,
@@ -702,6 +716,7 @@ public static class ErrorConstants
             var value when value == TourInstance.CannotCancelAfterStartCode => TourInstance.CannotCancelAfterStartDescription,
             var value when value == Booking.InvalidRefundStatusTransitionCode => Booking.InvalidRefundStatusTransitionDescription,
             var value when value == Booking.RefundStatusOnlyForCancelledCode => Booking.RefundStatusOnlyForCancelledDescription,
+            var value when value == TourGuideManifest.NotAuthorizedCode => TourGuideManifest.NotAuthorizedDescription,
             _ => null,
         };
 

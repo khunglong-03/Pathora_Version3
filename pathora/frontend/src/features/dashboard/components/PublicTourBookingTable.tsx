@@ -12,6 +12,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
 import type { AdminBookingListResponse } from "@/api/services/bookingService";
@@ -235,7 +236,20 @@ export default function PublicTourBookingTable({
   hasAccommodationActivities = false,
 }: Props) {
   const { t } = useTranslation();
+  const router = useRouter();
   const baseUrl = `/tour-operator/tour-instances/public/${instanceId}`;
+
+  const handleRowClick = (bookingId: string) => {
+    router.push(`${baseUrl}/bookings/${bookingId}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, bookingId: string) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      router.push(`${baseUrl}/bookings/${bookingId}`);
+    }
+  };
+
   const [assignmentLookup, setAssignmentLookup] = useState<AssignmentLookup>(
     EMPTY_ASSIGNMENT_LOOKUP,
   );
@@ -496,7 +510,15 @@ export default function PublicTourBookingTable({
               return (
                 <tr
                   key={booking.id}
-                  className="group hover:bg-stone-50/50 transition-colors"
+                  onClick={() => handleRowClick(booking.id)}
+                  onKeyDown={(e) => handleKeyDown(e, booking.id)}
+                  tabIndex={0}
+                  role="link"
+                  aria-label={t("tourInstance.bookingTable.rowAriaNav", {
+                    defaultValue: "Xem chi tiết booking {{customerName}}",
+                    customerName: booking.customerName,
+                  })}
+                  className="group hover:bg-stone-50 cursor-pointer transition-colors focus-visible:bg-stone-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-orange-500"
                 >
                   {/* Customer */}
                   <td className="px-6 py-3.5">
@@ -554,55 +576,13 @@ export default function PublicTourBookingTable({
                     </td>
                   )}
 
-                  {/* Actions */}
-                  <td className="px-4 py-3.5">
-                    <div className="flex items-center justify-end gap-2">
-                      {hasAccommodationActivities && (
-                        <Link
-                          id={getPublicTourActionId("accommodation", booking.id)}
-                          href={`${baseUrl}/bookings/${booking.id}/assign-accommodation`}
-                          prefetch={false}
-                          onClick={() =>
-                            storePublicTourReturnFocus("accommodation", booking.id)
-                          }
-                          aria-label={t(
-                            "tourInstance.bookingTable.assignAccommodationAria",
-                            {
-                              defaultValue: "Gán khách sạn cho {{customerName}}",
-                              customerName: booking.customerName,
-                            },
-                          )}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 transition-all duration-150 hover:border-stone-300 hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
-                        >
-                          <Icon icon="heroicons:building-office-2" className="size-3.5" />
-                          {accomChip.variant === "success"
-                            ? t("tourInstance.bookingTable.editAccommodation", "Sửa KS")
-                            : t("tourInstance.bookingTable.assignAccommodation", "Gán KS")}
-                        </Link>
-                      )}
-                      {externalActivities.length > 0 && (
-                        <Link
-                          id={getPublicTourActionId("flight", booking.id)}
-                          href={`${baseUrl}/bookings/${booking.id}/assign-flight-tickets`}
-                          prefetch={false}
-                          onClick={() =>
-                            storePublicTourReturnFocus("flight", booking.id)
-                          }
-                          aria-label={t(
-                            "tourInstance.bookingTable.assignFlightAria",
-                            {
-                              defaultValue: "Gán vé phương tiện cho {{customerName}}",
-                              customerName: booking.customerName,
-                            },
-                          )}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-all duration-150 hover:border-blue-300 hover:bg-blue-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                        >
-                          <Icon icon="heroicons:paper-airplane" className="size-3.5" />
-                          {flightChip.variant === "success"
-                            ? t("tourInstance.bookingTable.editFlight", "Sửa phương tiện")
-                            : t("tourInstance.bookingTable.assignFlight", "Gán phương tiện")}
-                        </Link>
-                      )}
+                  {/* Actions (Chevron) */}
+                  <td className="px-4 py-3.5 text-right">
+                    <div className="flex items-center justify-end">
+                      <Icon
+                        icon="heroicons:chevron-right"
+                        className="size-5 text-stone-400 group-hover:text-stone-700 transition-colors"
+                      />
                     </div>
                   </td>
                 </tr>

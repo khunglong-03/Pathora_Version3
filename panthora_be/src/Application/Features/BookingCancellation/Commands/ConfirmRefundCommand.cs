@@ -1,6 +1,9 @@
+using Application.Common;
 using Application.Common.Constant;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
+using Domain.Entities;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
@@ -12,7 +15,10 @@ namespace Application.Features.BookingCancellation.Commands;
 public sealed record ConfirmRefundCommand(
     [property: JsonPropertyName("requestId")] Guid RequestId,
     [property: JsonPropertyName("refundNote")] string? RefundNote,
-    Guid ManagerId) : ICommand<ErrorOr<Success>>;
+    Guid ManagerId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
+}
 
 public sealed class ConfirmRefundCommandValidator : AbstractValidator<ConfirmRefundCommand>
 {
@@ -29,6 +35,8 @@ public sealed class ConfirmRefundCommandValidator : AbstractValidator<ConfirmRef
 
 public sealed class ConfirmRefundCommandHandler(
     IBookingCancellationRequestRepository cancellationRequestRepository,
+    IBookingRepository bookingRepository,
+    IPaymentTransactionRepository paymentTransactionRepository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<ConfirmRefundCommand, ErrorOr<Success>>
 {
@@ -63,8 +71,35 @@ public sealed class ConfirmRefundCommandHandler(
                 return;
             }
 
+            var booking = await bookingRepository.GetByIdAsync(cancellationRequest.BookingId, cancellationToken);
+            if (booking is null)
+            {
+                errors.Add(Error.NotFound(
+                    ErrorConstants.Booking.NotFoundCode,
+                    ErrorConstants.Booking.NotFoundDescription.Vi));
+                return;
+            }
+
             // Record refund confirmation (idempotent — entity guards against double-confirm)
             cancellationRequest.ConfirmRefundPaid(request.ManagerId, request.RefundNote);
+
+            // Force booking refund status to Refunded
+            booking.ForceMarkRefunded(performedBy);
+
+            // Create and persist a Refund transaction
+            var refundTransaction = PaymentTransactionEntity.Create(
+                booking.Id,
+                transactionCode: $"REF-{booking.Id.ToString()[..8]}-{DateTimeOffset.UtcNow.Ticks}",
+                type: Domain.Enums.TransactionType.Refund,
+                amount: cancellationRequest.RefundAmount,
+                paymentMethod: Domain.Enums.PaymentMethod.BankTransfer,
+                paymentNote: request.RefundNote ?? $"Hoàn tiền cho yêu cầu hủy {cancellationRequest.Id}",
+                createdBy: performedBy
+            );
+            refundTransaction.MarkAsPaid(cancellationRequest.RefundAmount, DateTimeOffset.UtcNow);
+
+            await paymentTransactionRepository.AddAsync(refundTransaction, cancellationToken);
+            await bookingRepository.UpdateWithoutSaveAsync(booking);
 
             await unitOfWork.SaveChangeAsync(cancellationToken);
         });

@@ -45,7 +45,7 @@ public sealed class SetAccommodationRequirementsCommandHandler(
         // Verify role: TourOperator, Manager or Admin
         if (!user.Roles.Any(r => r == "TourOperator" || r == "Manager" || r == "Admin"))
         {
-             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, "Only Tour Operators and Managers can set accommodation requirements.");
+            return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, "Only Tour Operators and Managers can set accommodation requirements.");
         }
 
         var instance = await tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId, cancellationToken);
@@ -97,8 +97,8 @@ public sealed class SetAccommodationRequirementsCommandHandler(
         );
 
         // Setting requirements resets approval to Pending if supplier is set, otherwise NotAssigned
-        activity.Accommodation.SupplierApprovalStatus = request.SupplierId.HasValue 
-            ? ProviderApprovalStatus.Pending 
+        activity.Accommodation.SupplierApprovalStatus = request.SupplierId.HasValue
+            ? ProviderApprovalStatus.Pending
             : ProviderApprovalStatus.NotAssigned;
         activity.Accommodation.SupplierApprovalNote = null;
 
