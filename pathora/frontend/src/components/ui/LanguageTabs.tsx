@@ -12,19 +12,16 @@ interface LanguageTabsProps {
 
 const LANGUAGE_OPTIONS: {
   code: SupportedLanguage;
-  flag: string;
   labelKey: string;
   fallback: string;
 }[] = [
   {
     code: "vi",
-    flag: "🇻🇳",
     labelKey: "tourAdmin.langTabs.vi",
     fallback: "Tiếng Việt",
   },
   {
     code: "en",
-    flag: "🇬🇧",
     labelKey: "tourAdmin.langTabs.en",
     fallback: "English",
   },
@@ -40,7 +37,7 @@ export default function LanguageTabs({
   return (
     <div
       className={`flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800 ${className}`}>
-      {LANGUAGE_OPTIONS.map(({ code, flag, labelKey, fallback }) => (
+      {LANGUAGE_OPTIONS.map(({ code, labelKey, fallback }) => (
         <button
           key={code}
           type="button"
@@ -50,7 +47,15 @@ export default function LanguageTabs({
               ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
               : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white"
           }`}>
-          <span className="text-base">{flag}</span>
+          {code === "vi" ? (
+            <span className="inline-flex items-center justify-center size-5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold border border-red-200 shadow-sm leading-none shrink-0">
+              VI
+            </span>
+          ) : (
+            <span className="inline-flex items-center justify-center size-5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-bold border border-sky-200 shadow-sm leading-none shrink-0">
+              EN
+            </span>
+          )}
           <span>{t(labelKey, fallback)}</span>
           {code === "vi" && (
             <span className="ml-1 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-red-600 dark:bg-red-900/30 dark:text-red-400">

@@ -171,7 +171,9 @@ export function TourClassificationsBuilder({
               {/* ── VI Column ── */}
               <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-base">🇻🇳</span>
+                  <span className="inline-flex items-center justify-center size-5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold border border-red-200 shadow-sm leading-none shrink-0">
+                    VI
+                  </span>
                   <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
                     Tiếng Việt
                   </span>
@@ -211,7 +213,9 @@ export function TourClassificationsBuilder({
               {/* ── EN Column ── */}
               <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-base">🇬🇧</span>
+                  <span className="inline-flex items-center justify-center size-5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-bold border border-sky-200 shadow-sm leading-none shrink-0">
+                    EN
+                  </span>
                   <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
                     English
                   </span>
