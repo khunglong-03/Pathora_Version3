@@ -2090,7 +2090,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                     )}
                   </div>
 
-                  {/* Duration & Base Price — shared fields */}
+                  {/* Duration — shared field */}
                   <div className="mb-5 grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
@@ -2109,22 +2109,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                       {errors[`cls_${clsI}_duration`] && (
                         <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_duration`]}</p>
                       )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
-                        {t("tourAdmin.packages.basePrice")}
-                      </label>
-                      <div className="relative group">
-                        <div className="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400 h-stack items-center justify-between">
-                          <span className="font-semibold text-stone-900 dark:text-white">
-                            {Number(cls.basePrice || 0).toLocaleString("vi-VN")} đ
-                          </span>
-                          <div className="h-stack items-center gap-1.5 text-[10px] text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-500/20">
-                            <Icon icon="heroicons:sparkles" className="size-3" />
-                            {t("tourAdmin.packages.basePriceAutoCalculated")}
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
