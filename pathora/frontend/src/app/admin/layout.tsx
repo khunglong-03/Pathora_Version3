@@ -22,7 +22,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     }
   }
 
-  const hasAdminRole = roles.some((role) => ADMIN_ROLE_NAMES.has(role));
+  const hasAdminRole = roles.some(
+    (role) => role.toLowerCase().replace(/[^a-z0-9]/g, "") === "admin",
+  );
 
   if (!authenticated || !hasAdminRole) {
     redirect("/");

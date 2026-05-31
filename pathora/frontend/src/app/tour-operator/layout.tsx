@@ -22,7 +22,9 @@ export default async function TourOperatorLayout({ children }: { children: React
     }
   }
 
-  const hasTourOperatorRole = roles.some((role) => TOUROPERATOR_ROLE_NAMES.has(role));
+  const hasTourOperatorRole = roles.some(
+    (role) => role.toLowerCase().replace(/[^a-z0-9]/g, "") === "touroperator",
+  );
 
   if (!authenticated) {
     redirect("/");

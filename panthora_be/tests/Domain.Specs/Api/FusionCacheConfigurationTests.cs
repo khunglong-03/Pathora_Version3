@@ -39,7 +39,7 @@ public sealed class FusionCacheConfigurationTests
     }
 
     [Fact]
-    public void AddInfrastructureServices_WhenRedisConfiguredInDevelopment_ShouldNotRegisterDistributedCache()
+    public void AddInfrastructureServices_WhenRedisConfiguredInDevelopment_ShouldRegisterDistributedCache()
     {
         var configuration = CreateConfiguration(environment: "Development");
 
@@ -48,7 +48,7 @@ public sealed class FusionCacheConfigurationTests
 
         var distributedCacheRegistration = services.FirstOrDefault(service => service.ServiceType == typeof(IDistributedCache));
 
-        Assert.Null(distributedCacheRegistration);
+        Assert.NotNull(distributedCacheRegistration);
     }
 
     private static IConfiguration CreateConfiguration(string environment = "Production")

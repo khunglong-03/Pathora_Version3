@@ -22,7 +22,9 @@ export default async function TransportLayout({ children }: { children: ReactNod
     }
   }
 
-  const hasProviderRole = roles.some((role) => TRANSPORTPROVIDER_ROLE_NAMES.has(role));
+  const hasProviderRole = roles.some(
+    (role) => role.toLowerCase().replace(/[^a-z0-9]/g, "") === "transportprovider",
+  );
 
   if (!authenticated || !hasProviderRole) {
     redirect("/");

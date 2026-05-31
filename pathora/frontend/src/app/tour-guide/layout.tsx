@@ -22,7 +22,9 @@ export default async function TourGuideLayout({ children }: { children: ReactNod
     }
   }
 
-  const hasTourGuideRole = roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role));
+  const hasTourGuideRole = roles.some(
+    (role) => role.toLowerCase().replace(/[^a-z0-9]/g, "") === "tourguide",
+  );
 
   if (!authenticated || !hasTourGuideRole) {
     redirect("/");

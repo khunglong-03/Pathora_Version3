@@ -41,11 +41,14 @@ const isValidPath = (path?: string | null): path is string =>
 export const isAdminPortal = (portal?: string | null): boolean =>
   portal?.toLowerCase() === ADMIN_PORTAL;
 
+const normalizeRoleName = (name: string): string =>
+  name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
 export const hasAdminRole = (roles?: RoleWithName[] | null): boolean =>
-  !!roles?.some((role) => ADMIN_ROLE_NAMES.has(role.name));
+  !!roles?.some((role) => normalizeRoleName(role.name) === "admin");
 
 export const hasManagerRole = (roles?: RoleWithName[] | null): boolean =>
-  !!roles?.some((role) => MANAGER_ROLE_NAMES.has(role.name));
+  !!roles?.some((role) => normalizeRoleName(role.name) === "manager");
 
 export const isManagerRoutePath = (pathname: string): boolean =>
   MANAGER_ROUTE_PREFIXES.some(
@@ -144,10 +147,10 @@ export const resolveRoleDefaultPath = (
 ): string => {
   if (isAdminPortal(portal)) {
     if (roles && roles.length > 0) {
-      if (roles.some((role) => ADMIN_ROLE_NAMES.has(role.name))) {
+      if (roles.some((role) => normalizeRoleName(role.name) === "admin")) {
         return ADMIN_ROLE_DEFAULT_PATH;
       }
-      if (roles.some((role) => MANAGER_ROLE_NAMES.has(role.name))) {
+      if (roles.some((role) => normalizeRoleName(role.name) === "manager")) {
         return MANAGER_ROLE_DEFAULT_PATH;
       }
     }
@@ -157,22 +160,22 @@ export const resolveRoleDefaultPath = (
   if (!roles || roles.length === 0) {
     return USER_DEFAULT_PATH;
   }
-  if (roles.some((role) => ADMIN_ROLE_NAMES.has(role.name))) {
+  if (roles.some((role) => normalizeRoleName(role.name) === "admin")) {
     return ADMIN_ROLE_DEFAULT_PATH;
   }
-  if (roles.some((role) => MANAGER_ROLE_NAMES.has(role.name))) {
+  if (roles.some((role) => normalizeRoleName(role.name) === "manager")) {
     return MANAGER_ROLE_DEFAULT_PATH;
   }
-  if (roles.some((role) => role.name === "HotelServiceProvider")) {
+  if (roles.some((role) => normalizeRoleName(role.name) === "hotelserviceprovider")) {
     return HOTELSERVICEPROVIDER_ROLE_DEFAULT_PATH;
   }
-  if (roles.some((role) => role.name === "TransportProvider")) {
+  if (roles.some((role) => normalizeRoleName(role.name) === "transportprovider")) {
     return TRANSPORTPROVIDER_ROLE_DEFAULT_PATH;
   }
-  if (roles.some((role) => TOUROPERATOR_ROLE_NAMES.has(role.name))) {
+  if (roles.some((role) => normalizeRoleName(role.name) === "touroperator")) {
     return TOUROPERATOR_ROLE_DEFAULT_PATH;
   }
-  if (roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role.name))) {
+  if (roles.some((role) => normalizeRoleName(role.name) === "tourguide")) {
     return TOURGUIDE_ROLE_DEFAULT_PATH;
   }
   return USER_DEFAULT_PATH;
@@ -212,6 +215,7 @@ export const isProviderRoutePath = (pathname: string): boolean =>
 
 export const isLoginEntryPath = (
   pathname: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   searchParams: URLSearchParams,
 ): boolean => {
   return pathname === "/";

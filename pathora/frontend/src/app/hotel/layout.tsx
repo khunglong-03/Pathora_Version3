@@ -22,7 +22,9 @@ export default async function HotelLayout({ children }: { children: ReactNode })
     }
   }
 
-  const hasProviderRole = roles.some((role) => HOTELSERVICEPROVIDER_ROLE_NAMES.has(role));
+  const hasProviderRole = roles.some(
+    (role) => role.toLowerCase().replace(/[^a-z0-9]/g, "") === "hotelserviceprovider",
+  );
 
   if (!authenticated || !hasProviderRole) {
     redirect("/");
