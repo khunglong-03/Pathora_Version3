@@ -24,7 +24,6 @@ public class TourController(
     IFileService fileService,
     IFileManager fileManager,
     ITourRepository tourRepository,
-    ITourService tourService,
     IAuthorizationService authorizationService) : BaseApiController
 {
     private static readonly HashSet<string> AllowedImageMimeTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -315,13 +314,6 @@ public class TourController(
             }
         }
 
-        var command = new UpdateTourCommand(
-            id, tourName, shortDescription, longDescription,
-            seoTitle, seoDescription, status, thumbnailDto, imageDtos, translationData,
-            classificationData, accommodationData, locationData, transportationData, serviceData,
-            parsedDeletedClassificationIds, parsedDeletedPlanIds, parsedDeletedActivityIds,
-            tourScope, continent, customerSegment, isVisa, parsedClientTimestamp);
-
         var isManager = false;
         if (User.IsInRole("Admin") || User.IsInRole("Manager"))
         {
@@ -333,7 +325,15 @@ public class TourController(
             }
         }
 
-        var result = await tourService.Update(command, isManager);
+        var command = new UpdateTourCommand(
+            id, tourName, shortDescription, longDescription,
+            seoTitle, seoDescription, status, thumbnailDto, imageDtos, translationData,
+            classificationData, accommodationData, locationData, transportationData, serviceData,
+            parsedDeletedClassificationIds, parsedDeletedPlanIds, parsedDeletedActivityIds,
+            tourScope, continent, customerSegment, isVisa, parsedClientTimestamp,
+            isManager);
+
+        var result = await Sender.Send(command);
         return HandleResult(result);
     }
 
@@ -379,7 +379,7 @@ public class TourController(
         if (!authResult.Succeeded)
             return Forbid();
 
-        var result = await tourService.ReviewTour(id, request.Action, request.Reason);
+        var result = await Sender.Send(new ReviewTourCommand(id, request.Action, request.Reason));
         return HandleResult(result);
     }
 

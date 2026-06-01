@@ -28,7 +28,7 @@ public sealed class GetTourGuideManifestQueryHandler(
         var tourInstance = await tourInstanceRepository.FindById(request.TourInstanceId, asNoTracking: true, cancellationToken);
         if (tourInstance is null)
         {
-            return Error.NotFound(ErrorConstants.TourGuideManifest.NotAuthorizedCode, ErrorConstants.TourGuideManifest.NotAuthorizedDescription.En);
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription.En);
         }
 
         if (tourInstance.EndDate < DateTimeOffset.UtcNow.AddDays(-7))

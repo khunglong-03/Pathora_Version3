@@ -1,11 +1,15 @@
+#pragma warning disable CS9113
+
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
 namespace Api.Configuration;
 
 public sealed class DatabaseStartupInitializer(
-    IDatabaseStartupLifecycle lifecycle)
+    IDatabaseStartupLifecycle lifecycle,
+    IServiceScopeFactory? scopeFactory = null)
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private bool _initialized;
@@ -30,6 +34,25 @@ public sealed class DatabaseStartupInitializer(
                 Log.Information("Database schema exists. Running incremental seed if needed...");
                 await lifecycle.SeedIfNeededAsync(ct);
                 Log.Information("Incremental seed check completed.");
+            }
+
+            // Sync owned sequences after database migration/seeding is complete (idempotent guard)
+            if (scopeFactory != null)
+            {
+                try
+                {
+                    using var scope = scopeFactory.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<global::Infrastructure.Data.AppDbContext>();
+                    var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<DatabaseStartupInitializer>>();
+                    
+                    Log.Information("Checking and syncing database identity sequences...");
+                    await global::Infrastructure.Data.HealthChecks.SequenceHealthCheck.SyncOwnedImageSequencesAsync(db, logger, ct);
+                    Log.Information("Database identity sequences check completed.");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to check and sync database identity sequences. App will continue to start in degraded mode.");
+                }
             }
         }, cancellationToken);
     }
@@ -63,3 +86,4 @@ public sealed class DatabaseStartupInitializer(
         }
     }
 }
+

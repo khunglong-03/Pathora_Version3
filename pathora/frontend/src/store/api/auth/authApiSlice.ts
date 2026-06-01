@@ -10,9 +10,8 @@ import i18next from "i18next";
 
 const DAY_SECONDS = 60 * 60 * 24;
 
-const isProduction = process.env.NODE_ENV === "production";
 const setCookie = (name: string, value: string, maxAge = DAY_SECONDS): void => {
-  const isSecure = isProduction || (typeof window !== "undefined" && window.location.protocol === "https:");
+  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
   const sameSite = isSecure ? "None" : "Lax";
   document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=${sameSite}${isSecure ? "; Secure" : ""}`;
 };

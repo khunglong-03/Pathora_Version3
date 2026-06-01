@@ -222,11 +222,15 @@ public static class DependencyInjection
                         if (context.Resource is HttpContext httpContext)
                         {
                             var path = httpContext.Request.Path.Value ?? string.Empty;
-                            if (path.StartsWith("/hubs/", StringComparison.OrdinalIgnoreCase)
-                                || path.StartsWith("/api/hubs/", StringComparison.OrdinalIgnoreCase))
-                            {
-                                return true;
-                            }
+                             if (path.StartsWith("/hubs/", StringComparison.OrdinalIgnoreCase)
+                                 || path.StartsWith("/api/hubs/", StringComparison.OrdinalIgnoreCase)
+                                 || path.StartsWith("/api/public/", StringComparison.OrdinalIgnoreCase)
+                                 || path.StartsWith("/api/site-content", StringComparison.OrdinalIgnoreCase)
+                                 || path.Equals("/health", StringComparison.OrdinalIgnoreCase)
+                                 || path.StartsWith("/health/", StringComparison.OrdinalIgnoreCase))
+                             {
+                                 return true;
+                             }
                         }
 
                         return context.User.Identity?.IsAuthenticated == true;

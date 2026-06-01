@@ -85,6 +85,7 @@ D:\DoAn\
 > - **PublicApi (`panthora_be/src/PublicApi/ApiPublic`)**: cho các endpoint anonymous (không cần JWT token, ví dụ lấy danh sách tour public, webhook, etc.).
 > - **Api (`panthora_be/src/Api`)**: cho các endpoint nội bộ cần authentication (JWT token, ví dụ `/api/customer/*`, `/api/admin/*`, v.v.).
 > **Migrations:** Chỉ tạo và chạy (dotnet ef database update) migration từ project `Api`! Không chạy auto-migration ở bất kỳ service nào.
+> **Database Conventions (Sequence Guards):** Các bảng owned-image collection sử dụng identity sequence (`TourInstanceImages`, `TourImages`, `HotelRoomImages`) có nguy cơ bị lệch sequence khi phục hồi database dump hoặc seed dữ liệu thủ công. Hệ thống cấu hình một runtime guard tự động kiểm tra và self-heal (đồng bộ lại sequence bằng `setval()`) trong quá trình bootstrap backend (`DatabaseStartupInitializer`). Khi restore database dump thủ công, cần lưu ý chạy `setval()` để tránh gây cảnh báo (Warning log) lúc khởi động.
 
 > **Runtime Ingress (Docker Compose):**
 > - **Chạy Local / Dev** (`docker compose up -d`): Khởi động toàn bộ stack với các cổng được map trực tiếp ra máy host để phát triển (`localhost:80` / `localhost:8099` cho nginx, `localhost:3003` cho Frontend, và `localhost:8088`/`localhost:8089` cho API).
