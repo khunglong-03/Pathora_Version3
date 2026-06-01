@@ -210,4 +210,177 @@ describe("CustomerAddParticipants", () => {
       expect(mockPush).toHaveBeenCalledWith("/bookings/bk-123#visa");
     });
   });
+
+  it("synchronizes nationality and passport nationality bidirectionally, handles override", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: true,
+    } as any);
+    getParticipantsMock.mockResolvedValue([]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    // Wait for Guest cards to render
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    // Select "Đã có visa" to reveal the passport fields
+    fireEvent.click(screen.getByText("Đã có visa"));
+
+    // Wait for passport fields to render
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("VN, US, JP...")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("VN")).toBeInTheDocument();
+    });
+
+    const guestNatInput = screen.getByPlaceholderText("VN, US, JP...");
+    const passportNatInput = screen.getByPlaceholderText("VN");
+    const overrideCheckbox = screen.getByLabelText("Hộ chiếu cấp ở quốc gia khác với quốc tịch hiện tại");
+
+    expect(guestNatInput).toHaveValue("VN");
+    expect(passportNatInput).toHaveValue("VN");
+    expect(overrideCheckbox).not.toBeChecked();
+
+    // 1. Changing guest nationality -> passport nationality auto syncs
+    fireEvent.change(guestNatInput, { target: { value: "US" } });
+    expect(guestNatInput).toHaveValue("US");
+    expect(passportNatInput).toHaveValue("US");
+
+    // 2. Changing passport nationality -> guest nationality auto syncs
+    fireEvent.change(passportNatInput, { target: { value: "JP" } });
+    expect(guestNatInput).toHaveValue("JP");
+    expect(passportNatInput).toHaveValue("JP");
+
+    // 3. Tick override checkbox -> sync breaks
+    fireEvent.click(overrideCheckbox);
+    expect(overrideCheckbox).toBeChecked();
+
+    // Change guest nationality -> passport nationality should NOT change
+    fireEvent.change(guestNatInput, { target: { value: "FR" } });
+    expect(guestNatInput).toHaveValue("FR");
+    expect(passportNatInput).toHaveValue("JP");
+
+    // 4. Untick override checkbox -> resumes sync, passport nationality resets to match guest nationality
+    fireEvent.click(overrideCheckbox);
+    expect(overrideCheckbox).not.toBeChecked();
+    expect(passportNatInput).toHaveValue("FR");
+  });
+
+  it("detects initial override state correctly when loading existing participants", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 2,
+      children: 0,
+      infants: 0,
+      isVisaRequired: true,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Guest One Same Nat",
+        dateOfBirth: "1995-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+        passport: {
+          passportNumber: "P001",
+          nationality: "VN",
+        },
+      },
+      {
+        participantId: "p-uuid-2",
+        fullName: "Guest Two Diff Nat",
+        dateOfBirth: "1998-10-20",
+        gender: 1,
+        nationality: "VN",
+        participantType: "Adult",
+        passport: {
+          passportNumber: "P002",
+          nationality: "US",
+        },
+      },
+    ]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+      expect(screen.getByText("Guest 2")).toBeInTheDocument();
+    });
+
+    const checkboxes = screen.getAllByLabelText("Hộ chiếu cấp ở quốc gia khác với quốc tịch hiện tại");
+    expect(checkboxes.length).toBe(2);
+
+    // Guest 1: nationality VN, passport nationality VN -> override unchecked
+    expect(checkboxes[0]).not.toBeChecked();
+
+    // Guest 2: nationality VN, passport nationality US -> override checked
+    expect(checkboxes[1]).toBeChecked();
+  });
+
+  it("pre-fills booker fullName to participant 1 when no existing participants exist", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 2,
+      children: 0,
+      infants: 0,
+      isVisaRequired: false,
+      customerName: "Nguyễn Văn A",
+    } as any);
+    getParticipantsMock.mockResolvedValue([]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    // Wait for blank cards to render
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+      expect(screen.getByText("Guest 2")).toBeInTheDocument();
+    });
+
+    const nameInputs = screen.getAllByPlaceholderText("As shown on passport");
+    expect(nameInputs.length).toBe(2);
+
+    // Participant 1 (Guest 1) should be pre-filled with Nguyễn Văn A
+    expect(nameInputs[0]).toHaveValue("Nguyễn Văn A");
+    expect(screen.getByText("Tự điền từ thông tin đặt — chỉnh nếu khách khác.")).toBeInTheDocument();
+
+    // Participant 2 should be empty
+    expect(nameInputs[1]).toHaveValue("");
+  });
+
+  it("does not pre-fill booker fullName if existing participants already exist", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: false,
+      customerName: "Nguyễn Văn A",
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Existing Guest Name",
+        dateOfBirth: "1995-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+      },
+    ]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    const nameInput = screen.getByPlaceholderText("As shown on passport");
+    // Should NOT pre-fill since it is an existing participant
+    expect(nameInput).toHaveValue("Existing Guest Name");
+    expect(screen.queryByText("Tự điền từ thông tin đặt — chỉnh nếu khách khác.")).not.toBeInTheDocument();
+  });
 });

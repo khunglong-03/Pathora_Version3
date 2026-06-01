@@ -3,6 +3,16 @@ import React from "react";
 import { FileText, Bank, CreditCard, IdentificationCard, CalendarBlank, Key } from "@phosphor-icons/react";
 import { BookingDetail, TIER_CONFIG } from "./BookingDetailData";
 import { motion } from "framer-motion";
+import { formatDate } from "@/utils/format";
+
+const DATE_OPTS = {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: undefined,
+  minute: undefined,
+  second: undefined,
+} as const;
 
 interface BookingInfoCardProps {
   booking: BookingDetail;
@@ -52,7 +62,9 @@ export function BookingInfoCard({ booking, getTierLabel, getPaymentMethodLabel }
             <CalendarBlank weight="fill" className="size-4 text-slate-400" />
             <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Booking Date</p>
           </div>
-          <p className="text-lg font-bold text-slate-900 tracking-tight relative z-10">{booking.bookingDate}</p>
+          <p className="text-lg font-bold text-slate-900 tracking-tight relative z-10">
+            {formatDate(booking.bookingDate, DATE_OPTS) || "—"}
+          </p>
         </div>
 
         <div className="p-6 rounded-[1.5rem] bg-slate-50 border border-slate-100 flex flex-col gap-2">
@@ -60,7 +72,9 @@ export function BookingInfoCard({ booking, getTierLabel, getPaymentMethodLabel }
             <CalendarBlank weight="fill" className="size-4 text-slate-400" />
             <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Departure</p>
           </div>
-          <p className="text-lg font-bold text-slate-900 tracking-tight">{booking.departureDate}</p>
+          <p className="text-lg font-bold text-slate-900 tracking-tight">
+            {formatDate(booking.departureDate, DATE_OPTS) || "—"}
+          </p>
         </div>
 
         <div className="p-6 rounded-[1.5rem] bg-slate-50 border border-slate-100 flex flex-col justify-between gap-4">
