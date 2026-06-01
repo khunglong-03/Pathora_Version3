@@ -441,11 +441,11 @@ export function TourDetailPage() {
 
             {/* Info Cards Grid Bento */}
             <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {duration && <InfoPill icon="heroicons-outline:clock" label="Duration" value={duration} />}
-              <InfoPill icon="heroicons-outline:tag" label="Package" value={selectedClassification?.name ?? "—"} />
-              <InfoPill icon="heroicons-outline:document-text" label="Day Plans" value={`${itineraryDays.length} days`} />
-              <InfoPill icon="heroicons-outline:shield-check" label="Insurance" value={insurances.length > 0 ? `${insurances.length} included` : "None"} />
-              {tour.isVisa && <InfoPill icon="heroicons-outline:identification" label="Visa" value="Required" />}
+              {duration && <InfoPill icon="heroicons-outline:clock" label={t("landing.tourDetail.duration", "Duration")} value={duration} />}
+              <InfoPill icon="heroicons-outline:tag" label={t("landing.tourDetail.package", "Package")} value={selectedClassification?.name ?? "—"} />
+              <InfoPill icon="heroicons-outline:document-text" label={t("landing.tourDetail.plans", "Day Plans")} value={`${itineraryDays.length} ${t("landing.tourDetail.days", "days")}`} />
+              <InfoPill icon="heroicons-outline:shield-check" label={t("landing.tourDetail.insurance", "Insurance")} value={insurances.length > 0 ? `${insurances.length} ${t("landing.tourDetail.included", "included")}` : t("landing.tourDetail.none", "None")} />
+              {tour.isVisa && <InfoPill icon="heroicons-outline:identification" label={t("landing.tourDetail.visa", "Visa")} value={t("landing.tourDetail.required", "Required")} />}
             </motion.div>
 
             {/* Content Tabs (Overview/Itinerary) inside Bento */}
@@ -461,7 +461,7 @@ export function TourDetailPage() {
                     }`}
                   >
                     <Icon icon="heroicons-outline:information-circle" className="size-4" />
-                    Overview
+                    {t("landing.tourDetail.overview", "Overview")}
                   </button>
                   <button
                     onClick={() => setActiveTab("itinerary")}
@@ -472,7 +472,7 @@ export function TourDetailPage() {
                     }`}
                   >
                     <Icon icon="heroicons-outline:map" className="size-4" />
-                    Itinerary
+                    {t("landing.tourDetail.itinerary", "Itinerary")}
                   </button>
                 </div>
               </div>
@@ -489,7 +489,7 @@ export function TourDetailPage() {
                       className="flex flex-col gap-10"
                     >
                       <div>
-                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6">About This Tour</h3>
+                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6">{t("landing.tourDetail.aboutThisTour", "About This Tour")}</h3>
                         <div className="flex flex-col gap-4">
                           {aboutParagraphs.length > 0 ? (
                             aboutParagraphs.map((p, i) => (
@@ -507,7 +507,7 @@ export function TourDetailPage() {
 
                       {insurances.length > 0 && (
                         <div>
-                          <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6">Insurance Coverage</h3>
+                          <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6">{t("landing.tourDetail.insuranceCoverage", "Insurance Coverage")}</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {insurances.map((ins) => (
                               <div key={ins.id} className="bg-emerald-50 border border-emerald-100 rounded-[1.5rem] p-6 flex flex-col gap-4 relative overflow-hidden group hover:shadow-[0_8px_20px_-8px_rgba(16,185,129,0.3)] transition-shadow">
@@ -653,7 +653,7 @@ export function TourDetailPage() {
               {/* Preferences Container */}
               <div className="bg-slate-50 border border-slate-100 rounded-[1.5rem] p-4 flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2">Departure Date</label>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2">{t("landing.tourDetail.preferredDepartureDate", "Departure Date")}</label>
                   <div className="relative">
                     <Icon icon="heroicons-outline:calendar" className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
                     <TextInput
@@ -679,11 +679,11 @@ export function TourDetailPage() {
                 <div className="h-px bg-slate-200/60 mx-2" />
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2">Guests</label>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2">{t("landing.tourDetail.guestsLabel", "Guests")}</label>
                   <div className="flex flex-col">
-                    <GuestRow label="Adults" value={adults} onDecrement={() => setAdults(Math.max(1, adults - 1))} onIncrement={() => setAdults(adults + 1)} />
-                    <GuestRow label="Children" subtitle="< 12 years" value={children} onDecrement={() => setChildren(Math.max(0, children - 1))} onIncrement={() => setChildren(children + 1)} />
-                    <GuestRow label="Infants" subtitle="< 2 years" value={infants} onDecrement={() => setInfants(Math.max(0, infants - 1))} onIncrement={() => setInfants(infants + 1)} showBorder={false} />
+                    <GuestRow label={t("landing.tourDetail.adults", "Adults")} value={adults} onDecrement={() => setAdults(Math.max(1, adults - 1))} onIncrement={() => setAdults(adults + 1)} />
+                    <GuestRow label={t("landing.tourDetail.children", "Children")} subtitle={t("landing.tourDetail.childrenAge", "< 12 years")} value={children} onDecrement={() => setChildren(Math.max(0, children - 1))} onIncrement={() => setChildren(children + 1)} />
+                    <GuestRow label={t("landing.tourDetail.infants", "Infants")} subtitle={t("landing.tourDetail.infantsAge", "< 2 years")} value={infants} onDecrement={() => setInfants(Math.max(0, infants - 1))} onIncrement={() => setInfants(infants + 1)} showBorder={false} />
                   </div>
                 </div>
 
@@ -724,30 +724,30 @@ export function TourDetailPage() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
                 <div className="relative z-10 flex flex-col gap-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400">Adults × {adults}</span>
+                    <span className="text-slate-400">{t("landing.tourDetail.adults", "Adults")} × {adults}</span>
                     <span className="font-mono">{formatCurrency(estimateBreakdown.adultPrice * adults)}</span>
                   </div>
                   {children > 0 && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Children × {children}</span>
+                      <span className="text-slate-400">{t("landing.tourDetail.children", "Children")} × {children}</span>
                       <span className="font-mono">{formatCurrency(estimateBreakdown.childPrice * children)}</span>
                     </div>
                   )}
                   {infants > 0 && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Infants × {infants}</span>
+                      <span className="text-slate-400">{t("landing.tourDetail.infants", "Infants")} × {infants}</span>
                       <span className="font-mono">{formatCurrency(estimateBreakdown.infantPrice * infants)}</span>
                     </div>
                   )}
                   {serviceFee > 0 && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Service Fee</span>
+                      <span className="text-slate-400">{t("landing.tourDetail.serviceFee", "Service Fee")}</span>
                       <span className="font-mono">{formatCurrency(serviceFee)}</span>
                     </div>
                   )}
                   <div className="h-px bg-slate-700 w-full" />
                   <div className="flex items-end justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Estimated Total</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">{t("landing.tourDetail.estimatedTotal", "Estimated Total")}</span>
                     <span className="text-3xl font-bold tracking-tighter tabular-nums text-emerald-400">
                       {formatCurrency(estimatedTotal)}
                     </span>
@@ -775,14 +775,14 @@ export function TourDetailPage() {
                 </motion.button>
                 {!canRequestPrivate && !departureDate && (
                   <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-white text-[11px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover/book:opacity-100 transition-opacity pointer-events-none bg-slate-800 shadow-xl">
-                    Please select a departure date first
+                    {t("landing.tourDetail.selectDateFirst", "Please select a departure date first")}
                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
                   </div>
                 )}
               </div>
 
               <p className="text-[10px] text-center leading-[0.9375rem] text-slate-400 mt-2">
-                No payment required now. You&apos;ll be redirected to complete your booking details.
+                {t("landing.tourDetail.noPaymentNotice", "No payment required now. You'll be redirected to complete your booking details.")}
               </p>
             </motion.div>
 
