@@ -116,4 +116,65 @@ describe("useBookings hook", () => {
       status: undefined,
     });
   });
+
+  it("should filter out paid bookings whose tour dates have passed, but retain unpaid or future bookings", () => {
+    const mockApiData = {
+      items: [
+        {
+          id: "bk-past-paid",
+          tourName: "Past Paid Tour",
+          reference: "REF1",
+          status: "confirmed",
+          paymentStatus: "paid",
+          startDate: "2020-01-01T00:00:00Z",
+          endDate: "2020-01-05T00:00:00Z",
+          adults: 2,
+          totalPrice: 1000000,
+          paidAmount: 1000000,
+        },
+        {
+          id: "bk-past-unpaid",
+          tourName: "Past Unpaid Tour",
+          reference: "REF2",
+          status: "confirmed",
+          paymentStatus: "unpaid",
+          startDate: "2020-01-01T00:00:00Z",
+          endDate: "2020-01-05T00:00:00Z",
+          adults: 2,
+          totalPrice: 1000000,
+          paidAmount: 0,
+        },
+        {
+          id: "bk-future-paid",
+          tourName: "Future Paid Tour",
+          reference: "REF3",
+          status: "confirmed",
+          paymentStatus: "paid",
+          startDate: "2030-01-01T00:00:00Z",
+          endDate: "2030-01-05T00:00:00Z",
+          adults: 2,
+          totalPrice: 1000000,
+          paidAmount: 1000000,
+        }
+      ],
+      totalCount: 3,
+      page: 1,
+      pageSize: 10,
+      totalPages: 1
+    };
+
+    mockUseGetMyBookingsQuery.mockReturnValue({
+      data: mockApiData,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      refetch: vi.fn()
+    } as any);
+
+    const { result } = renderHook(() => useBookings("all", 1, 10));
+
+    // bk-past-paid is filtered out, leaving the other 2
+    expect(result.current.bookings).toHaveLength(2);
+    expect(result.current.bookings.map(b => b.id)).toEqual(["bk-past-unpaid", "bk-future-paid"]);
+  });
 });

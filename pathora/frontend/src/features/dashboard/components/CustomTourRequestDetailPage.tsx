@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Icon, TourStatusBadge } from "@/components/ui";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
+import { bookingService, type AdminBookingListResponse } from "@/api/services/bookingService";
 import { NormalizedTourInstanceDto } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
 import { formatDate } from "@/utils/format";
@@ -56,6 +57,8 @@ export default function CustomTourRequestDetailPage({
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [bookings, setBookings] = useState<AdminBookingListResponse[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
 
   /* ── Approve / Reject state ──────────────────────────────── */
   const [actionLoading, setActionLoading] = useState<"approve" | "reject" | null>(null);
@@ -233,8 +236,18 @@ export default function CustomTourRequestDetailPage({
     try {
       setDataState("loading");
       setErrorMessage(null);
-      const detail = await tourInstanceService.getInstanceDetail(id);
+      
+      const [detail, bookingsList] = await Promise.all([
+        tourInstanceService.getInstanceDetail(id),
+        bookingService.getBookingsByTourInstance(id).catch(err => {
+          console.error("Failed to load bookings for custom tour request:", err);
+          return [] as AdminBookingListResponse[];
+        })
+      ]);
+
       setData(detail);
+      setBookings(bookingsList);
+      setBookingsLoading(false);
       setDataState("ready");
     } catch (error: unknown) {
       const apiError = handleApiError(error);
@@ -364,6 +377,105 @@ export default function CustomTourRequestDetailPage({
                     </p>
                   </div>
                 ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Thông tin khách hàng & Người tham gia */}
+          {!bookingsLoading && bookings.length > 0 && (
+            <motion.div variants={itemVariants} className="space-y-6">
+              <div className="flex items-center gap-3 px-2">
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
+                  <Icon icon="heroicons:users" className="size-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+                    Khách hàng &amp; Người tham gia
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Thông tin liên hệ và số lượng thành viên đoàn
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Contact Card */}
+                <div className="bg-white border border-slate-200/60 rounded-[1.5rem] p-6 shadow-sm space-y-4">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Thông tin liên hệ
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                        <Icon icon="heroicons:user" className="size-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400">Họ và tên</p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {bookings[0].customerName || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                        <Icon icon="heroicons:phone" className="size-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400">Số điện thoại</p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {bookings[0].customerPhone || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                        <Icon icon="heroicons:envelope" className="size-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400">Email</p>
+                        <p className="text-sm font-semibold text-slate-900 truncate" title={bookings[0].customerEmail || undefined}>
+                          {bookings[0].customerEmail || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Participants Card */}
+                <div className="bg-white border border-slate-200/60 rounded-[1.5rem] p-6 shadow-sm space-y-4">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Số lượng thành viên đoàn
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Người lớn</p>
+                      <p className="text-xl font-bold text-slate-900 mt-1 font-mono">
+                        {bookings[0].numberAdult ?? 0}
+                      </p>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Trẻ em</p>
+                      <p className="text-xl font-bold text-slate-900 mt-1 font-mono">
+                        {bookings[0].numberChild ?? 0}
+                      </p>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Em bé</p>
+                      <p className="text-xl font-bold text-slate-900 mt-1 font-mono">
+                        {bookings[0].numberInfant ?? 0}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-500">Tổng số khách</span>
+                    <span className="text-sm font-bold text-slate-900 bg-slate-100 px-3 py-1 rounded-lg font-mono">
+                      {(bookings[0].numberAdult ?? 0) + (bookings[0].numberChild ?? 0) + (bookings[0].numberInfant ?? 0)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -560,8 +672,10 @@ export default function CustomTourRequestDetailPage({
                 },
                 {
                   icon: "heroicons:user-group",
-                  label: "Số khách",
-                  value: `${data.currentParticipation ?? 0}/${data.maxParticipation}`,
+                  label: "Số khách yêu cầu",
+                  value: bookings.length > 0
+                    ? `${(bookings[0].numberAdult ?? 0) + (bookings[0].numberChild ?? 0) + (bookings[0].numberInfant ?? 0)} khách`
+                    : `${data.currentParticipation ?? 0}/${data.maxParticipation}`,
                 },
                 {
                   icon: "heroicons:map-pin",

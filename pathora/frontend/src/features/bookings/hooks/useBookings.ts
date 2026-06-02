@@ -15,7 +15,25 @@ export function useBookings(statusFilter: FilterKey, page: number = 1, pageSize:
   const bookings: Booking[] = useMemo(() => {
     if (!data?.items) return [];
 
-    return data.items.map((b) => ({
+    const now = new Date();
+
+    return data.items
+      .filter((b) => {
+        const paymentStatus = b.paymentStatus?.toLowerCase() || "unpaid";
+        const bookingStatus = b.status?.toLowerCase() || "pending";
+        const isPaid = paymentStatus === "paid" || bookingStatus === "completed";
+
+        const targetDateStr = b.endDate || b.startDate;
+        if (!targetDateStr || targetDateStr.startsWith("0001-01-01")) return true;
+
+        const hasTimePassed = new Date(targetDateStr) < now;
+
+        if (isPaid && hasTimePassed) {
+          return false;
+        }
+        return true;
+      })
+      .map((b) => ({
       id: b.id,
       tourName: b.tourName || "Unknown Tour",
       reference: b.reference || "N/A",

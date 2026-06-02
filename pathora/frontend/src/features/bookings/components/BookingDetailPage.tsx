@@ -130,8 +130,10 @@ export function BookingDetailPage() {
   if (mappedStatusStr === "pendingapproval") mappedStatusStr = "pending_approval";
   if (mappedStatusStr === "pendingcancellation") mappedStatusStr = "pending_cancellation";
 
-  const actualStatus = booking.tourStatus === "PendingCustomerApproval" 
-    ? "pending_approval" 
+  // Private tour chưa duyệt xong (chờ manager hoặc chờ khách duyệt lịch trình) → badge "Chờ phê duyệt".
+  const tourPendingApprovalStates = ["Draft", "PendingManagerReview", "PendingAdjustment", "PendingCustomerApproval"];
+  const actualStatus = (mappedStatusStr === "pending" && tourPendingApprovalStates.includes(booking.tourStatus))
+    ? "pending_approval"
     : mappedStatusStr;
   const resolvedBookingId = booking.id ?? booking.bookingId ?? bookingId;
 
@@ -228,7 +230,7 @@ export function BookingDetailPage() {
 
             {/* Right Sidebar */}
             <div className="w-full lg:w-[480px] shrink-0 v-stack gap-6 lg:sticky lg:top-8 self-start">
-              {mappedBooking.status === "pending_approval" && (
+              {booking.tourStatus === "PendingCustomerApproval" && (
                 <BookingCustomerApprovalAction
                   bookingId={mappedBooking.id}
                   tourInstanceId={mappedBooking.tourInstanceId || mappedBooking.id}

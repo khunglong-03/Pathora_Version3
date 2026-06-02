@@ -161,7 +161,7 @@ export function BookingCard({
             <div className={cn("flex flex-wrap items-center gap-2.5")}>
               {(showPayRemaining || showVisaStatus || booking.status === "pending_approval") && (
                 <div className={cn("flex flex-wrap items-center gap-2.5")}>
-                  {booking.status === "pending_approval" && (
+                  {booking.tourStatus === "PendingCustomerApproval" && (
                     <motion.div whileTap={{ scale: 0.98 }}>
                       <Link 
                         href={`/bookings/${booking.id}`} 

@@ -18,6 +18,8 @@ export interface Booking {
   reference: string;
   tier: TourTier;
   status: BookingStatus;
+  /** Raw TourInstance status từ backend (vd "PendingManagerReview", "PendingCustomerApproval") — dùng để gate customer-action chính xác. */
+  tourStatus?: string;
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
   location: string;
