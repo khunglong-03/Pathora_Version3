@@ -22,7 +22,13 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("react-i18next", () => {
-  const t = (_key: string, fallback?: string) => fallback ?? _key;
+  const t = (_key: string, fallbackOrOptions?: any, options?: any) => {
+    const opts = typeof fallbackOrOptions === "object" ? fallbackOrOptions : options;
+    if (_key === "landing.bookings.addParticipantsPage.guestNumber" || _key === "landing.bookings.addParticipantsPage.guestNumberWithDesignated") {
+      return `Guest ${opts?.index ?? 1}`;
+    }
+    return typeof fallbackOrOptions === "string" ? fallbackOrOptions : _key;
+  };
   return {
     useTranslation: () => ({ t }),
   };
@@ -145,9 +151,11 @@ describe("CustomerAddParticipants", () => {
     fireEvent.change(inputs[1], { target: { value: "New Passenger Name" } });
     
     // Set date of birth for Guest 2
-    const dobInputs = container.querySelectorAll("input[type='date']");
-    expect(dobInputs.length).toBe(2);
-    fireEvent.change(dobInputs[1], { target: { value: "1998-10-20" } });
+    const selects = container.querySelectorAll("select");
+    // selects[4] is Day, selects[5] is Month, selects[6] is Year for Guest 2
+    fireEvent.change(selects[4], { target: { value: "20" } });
+    fireEvent.change(selects[5], { target: { value: "10" } });
+    fireEvent.change(selects[6], { target: { value: "1998" } });
 
     createParticipantMock.mockResolvedValue("p-uuid-2");
 
@@ -185,9 +193,10 @@ describe("CustomerAddParticipants", () => {
     const nameInput = screen.getByPlaceholderText("As shown on passport");
     fireEvent.change(nameInput, { target: { value: "Fail Passenger" } });
     
-    const dobInput = container.querySelector("input[type='date']");
-    expect(dobInput).not.toBeNull();
-    fireEvent.change(dobInput!, { target: { value: "1990-01-01" } });
+    const selects = container.querySelectorAll("select");
+    fireEvent.change(selects[0], { target: { value: "01" } });
+    fireEvent.change(selects[1], { target: { value: "01" } });
+    fireEvent.change(selects[2], { target: { value: "1990" } });
 
     // Mock API to fail
     const apiError = new Error("Seat capacity race conflict");
