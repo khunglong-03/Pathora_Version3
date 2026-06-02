@@ -11,8 +11,13 @@ export const persistAuthSession = (
   portal?: string | null,
   defaultPath?: string | null,
 ): void => {
-  setCookie("access_token", accessToken, DAY_SECONDS);
-  setCookie("refresh_token", refreshToken, WEEK_SECONDS);
+  // One-time migration: remove any non-HttpOnly refresh_token cookie written by
+  // old JS code. The HttpOnly cookie set by the backend is unaffected (browser
+  // silently ignores JS deletions of HttpOnly cookies).
+  deleteCookie("refresh_token");
+
+  // access_token and refresh_token are now exclusively owned by the backend
+  // via Set-Cookie response headers. Do not write them here.
   setCookie("auth_status", "1", WEEK_SECONDS);
 
   const resolvedPortal = resolveAuthPortal(portal, defaultPath);

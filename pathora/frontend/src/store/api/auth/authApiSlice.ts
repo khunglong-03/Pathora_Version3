@@ -54,9 +54,7 @@ export interface LogoutRequest {
   refreshToken: string;
 }
 
-export interface RefreshRequest {
-  refreshToken: string;
-}
+export type RefreshRequest = Record<never, never>;
 
 export interface RegisterRequest {
   username: string;
@@ -204,10 +202,10 @@ export const authApiSlice = apiSlice.injectEndpoints({
       ApiSharedResponse<TokenData>,
       RefreshRequest
     >({
-      query: (body) => ({
+      query: () => ({
         url: "/api/auth/refresh",
         method: "POST",
-        body,
+        body: {},
       }),
       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
@@ -379,6 +377,26 @@ export const authApiSlice = apiSlice.injectEndpoints({
   }),
   overrideExisting: (process.env.NODE_ENV !== "production"),
 });
+
+// ─── Testable session helpers ─────────────────────────────────────────────
+// Extracted so unit tests can call them without RTK Query machinery.
+
+export function applySuccessfulAuthSession(
+  tokens: { accessToken: string; refreshToken: string; portal?: string | null; defaultPath?: string | null },
+  dispatch: (action: ReturnType<typeof setToken> | ReturnType<typeof logOut>) => void,
+): void {
+  persistAuthSession(tokens.accessToken, tokens.refreshToken, tokens.portal, tokens.defaultPath);
+  dispatch(setToken(tokens.accessToken));
+}
+
+export function clearSessionAndLogout(
+  dispatch: (action: ReturnType<typeof logOut>) => void,
+): void {
+  removeCookie("access_token");
+  removeCookie("refresh_token");
+  clearAuthSessionCookies();
+  dispatch(logOut());
+}
 
 export const {
   useLoginMutation,

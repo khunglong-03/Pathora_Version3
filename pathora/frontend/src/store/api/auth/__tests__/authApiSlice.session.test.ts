@@ -59,7 +59,7 @@ describe("authApiSlice session side effects", () => {
     vi.restoreAllMocks();
   });
 
-  it("sets access_token, refresh_token, auth_status and auth_portal on successful auth", () => {
+  it("sets auth_status and auth_portal on successful auth (access_token and refresh_token owned by backend Set-Cookie)", () => {
     const dispatch = vi.fn();
 
     applySuccessfulAuthSession(
@@ -71,8 +71,10 @@ describe("authApiSlice session side effects", () => {
       dispatch,
     );
 
-    expect(getCookie("access_token")).toBe("access-token-1");
-    expect(getCookie("refresh_token")).toBe("refresh-token-1");
+    // access_token and refresh_token are set exclusively by backend Set-Cookie headers.
+    // JS no longer writes them — jsdom won't have them unless the test sets them manually.
+    expect(getCookie("access_token")).toBeNull();
+    expect(getCookie("refresh_token")).toBeNull();
     expect(getCookie("auth_status")).toBe("1");
     expect(getCookie("auth_portal")).toBe("admin");
     expect(dispatch).toHaveBeenCalledTimes(1);
