@@ -134,6 +134,8 @@ describe("VisaUploadForm", () => {
   });
 
   it("submits valid data", async () => {
+    mockOnSubmitPassport.mockResolvedValue("new-passport-id");
+
     render(
       <VisaUploadForm
         participant={baseParticipant}
@@ -172,9 +174,18 @@ describe("VisaUploadForm", () => {
       });
 
       expect(mockOnSubmitVisaApp).toHaveBeenCalledWith({
+        _passportId: "new-passport-id",
         destinationCountry: "VN",
         minReturnDate: "2026-05-10",
         visaFileUrl: "http://visa.com",
+        visaNumber: "",
+        entryType: "",
+        issuedAt: "",
+        expiresAt: "",
+        category: "",
+        format: "",
+        maxStayDays: null,
+        issuingAuthority: "",
         isResubmitting: false,
       });
     });

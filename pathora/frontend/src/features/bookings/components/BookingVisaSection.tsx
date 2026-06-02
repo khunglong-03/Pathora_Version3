@@ -72,29 +72,6 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
     return null;
   }
 
-  if (data.isVisaRequired && data.participants.length === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-amber-50 rounded-3xl p-6 md:p-8 shadow-sm border border-amber-200 v-stack gap-4"
-      >
-        <div className="h-stack items-center gap-2">
-          <AirplaneTilt size={24} weight="bold" className="text-amber-600" />
-          <h3 className="text-xl font-bold text-amber-900">{t("landing.visa.sectionTitle")}</h3>
-        </div>
-        <p className="text-sm text-amber-800">
-          {t("landing.visa.requiresParticipantsFirst", "Tour này cần visa. Vui lòng thêm thông tin từng hành khách trước khi nộp visa. Người chưa có visa có thể yêu cầu hệ thống hỗ trợ làm visa (có phí).")}
-        </p>
-        <a
-          href={`/bookings/${bookingId}/participants`}
-          className="self-start text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-lg transition-colors"
-        >
-          {t("landing.visa.goAddParticipants", "Thêm hành khách")}
-        </a>
-      </motion.div>
-    );
-  }
-
   if (data.participants.length === 0) {
     return null;
   }

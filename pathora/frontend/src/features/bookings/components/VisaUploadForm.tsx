@@ -65,12 +65,18 @@ export function VisaUploadForm({
     minReturnDate: yup.string().nullable(),
     visaFileUrl: yup.string().nullable(),
     visaNumber: yup.string().nullable(),
-    entryType: yup.number().nullable(),
+    entryType: yup.string().nullable(),
     visaIssuedAt: yup.string().nullable(),
     visaExpiresAt: yup.string().nullable(),
-    category: yup.number().nullable(),
-    format: yup.number().nullable(),
-    maxStayDays: yup.number().nullable().transform((value) => (isNaN(value) ? null : value)),
+    category: yup.string().nullable(),
+    format: yup.string().nullable(),
+    maxStayDays: yup.number().nullable().transform((value, originalValue) => {
+      if (originalValue === "" || originalValue === null || originalValue === undefined) {
+        return null;
+      }
+      const num = Number(value);
+      return isNaN(num) ? null : num;
+    }),
     issuingAuthority: yup.string().nullable(),
   });
 

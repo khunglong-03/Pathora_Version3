@@ -165,7 +165,7 @@ export function BookingDetailPage() {
     totalAmount: booking.totalAmount,
     paidAmount: booking.paidAmount,
     remainingBalance: booking.remainingBalance,
-    image: "/assets/images/tours/placeholder.png",
+    image: booking.image || "/assets/images/tours/placeholder.png",
     description: booking.description ?? "",
     highlights: booking.highlights ?? [],
     importantInfo: (booking.importantInfo as unknown as string[]) ?? [],

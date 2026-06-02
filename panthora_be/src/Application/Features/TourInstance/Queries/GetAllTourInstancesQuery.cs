@@ -19,17 +19,7 @@ public sealed record GetAllTourInstancesQuery(
     [property: JsonPropertyName("wantsCustomization")] bool? WantsCustomization = null,
     [property: JsonPropertyName("instanceType")] TourType? InstanceType = null,
     [property: JsonPropertyName("currentUserId")] string? CurrentUserId = null,
-    [property: JsonPropertyName("statuses")] IReadOnlyCollection<TourInstanceStatus>? Statuses = null) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
-{
-    private string PrincipalCacheKey =>
-        Guid.TryParse(CurrentUserId, out var principalId) ? principalId.ToString("D") : "anon";
-
-    private string StatusesCacheKey =>
-        Statuses is { Count: > 0 } ? string.Join(',', Statuses.OrderBy(s => s)) : "all";
-
-    public string CacheKey => $"{Common.CacheKey.TourInstance}:all:{PrincipalCacheKey}:{PageNumber}:{PageSize}:{Status}:{StatusesCacheKey}:{ExcludePast}:{WantsCustomization}:{InstanceType}:{SearchText}";
-    public TimeSpan? Expiration => TimeSpan.FromMinutes(30);
-}
+    [property: JsonPropertyName("statuses")] IReadOnlyCollection<TourInstanceStatus>? Statuses = null) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>;
 
 public sealed class GetAllTourInstancesQueryHandler(ITourInstanceService tourInstanceService)
     : IQueryHandler<GetAllTourInstancesQuery, ErrorOr<PaginatedList<TourInstanceVm>>>
