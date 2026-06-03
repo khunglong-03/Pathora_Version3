@@ -296,4 +296,62 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
 
         return query;
     }
+
+    public async Task<List<BookingEntity>> ListBookingsForApprovalWarningSweepAsync(
+        DateTimeOffset now,
+        DateTimeOffset maxStartDate,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var allowedStatuses = new[]
+        {
+            BookingStatus.Pending,
+            BookingStatus.Confirmed,
+            BookingStatus.Deposited,
+            BookingStatus.Paid,
+            BookingStatus.PendingAdjustment
+        };
+
+        return await _context.Bookings
+            .Include(b => b.TourInstance).ThenInclude(ti => ti.Tour)
+            .Include(b => b.BookingParticipants).ThenInclude(p => p.VisaApplications)
+            .Where(b => allowedStatuses.Contains(b.Status)
+                     && b.ApprovalAutoCancelledAt == null
+                     && b.ApprovalWarningSentAt == null
+                     && b.TourInstance.StartDate > now
+                     && b.TourInstance.StartDate <= maxStartDate)
+            .OrderBy(b => b.TourInstance.StartDate)
+            .Take(limit)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<BookingEntity>> ListBookingsForApprovalAutoCancelSweepAsync(
+        DateTimeOffset now,
+        DateTimeOffset maxStartDate,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var allowedStatuses = new[]
+        {
+            BookingStatus.Pending,
+            BookingStatus.Confirmed,
+            BookingStatus.Deposited,
+            BookingStatus.Paid,
+            BookingStatus.PendingCancellation,
+            BookingStatus.PendingAdjustment
+        };
+
+        return await _context.Bookings
+            .Include(b => b.TourInstance).ThenInclude(ti => ti.Tour)
+            .Include(b => b.BookingParticipants).ThenInclude(p => p.VisaApplications)
+            .Where(b => allowedStatuses.Contains(b.Status)
+                     && b.ApprovalAutoCancelledAt == null
+                     && b.TourInstance.StartDate > now
+                     && b.TourInstance.StartDate <= maxStartDate)
+            .OrderBy(b => b.TourInstance.StartDate)
+            .Take(limit)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+    }
 }

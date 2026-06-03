@@ -1,6 +1,6 @@
 namespace Application.Common.Constant;
 
-public static class ErrorConstants
+public static partial class ErrorConstants
 {
     public static class Classification
     {

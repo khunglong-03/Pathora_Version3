@@ -49,6 +49,9 @@ public class BookingDetailDto
     public decimal? RefundOutstandingAmount { get; set; }
     public DateTimeOffset? RefundContactedAt { get; set; }
     public DateTimeOffset? RefundCompletedAt { get; set; }
+    public DateTimeOffset? ApprovalDeadline { get; set; }
+    public DateTimeOffset? ApprovalWarningSentAt { get; set; }
+    public DateTimeOffset? ApprovalAutoCancelledAt { get; set; }
 
     public List<CustomerTicketDto> Tickets { get; set; } = [];
     public List<CustomerRoomAssignmentDto> RoomAssignments { get; set; } = [];

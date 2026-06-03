@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddHostedService<OutboxWorkerService>();
         services.AddHostedService<SoftHoldCleanupWorkerService>();
         services.AddHostedService<PrivateTourTopUpDeadlineWorkerService>();
+        services.AddHostedService<Api.Services.ParticipantApprovalDeadlineWorkerService>();
         services.AddHostedService<global::Infrastructure.Mails.MailProcessor>();
 
         // Data Protection: persist keys to Redis so OAuth correlation cookies and

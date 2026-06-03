@@ -20,4 +20,6 @@ public interface IBookingRepository
     Task<(List<BookingEntity> Items, int TotalCount)> GetPagedBookingsForUserAsync(string userIdStr, string? statusFilter, int page, int pageSize, CancellationToken cancellationToken = default);
     Task<BookingEntity?> GetByParticipantIdAsync(Guid participantId, CancellationToken cancellationToken = default);
     Task<bool> HasActiveCustomTourRequestAsync(Guid? userId, string? email, Guid tourId, CancellationToken cancellationToken = default);
+    Task<List<BookingEntity>> ListBookingsForApprovalWarningSweepAsync(DateTimeOffset now, DateTimeOffset maxStartDate, int limit, CancellationToken cancellationToken = default);
+    Task<List<BookingEntity>> ListBookingsForApprovalAutoCancelSweepAsync(DateTimeOffset now, DateTimeOffset maxStartDate, int limit, CancellationToken cancellationToken = default);
 }

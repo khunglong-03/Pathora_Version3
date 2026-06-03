@@ -145,7 +145,10 @@ public class GetBookingDetailQueryHandler(
             RefundStatus = booking.RefundStatus.ToString(),
             RefundOutstandingAmount = booking.RefundOutstandingAmount,
             RefundContactedAt = booking.RefundContactedAt,
-            RefundCompletedAt = booking.RefundCompletedAt
+            RefundCompletedAt = booking.RefundCompletedAt,
+            ApprovalDeadline = booking.TourInstance != null ? booking.TourInstance.StartDate.ToUniversalTime().AddDays(-1) : null,
+            ApprovalWarningSentAt = booking.ApprovalWarningSentAt,
+            ApprovalAutoCancelledAt = booking.ApprovalAutoCancelledAt
         };
 
         var allRequests = await cancellationRequestRepository.GetByBookingIdAsync(booking.Id, cancellationToken);

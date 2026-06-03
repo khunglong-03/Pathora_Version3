@@ -97,6 +97,12 @@ public class BookingEntity : Aggregate<Guid>
     /// <summary>Thời điểm hoàn tiền xong.</summary>
     public DateTimeOffset? RefundCompletedAt { get; private set; }
 
+    /// <summary>Thời điểm gửi email cảnh báo duyệt thông tin.</summary>
+    public DateTimeOffset? ApprovalWarningSentAt { get; private set; }
+    /// <summary>Thời điểm booking bị tự động huỷ do trễ duyệt thông tin.</summary>
+    public DateTimeOffset? ApprovalAutoCancelledAt { get; private set; }
+
+
     public static BookingEntity Create(
         Guid tourInstanceId,
         string customerName,
@@ -348,6 +354,41 @@ public class BookingEntity : Aggregate<Guid>
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
+
+    /// <summary>
+    /// Đánh dấu đã gửi email cảnh báo duyệt thông tin/visa.
+    /// </summary>
+    public void MarkApprovalWarningSent(string performedBy)
+    {
+        if (ApprovalWarningSentAt is not null)
+            return;
+
+        ApprovalWarningSentAt = DateTimeOffset.UtcNow;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Tự động huỷ booking do quá hạn duyệt thông tin/visa.
+    /// </summary>
+    public void AutoCancelDueToApprovalDeadline(string reasonCode, string performedBy)
+    {
+        if (ApprovalAutoCancelledAt is not null)
+            return;
+
+        EnsureValidTransition(Status, BookingStatus.Cancelled);
+        var oldStatus = Status;
+        Status = BookingStatus.Cancelled;
+        CancelReason = reasonCode;
+        CancelledAt = DateTimeOffset.UtcNow;
+        ApprovalAutoCancelledAt = DateTimeOffset.UtcNow;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, BookingStatus.Cancelled, performedBy));
+        AddDomainEvent(new BookingAutoCancelledForNonApprovalEvent(Id, oldStatus, reasonCode, performedBy));
+    }
+
 
 
     private static void EnsureValidParticipants(int numberAdult, int numberChild, int numberInfant)

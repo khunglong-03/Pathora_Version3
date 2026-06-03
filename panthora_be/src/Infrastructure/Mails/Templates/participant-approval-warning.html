@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yêu cầu hoàn tất duyệt thông tin/visa hành khách</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #18181b; line-height: 1.6;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fafafa; padding: 48px 16px;">
+        <tr>
+            <td align="center">
+                <!-- Outer Card -->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 20px; overflow: hidden; border-spacing: 0; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);">
+                    <!-- Amber/Gold Indicator Top Bar -->
+                    <tr>
+                        <td height="6" style="background-color: #d97706; line-height: 6px; font-size: 0px;">&nbsp;</td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="padding: 48px 40px;">
+                            <!-- Header / Logo -->
+                            <div style="font-size: 11px; letter-spacing: 0.2em; font-weight: 700; color: #71717a; text-transform: uppercase; margin-bottom: 24px;">
+                                Pathora Travel
+                            </div>
+                            
+                            <!-- Headline -->
+                            <h1 style="margin: 0 0 16px 0; font-size: 26px; font-weight: 700; color: #09090b; letter-spacing: -0.02em; line-height: 1.25;">
+                                Cần Hoàn Tất Phê Duyệt Thông Tin & Visa
+                            </h1>
+                            
+                            <!-- Salutation -->
+                            <p style="margin: 0 0 24px 0; font-size: 15px; color: #3f3f46;">
+                                Kính gửi quý khách <strong style="color: #09090b;">{{ customer_name }}</strong>,
+                            </p>
+                            
+                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #3f3f46; line-height: 1.6;">
+                                Hệ thống ghi nhận đơn đặt tour của quý khách hiện vẫn còn thành viên chưa hoàn tất phê duyệt thông tin cá nhân hoặc đang chờ kết quả xác thực hồ sơ visa từ Ban quản lý tour.
+                            </p>
+
+                            <!-- Alert Box -->
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 32px; background-color: #fffbeb; border-left: 4px solid #d97706; border-radius: 4px; overflow: hidden;">
+                                <tr>
+                                    <td style="padding: 20px 24px;">
+                                        <h3 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.05em;">Hạn chót phê duyệt</h3>
+                                        <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #b45309;">
+                                            {{ deadline_date }}
+                                        </p>
+                                        <p style="margin: 0; font-size: 13px; color: #92400e; line-height: 1.5; font-weight: 500;">
+                                            Nếu quá thời hạn nêu trên mà thông tin chưa được duyệt đầy đủ, đơn đặt tour sẽ tự động bị hủy bởi hệ thống và không được hoàn tiền theo điều khoản quy định.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Details Table -->
+                            <h2 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Thông tin đơn hàng</h2>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 32px; border: 1px solid #e4e4e7; border-radius: 12px; overflow: hidden; border-collapse: separate;">
+                                <tr>
+                                    <td style="padding: 16px 20px; border-bottom: 1px solid #e4e4e7; background-color: #fafafa; width: 35%; font-size: 13px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.03em;">Mã đơn hàng</td>
+                                    <td style="padding: 16px 20px; border-bottom: 1px solid #e4e4e7; font-size: 14px; color: #09090b; font-family: monospace; font-weight: 600;">{{ booking_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 16px 20px; border-bottom: 1px solid #e4e4e7; background-color: #fafafa; font-size: 13px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.03em;">Tên hành trình</td>
+                                    <td style="padding: 16px 20px; border-bottom: 1px solid #e4e4e7; font-size: 14px; color: #09090b; font-weight: 600;">{{ tour_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 16px 20px; background-color: #fafafa; font-size: 13px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.03em;">Ngày khởi hành</td>
+                                    <td style="padding: 16px 20px; font-size: 14px; color: #09090b;">{{ departure_date }}</td>
+                                </tr>
+                            </table>
+
+                            <!-- Unapproved Members Table -->
+                            <h2 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Danh sách thành viên cần cập nhật</h2>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 32px; border: 1px solid #e4e4e7; border-radius: 12px; overflow: hidden; border-collapse: separate;">
+                                <thead>
+                                    <tr style="background-color: #fafafa;">
+                                        <th align="left" style="padding: 14px 20px; font-size: 12px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e4e4e7; width: 50%;">Họ và tên</th>
+                                        <th align="left" style="padding: 14px 20px; font-size: 12px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e4e4e7; width: 50%;">Trạng thái chi tiết</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{ for p in unapproved_participants }}
+                                    <tr>
+                                        <td style="padding: 14px 20px; font-size: 14px; color: #09090b; font-weight: 600; border-bottom: 1px solid #e4e4e7;">{{ p.full_name }}</td>
+                                        <td style="padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #e4e4e7;">
+                                            <span style="display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: 600; background-color: #fee2e2; color: #be123c; border-radius: 6px;">{{ p.reason }}</span>
+                                        </td>
+                                    </tr>
+                                    {{ end }}
+                                </tbody>
+                            </table>
+
+                            <!-- CTA Button Section -->
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 32px 0; text-align: center;">
+                                <tr>
+                                    <td>
+                                        <a href="{{ booking_url }}" style="display: inline-block; padding: 14px 32px; background-color: #d97706; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15); transition: background-color 0.2s ease;">
+                                            Cập Nhật Thông Tin Ngay
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Support Hotline -->
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; text-align: center;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <span style="font-size: 12px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Cần trợ giúp trực tiếp?</span>
+                                        <a href="tel:{{ support_hotline }}" style="font-size: 18px; font-weight: 700; color: #d97706; text-decoration: none; letter-spacing: 0.02em;">{{ support_hotline }}</a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Sign-off -->
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 40px; border-top: 1px solid #e4e4e7; padding-top: 24px;">
+                                <tr>
+                                    <td style="font-size: 14px; color: #71717a;">
+                                        Trân trọng,<br />
+                                        <strong style="color: #09090b;">Đội ngũ vận hành Pathora</strong>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #e4e4e7; text-align: center; font-size: 12px; color: #a1a1aa; line-height: 1.5;">
+                            <p style="margin: 0 0 6px 0;">Đây là email tự động gửi từ hệ thống Pathora. Quý khách vui lòng không phản hồi trực tiếp email này.</p>
+                            <p style="margin: 0;">&copy; 2026 Pathora Travel. Bảo lưu mọi quyền.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

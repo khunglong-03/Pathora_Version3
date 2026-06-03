@@ -72,6 +72,13 @@ public class BookingConfiguration : IEntityTypeConfiguration<BookingEntity>
         builder.Property(b => b.RefundContactedAt);
         builder.Property(b => b.RefundCompletedAt);
 
+        builder.Property(b => b.ApprovalWarningSentAt)
+            .HasColumnType("timestamp with time zone");
+
+        builder.Property(b => b.ApprovalAutoCancelledAt)
+            .HasColumnType("timestamp with time zone");
+
+
         builder.HasIndex(b => b.RefundStatus);
 
         // Indexes
