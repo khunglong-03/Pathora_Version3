@@ -217,7 +217,7 @@ export default function PrivateTourInstanceDetailPage() {
     }
 
     try {
-      const data = await bookingService.getParticipants(activeBookingId);
+      const data = await bookingService.getOperatorParticipants(activeBookingId);
       if (controller.signal.aborted) return;
       setParticipants(data || []);
     } catch (err: any) {

@@ -78,7 +78,7 @@ export default function BookingAssignmentLandingPage({
     }
 
     try {
-      const data = await bookingService.getParticipants(bookingId);
+      const data = await bookingService.getOperatorParticipants(bookingId);
       if (controller.signal.aborted) return;
       setParticipants(data || []);
     } catch (err: any) {

@@ -66,7 +66,7 @@ export default function ParticipantReviewModal({
     setLoading(true);
     setError(false);
     try {
-      const data = await bookingService.getParticipants(bookingId);
+      const data = await bookingService.getOperatorParticipants(bookingId);
       setParticipants(data || []);
     } catch (err) {
       setError(true);
@@ -152,7 +152,7 @@ export default function ParticipantReviewModal({
         rejectionReason: null
       });
       toast.success(t("participantReview.toast.success.approved", "Đã duyệt thông tin hành khách."));
-      const latest = await bookingService.getParticipants(bookingId);
+      const latest = await bookingService.getOperatorParticipants(bookingId);
       setParticipants(latest || []);
       onReviewed?.(latest || []);
     } catch (err: any) {
@@ -181,7 +181,7 @@ export default function ParticipantReviewModal({
       toast.success(t("participantReview.toast.success.rejected", "Đã từ chối duyệt thông tin hành khách."));
       setActiveRejectId(null);
       setRejectReason("");
-      const latest = await bookingService.getParticipants(bookingId);
+      const latest = await bookingService.getOperatorParticipants(bookingId);
       setParticipants(latest || []);
       onReviewed?.(latest || []);
     } catch (err: any) {
@@ -198,7 +198,7 @@ export default function ParticipantReviewModal({
 
   const handleBulkApprove = async () => {
     const pendingIds = participants
-      .filter(p => p.status !== ReservationStatusEnum.Cancelled && p.infoReviewStatus !== "Approved")
+      .filter(p => p.status !== "Cancelled" && p.infoReviewStatus !== "Approved")
       .map(p => p.participantId);
 
     if (pendingIds.length === 0) return;
@@ -218,7 +218,7 @@ export default function ParticipantReviewModal({
       setBulkProgress(100);
       toast.success(t("participantReview.bulk.summary", "Đã duyệt {{count}} hành khách.", { count: pendingIds.length }));
       
-      const latest = await bookingService.getParticipants(bookingId);
+      const latest = await bookingService.getOperatorParticipants(bookingId);
       setParticipants(latest || []);
       onReviewed?.(latest || []);
     } catch (err: any) {
@@ -235,7 +235,7 @@ export default function ParticipantReviewModal({
   // Sort participants: Rejected -> NotReviewed -> Approved -> Cancelled
   const sortedParticipants = [...participants].sort((a, b) => {
     const getWeight = (p: ParticipantDto) => {
-      if (p.status === ReservationStatusEnum.Cancelled) return 4;
+      if (p.status === "Cancelled") return 4;
       if (p.infoReviewStatus === "Rejected") return 1;
       if (p.infoReviewStatus === "NotReviewed") return 2;
       if (p.infoReviewStatus === "Approved") return 3;
@@ -244,9 +244,9 @@ export default function ParticipantReviewModal({
     return getWeight(a) - getWeight(b);
   });
 
-  const countNotReviewed = participants.filter(p => p.status !== ReservationStatusEnum.Cancelled && p.infoReviewStatus === "NotReviewed").length;
-  const countApproved = participants.filter(p => p.status !== ReservationStatusEnum.Cancelled && p.infoReviewStatus === "Approved").length;
-  const countRejected = participants.filter(p => p.status !== ReservationStatusEnum.Cancelled && p.infoReviewStatus === "Rejected").length;
+  const countNotReviewed = participants.filter(p => p.status !== "Cancelled" && p.infoReviewStatus === "NotReviewed").length;
+  const countApproved = participants.filter(p => p.status !== "Cancelled" && p.infoReviewStatus === "Approved").length;
+  const countRejected = participants.filter(p => p.status !== "Cancelled" && p.infoReviewStatus === "Rejected").length;
 
   const footer = (
     <div className="flex w-full items-center justify-between">
@@ -373,7 +373,7 @@ export default function ParticipantReviewModal({
           ) : (
             <div className="space-y-4 pt-2">
               {sortedParticipants.map(participant => {
-                const isCancelled = participant.status === ReservationStatusEnum.Cancelled;
+                const isCancelled = participant.status === "Cancelled";
                 const isApproved = participant.infoReviewStatus === "Approved";
                 const isRejected = participant.infoReviewStatus === "Rejected";
                 const isNotReviewed = participant.infoReviewStatus === "NotReviewed";

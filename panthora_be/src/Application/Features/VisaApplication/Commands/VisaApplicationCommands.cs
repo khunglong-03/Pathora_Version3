@@ -4,6 +4,7 @@ using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
+using Application.Common;
 using Application.Common.Interfaces;
 using Application.Services;
 using FluentValidation;
@@ -17,7 +18,10 @@ public sealed record CreateVisaApplicationCommand(
     [property: JsonPropertyName("passportId")] Guid PassportId,
     [property: JsonPropertyName("destinationCountry")] string DestinationCountry,
     [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate = null,
-    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null) : ICommand<ErrorOr<Guid>>;
+    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
+}
 
 public sealed class CreateVisaApplicationCommandValidator : AbstractValidator<CreateVisaApplicationCommand>
 {
@@ -66,7 +70,7 @@ public sealed record UpdateVisaApplicationStatusCommand(
     [property: JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
     [property: JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
 
 public sealed class UpdateVisaApplicationStatusCommandValidator : AbstractValidator<UpdateVisaApplicationStatusCommand>
@@ -292,7 +296,7 @@ public sealed record RegisterVisaDetailsCommand(
     [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null)
     : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
 
 public sealed class RegisterVisaDetailsCommandValidator : AbstractValidator<RegisterVisaDetailsCommand>

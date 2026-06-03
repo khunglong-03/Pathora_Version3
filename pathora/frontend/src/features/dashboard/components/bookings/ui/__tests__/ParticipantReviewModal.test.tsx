@@ -37,6 +37,7 @@ vi.mock("react-redux", () => ({
 vi.mock("@/api/services/bookingService", () => ({
   bookingService: {
     getParticipants: vi.fn(),
+    getOperatorParticipants: vi.fn(),
     reviewParticipantInfo: vi.fn(),
     bulkApproveParticipantInfo: vi.fn(),
   },
@@ -121,12 +122,12 @@ describe("ParticipantReviewModal", () => {
       })
     );
 
-    // Default getParticipants response
-    vi.mocked(bookingService.getParticipants).mockResolvedValue(sampleParticipants as any);
+    // Default getOperatorParticipants response
+    vi.mocked(bookingService.getOperatorParticipants).mockResolvedValue(sampleParticipants as any);
   });
 
   it("renders loader skeleton when loading", () => {
-    vi.mocked(bookingService.getParticipants).mockReturnValue(new Promise(() => {})); // never resolves
+    vi.mocked(bookingService.getOperatorParticipants).mockReturnValue(new Promise(() => {})); // never resolves
     render(
       <ParticipantReviewModal
         bookingId={bookingId}
@@ -255,19 +256,19 @@ describe("ParticipantReviewModal", () => {
 
     const approveBtn = screen.getAllByRole("button", { name: "participantReview.modal.approve" })[0];
     
-    // Reset call counts on getParticipants
-    vi.mocked(bookingService.getParticipants).mockClear();
+    // Reset call counts on getOperatorParticipants
+    vi.mocked(bookingService.getOperatorParticipants).mockClear();
     
     fireEvent.click(approveBtn);
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("participantReview.toast.error.conflict");
-      expect(bookingService.getParticipants).toHaveBeenCalledTimes(1); // Auto-refetches
+      expect(bookingService.getOperatorParticipants).toHaveBeenCalledTimes(1); // Auto-refetches
     });
   });
 
   it("renders empty state correctly", async () => {
-    vi.mocked(bookingService.getParticipants).mockResolvedValue([]);
+    vi.mocked(bookingService.getOperatorParticipants).mockResolvedValue([]);
 
     render(
       <ParticipantReviewModal

@@ -39,7 +39,7 @@ public sealed class BookingManagementApiControllerTests
             .OfType<string>()
             .ToList();
 
-        Assert.Contains("ManagerOnly", bookingManagementPolicies);
+        Assert.Contains("TourManagerOnly", bookingManagementPolicies);
     }
 
     [Fact]

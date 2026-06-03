@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.Common.Interfaces;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
@@ -28,7 +29,7 @@ public sealed record SubmitCustomerVisaApplicationCommand(
     string? IssuingAuthority = null)
     : IRequest<ErrorOr<Guid>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
 
 public sealed class SubmitCustomerVisaApplicationCommandValidator : AbstractValidator<SubmitCustomerVisaApplicationCommand>
@@ -159,7 +160,7 @@ public sealed record UpdateCustomerVisaApplicationCommand(
     string? IssuingAuthority = null)
     : IRequest<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
 
 public sealed class UpdateCustomerVisaApplicationCommandValidator : AbstractValidator<UpdateCustomerVisaApplicationCommand>
@@ -284,7 +285,10 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
 public sealed record RequestVisaSupportCommand(
     Guid BookingId,
     Guid BookingParticipantId)
-    : IRequest<ErrorOr<Guid>>;
+    : IRequest<ErrorOr<Guid>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
+}
 
 public sealed class RequestVisaSupportCommandValidator : AbstractValidator<RequestVisaSupportCommand>
 {
@@ -366,7 +370,10 @@ public sealed record UpdateCustomerPassportCommand(
     DateTimeOffset? IssuedAt,
     DateTimeOffset? ExpiresAt,
     string? FileUrl)
-    : IRequest<ErrorOr<Guid>>;
+    : IRequest<ErrorOr<Guid>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
+}
 
 public sealed class UpdateCustomerPassportCommandValidator : AbstractValidator<UpdateCustomerPassportCommand>
 {

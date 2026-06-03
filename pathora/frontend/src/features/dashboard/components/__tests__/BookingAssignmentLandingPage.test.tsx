@@ -71,6 +71,7 @@ vi.mock("@/api/services/bookingService", () => ({
   bookingService: {
     getBookingsByTourInstance: vi.fn(),
     getParticipants: vi.fn(),
+    getOperatorParticipants: vi.fn(),
   },
 }));
 
@@ -140,7 +141,7 @@ describe("BookingAssignmentLandingPage", () => {
     vi.mocked(bookingService.getBookingsByTourInstance).mockResolvedValue(mockBookings);
     vi.mocked(tourInstanceService.getBookingRoomAssignments).mockResolvedValue([]);
     vi.mocked(tourInstanceService.getBookingTickets).mockResolvedValue([]);
-    vi.mocked(bookingService.getParticipants).mockResolvedValue([]);
+    vi.mocked(bookingService.getOperatorParticipants).mockResolvedValue([]);
   });
 
   it("renders loading skeleton initially", () => {
@@ -246,7 +247,7 @@ describe("BookingAssignmentLandingPage", () => {
       });
 
       expect(screen.queryByText("Duyệt hành khách")).not.toBeInTheDocument();
-      expect(bookingService.getParticipants).not.toHaveBeenCalled();
+      expect(bookingService.getOperatorParticipants).not.toHaveBeenCalled();
     });
 
     it("hides button/badge when isAuthLoading is true", async () => {
@@ -275,7 +276,7 @@ describe("BookingAssignmentLandingPage", () => {
         user: { roles: [{ id: "r2", name: "TourOperator", type: 2 }] },
         isLoading: false,
       });
-      vi.mocked(bookingService.getParticipants).mockResolvedValue([
+      vi.mocked(bookingService.getOperatorParticipants).mockResolvedValue([
         { participantId: "p1", fullName: "Guest 1", infoReviewStatus: "NotReviewed", status: "Active" },
         { participantId: "p2", fullName: "Guest 2", infoReviewStatus: "Approved", status: "Active" },
       ]);
@@ -292,7 +293,7 @@ describe("BookingAssignmentLandingPage", () => {
         expect(screen.getByText("Duyệt hành khách")).toBeInTheDocument();
       });
 
-      expect(bookingService.getParticipants).toHaveBeenCalledWith("booking-1");
+      expect(bookingService.getOperatorParticipants).toHaveBeenCalledWith("booking-1");
       expect(screen.getByText("1/2 đã duyệt")).toBeInTheDocument();
     });
 
@@ -301,7 +302,7 @@ describe("BookingAssignmentLandingPage", () => {
         user: { roles: [{ id: "r2", name: "TourOperator", type: 2 }] },
         isLoading: false,
       });
-      vi.mocked(bookingService.getParticipants).mockResolvedValue([
+      vi.mocked(bookingService.getOperatorParticipants).mockResolvedValue([
         { participantId: "p1", fullName: "Guest 1", infoReviewStatus: "NotReviewed", status: "Active" },
         { participantId: "p2", fullName: "Guest 2", infoReviewStatus: "Approved", status: "Active" },
         { participantId: "p3", fullName: "Guest 3", infoReviewStatus: "Rejected", status: "Active" },
@@ -326,7 +327,7 @@ describe("BookingAssignmentLandingPage", () => {
         user: { roles: [{ id: "r2", name: "TourOperator", type: 2 }] },
         isLoading: false,
       });
-      vi.mocked(bookingService.getParticipants).mockResolvedValue([]);
+      vi.mocked(bookingService.getOperatorParticipants).mockResolvedValue([]);
 
       render(
         <BookingAssignmentLandingPage
@@ -348,7 +349,7 @@ describe("BookingAssignmentLandingPage", () => {
         user: { roles: [{ id: "r2", name: "TourOperator", type: 2 }] },
         isLoading: false,
       });
-      vi.mocked(bookingService.getParticipants).mockResolvedValue([
+      vi.mocked(bookingService.getOperatorParticipants).mockResolvedValue([
         { participantId: "p1", fullName: "Guest 1", infoReviewStatus: "NotReviewed", status: "Active" }
       ]);
 
@@ -383,7 +384,7 @@ describe("BookingAssignmentLandingPage", () => {
         user: { roles: [{ id: "r2", name: "TourOperator", type: 2 }] },
         isLoading: false,
       });
-      vi.mocked(bookingService.getParticipants).mockResolvedValue([
+      vi.mocked(bookingService.getOperatorParticipants).mockResolvedValue([
         { participantId: "p1", fullName: "Guest 1", infoReviewStatus: "NotReviewed", status: "Active" }
       ]);
 
@@ -396,7 +397,7 @@ describe("BookingAssignmentLandingPage", () => {
       );
 
       await waitFor(() => {
-        expect(bookingService.getParticipants).toHaveBeenCalledTimes(1);
+        expect(bookingService.getOperatorParticipants).toHaveBeenCalledTimes(1);
       });
 
       const btn = screen.getByRole("button", { name: /Duyệt hành khách/ });
@@ -407,7 +408,7 @@ describe("BookingAssignmentLandingPage", () => {
 
       expect(screen.queryByTestId("mock-participant-review-modal")).not.toBeInTheDocument();
       // Should not refetch on close
-      expect(bookingService.getParticipants).toHaveBeenCalledTimes(1);
+      expect(bookingService.getOperatorParticipants).toHaveBeenCalledTimes(1);
     });
 
     it("displays error state when api returns 500 error", async () => {
@@ -415,7 +416,7 @@ describe("BookingAssignmentLandingPage", () => {
         user: { roles: [{ id: "r2", name: "TourOperator", type: 2 }] },
         isLoading: false,
       });
-      vi.mocked(bookingService.getParticipants).mockRejectedValue(new Error("Internal Server Error"));
+      vi.mocked(bookingService.getOperatorParticipants).mockRejectedValue(new Error("Internal Server Error"));
 
       render(
         <BookingAssignmentLandingPage

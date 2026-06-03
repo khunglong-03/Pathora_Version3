@@ -80,6 +80,7 @@ vi.mock("@/api/services/bookingService", () => ({
   bookingService: {
     getBookingsByTourInstance: vi.fn(),
     getParticipants: vi.fn(),
+    getOperatorParticipants: vi.fn(),
   },
 }));
 
@@ -144,7 +145,7 @@ describe("PrivateTourInstanceDetailPage", () => {
     });
     vi.mocked(tourInstanceService.getInstanceDetail).mockResolvedValue(mockInstanceDetail as any);
     vi.mocked(bookingService.getBookingsByTourInstance).mockResolvedValue(mockBookingsList as any);
-    vi.mocked(bookingService.getParticipants).mockResolvedValue(mockParticipantsList as any);
+    vi.mocked(bookingService.getOperatorParticipants).mockResolvedValue(mockParticipantsList as any);
   });
 
   it("gaters display: hides passenger review details if user is not a TourOperator", async () => {

@@ -213,6 +213,13 @@ export const bookingService = {
     return extractResult<any[]>(response.data);
   },
 
+  getOperatorParticipants: async (bookingId: string) => {
+    const response = await api.get<ServiceResponse<any[]>>(
+      API_ENDPOINTS.BOOKING.GET_PARTICIPANTS(bookingId)
+    );
+    return extractResult<any[]>(response.data);
+  },
+
   createParticipant: async (bookingId: string, payload: any) => {
     const response = await api.post<ServiceResponse<string>>(
       API_ENDPOINTS.PUBLIC_BOOKING.CREATE_PARTICIPANT(bookingId),

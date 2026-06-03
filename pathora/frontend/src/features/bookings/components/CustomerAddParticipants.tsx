@@ -92,6 +92,63 @@ const blankVisaFields = (defaults?: { nationality?: string; minReturnDate?: stri
   nationalityOverride: false,
 });
 
+const compressImage = (file: File, maxWidth = 1600, maxHeight = 1600, quality = 0.82): Promise<File> => {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith("image/")) {
+      return resolve(file);
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          return resolve(file);
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              return resolve(file);
+            }
+            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
+};
+
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -482,7 +539,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   const handleFileUpload = async (participantId: string, field: "passportFileUrl" | "visaFileUrl", file: File) => {
     setUploadingFiles((prev) => ({ ...prev, [`${participantId}-${field}`]: true }));
     try {
-      const res = await fileService.uploadFile(file);
+      const compressedFile = await compressImage(file);
+      const res = await fileService.uploadFile(compressedFile);
       updateParticipant(participantId, field, res.url);
       toast.success(t("landing.bookings.addParticipantsPage.savedSuccess"));
     } catch (err) {
@@ -492,6 +550,48 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
       setUploadingFiles((prev) => ({ ...prev, [`${participantId}-${field}`]: false }));
     }
   };
+
+  const handlePaste = async (
+    e: React.ClipboardEvent,
+    participantId: string,
+    field: "passportFileUrl" | "visaFileUrl",
+    disabled: boolean
+  ) => {
+    if (uploadingFiles[`${participantId}-${field}`] || disabled) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          await handleFileUpload(participantId, field, file);
+          break;
+        }
+      }
+    }
+  };
+
+  const handleDrop = async (
+    e: React.DragEvent,
+    participantId: string,
+    field: "passportFileUrl" | "visaFileUrl",
+    disabled: boolean
+  ) => {
+    e.preventDefault();
+    if (uploadingFiles[`${participantId}-${field}`] || disabled) return;
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      await handleFileUpload(participantId, field, file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
 
   const validateRow = (p: Participant): string | null => {
     const guestLabel = p.fullName || t("landing.bookings.addParticipantsPage.guest", "Hành khách");
@@ -1342,9 +1442,20 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                       </div>
                                     ) : (
                                       <div className="relative">
-                                        <label className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 ${
-                                          uploadingFiles[`${p.id}-passportFileUrl`] || isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
-                                        }`}>
+                                        <label
+                                          tabIndex={0}
+                                          onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                              (e.currentTarget.querySelector('input') as HTMLInputElement)?.click();
+                                            }
+                                          }}
+                                          onPaste={(e) => handlePaste(e, p.id, "passportFileUrl", isFieldsDisabled)}
+                                          onDragOver={handleDragOver}
+                                          onDrop={(e) => handleDrop(e, p.id, "passportFileUrl", isFieldsDisabled)}
+                                          className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-500/10 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 outline-none ${
+                                            uploadingFiles[`${p.id}-passportFileUrl`] || isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
+                                          }`}
+                                        >
                                           <input
                                             type="file"
                                             accept="image/*"
@@ -1357,8 +1468,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                           <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2.5 group-hover/upload:scale-105 transition-transform duration-500">
                                             <UploadSimple weight="bold" className="size-5 text-slate-400" />
                                           </div>
-                                          <span className="text-xs font-bold text-slate-700 font-sans">{t("landing.bookings.addParticipantsPage.uploadPassport", "Tải ảnh mặt Passport")}</span>
-                                          <span className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider font-sans">PNG, JPG, JPEG</span>
+                                          <span className="text-xs font-bold text-slate-700 font-sans">{t("landing.bookings.addParticipantsPage.uploadPassport", "Tải ảnh mặt Passport")} hoặc Kéo thả / Dán ảnh</span>
+                                          <span className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider font-sans">PNG, JPG, JPEG (Hỗ trợ kéo thả, Cmd+V / Ctrl+V)</span>
                                         </label>
                                       </div>
                                     )}
@@ -1583,9 +1694,20 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                     </div>
                                   ) : (
                                     <div className="relative">
-                                      <label className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 ${
-                                        uploadingFiles[`${p.id}-visaFileUrl`] || isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
-                                      }`}>
+                                      <label
+                                        tabIndex={0}
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter" || e.key === " ") {
+                                            (e.currentTarget.querySelector('input') as HTMLInputElement)?.click();
+                                          }
+                                        }}
+                                        onPaste={(e) => handlePaste(e, p.id, "visaFileUrl", isFieldsDisabled)}
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, p.id, "visaFileUrl", isFieldsDisabled)}
+                                        className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-500/10 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 outline-none ${
+                                          uploadingFiles[`${p.id}-visaFileUrl`] || isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
+                                        }`}
+                                      >
                                         <input
                                           type="file"
                                           accept="image/*"
@@ -1598,8 +1720,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                         <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2.5 group-hover/upload:scale-105 transition-transform duration-500">
                                           <UploadSimple weight="bold" className="size-5 text-slate-400" />
                                         </div>
-                                        <span className="text-xs font-bold text-slate-700 font-sans">{t("landing.bookings.addParticipantsPage.uploadVisa", "Tải ảnh File Visa")}</span>
-                                        <span className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider font-sans">PNG, JPG, JPEG</span>
+                                        <span className="text-xs font-bold text-slate-700 font-sans">{t("landing.bookings.addParticipantsPage.uploadVisa", "Tải ảnh File Visa")} hoặc Kéo thả / Dán ảnh</span>
+                                        <span className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider font-sans">PNG, JPG, JPEG (Hỗ trợ kéo thả, Cmd+V / Ctrl+V)</span>
                                       </label>
                                     </div>
                                   )}

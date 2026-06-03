@@ -18,6 +18,12 @@ public sealed class SubscribeNewsletterCommandHandlerTests
 {
     private readonly ITourRepository _tourRepository = Substitute.For<ITourRepository>();
     private readonly IMailRepository _mailRepository = Substitute.For<IMailRepository>();
+    private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration = Substitute.For<Microsoft.Extensions.Configuration.IConfiguration>();
+
+    public SubscribeNewsletterCommandHandlerTests()
+    {
+        _configuration["AppConfig:FrontendBaseUrl"].Returns("http://localhost:3003");
+    }
 
     [Fact]
     public async Task Handle_ShouldQueueWelcomeEmail_WithFeaturedTours()
@@ -34,7 +40,7 @@ public sealed class SubscribeNewsletterCommandHandlerTests
         _tourRepository.FindFeaturedTours(3, Arg.Any<CancellationToken>()).Returns(featuredTours);
         _mailRepository.Add(Arg.Any<MailEntity>(), Arg.Any<CancellationToken>()).Returns(Result.Success);
 
-        var handler = new SubscribeNewsletterCommandHandler(_tourRepository, _mailRepository);
+        var handler = new SubscribeNewsletterCommandHandler(_tourRepository, _mailRepository, _configuration);
 
         // Act
         var result = await handler.Handle(new SubscribeNewsletterCommand(email), CancellationToken.None);
@@ -71,7 +77,7 @@ public sealed class SubscribeNewsletterCommandHandlerTests
         _tourRepository.FindLatestTours(10, Arg.Any<CancellationToken>()).Returns(latestTours);
         _mailRepository.Add(Arg.Any<MailEntity>(), Arg.Any<CancellationToken>()).Returns(Result.Success);
 
-        var handler = new SubscribeNewsletterCommandHandler(_tourRepository, _mailRepository);
+        var handler = new SubscribeNewsletterCommandHandler(_tourRepository, _mailRepository, _configuration);
 
         // Act
         var result = await handler.Handle(new SubscribeNewsletterCommand(email), CancellationToken.None);
