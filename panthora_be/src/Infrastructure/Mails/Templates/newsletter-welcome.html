@@ -1,163 +1,171 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Chào mừng bạn đến với Pathora</title>
-    <style>
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background-color: #f4f5f7;
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-        .container {
-            max-width: 600px;
-            margin: 30px auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-        }
-        .header {
-            background-color: #fa8b02;
-            padding: 30px 20px;
-            text-align: center;
-            color: #ffffff;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-        .content {
-            padding: 30px;
-            color: #333333;
-            line-height: 1.6;
-        }
-        .welcome-text {
-            font-size: 16px;
-            margin-bottom: 25px;
-        }
-        .tour-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            background-color: #ffffff;
-            transition: transform 0.2s;
-        }
-        .tour-image {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .tour-info {
-            padding: 20px;
-        }
-        .tour-title {
-            margin: 0 0 10px 0;
-            font-size: 18px;
-            font-weight: 600;
-            color: #1a202c;
-        }
-        .tour-desc {
-            margin: 0 0 15px 0;
-            font-size: 14px;
-            color: #4a5568;
-            height: 60px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-        }
-        .tour-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .tour-price {
-            font-weight: 700;
-            color: #fa8b02;
-            font-size: 16px;
-        }
-        .tour-btn {
-            background-color: #fa8b02;
-            color: #ffffff !important;
-            padding: 8px 16px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .view-all-btn {
-            display: block;
-            width: 200px;
-            margin: 30px auto 10px;
-            background-color: #1e293b;
-            color: #ffffff !important;
-            text-align: center;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 15px;
-        }
-        .footer {
-            background-color: #0f172a;
-            color: #94a3b8;
-            padding: 24px;
-            text-align: center;
-            font-size: 12px;
-            line-height: 1.5;
-        }
-        .footer a {
-            color: #fa8b02;
-            text-decoration: none;
-        }
+    <!--[if mso]>
+    <style type="text/css">
+        body, table, td { font-family: 'Segoe UI', Arial, sans-serif !important; }
     </style>
+    <![endif]-->
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Chào mừng bạn đến với Pathora!</h1>
-        </div>
-        
-        <div class="content">
-            <div class="welcome-text">
-                <p>Chào bạn,</p>
-                <p>Cảm ơn bạn đã đăng ký nhận bản tin từ <strong>Pathora</strong>. Chúng tôi rất hân hạnh được đồng hành cùng bạn trên những hành trình khám phá thế giới tuyệt vời phía trước.</p>
-                <p>Dưới đây là một số tour du lịch nổi bật và được yêu thích nhất đang chờ đón bạn:</p>
-            </div>
-            
-            <!-- Loop through featured tours -->
-            {{ for tour in featured_tours }}
-            <div class="tour-card">
-                {{ if tour.image_url }}
-                <img class="tour-image" src="{{ tour.image_url }}" alt="{{ tour.title }}" />
-                {{ end }}
-                <div class="tour-info">
-                    <h3 class="tour-title">{{ tour.title }}</h3>
-                    <p class="tour-desc">{{ tour.description }}</p>
-                    <div class="tour-footer">
-                        <span class="tour-price">{{ tour.price_text }}</span>
-                        <a class="tour-btn" href="{{ tour.deep_link }}">Khám phá ngay</a>
-                    </div>
-                </div>
-            </div>
-            {{ end }}
-            
-            <a class="view-all-btn" href="{{ view_more_link }}">Xem thêm nhiều Tour</a>
-        </div>
-        
-        <div class="footer">
-            <p>Email này được gửi tự động tới địa chỉ <strong>{{ email }}</strong> vì bạn đã đăng ký nhận bản tin trên website của chúng tôi.</p>
-            <p style="margin-top: 8px;">© 2026 Pathora. Đại học FPT Hà Nội. Mọi quyền được bảo lưu.</p>
-        </div>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #f0ece4; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+
+    <!-- Outer wrapper -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f0ece4;">
+        <tr>
+            <td align="center" style="padding: 40px 16px;">
+
+                <!-- Main container -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.08);">
+
+                    <!-- ============ HEADER ============ -->
+                    <tr>
+                        <td style="background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); padding: 48px 40px 44px; text-align: center;">
+                            <!-- Logo text -->
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    <td align="center" style="padding-bottom: 20px;">
+                                        <span style="font-size: 13px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #e8985a;">P A T H O R A</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center">
+                                        <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.3; letter-spacing: -0.3px;">Chào mừng bạn gia nhập<br>cộng đồng Pathora</h1>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top: 16px;">
+                                        <div style="width: 48px; height: 3px; background: linear-gradient(90deg, #e8985a, #d4764e); border-radius: 2px;"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ============ WELCOME TEXT ============ -->
+                    <tr>
+                        <td style="padding: 40px 40px 12px;">
+                            <p style="margin: 0 0 16px; font-size: 16px; color: #374151; line-height: 1.7;">
+                                Cảm ơn bạn đã đăng ký nhận bản tin. Từ giờ, bạn sẽ là người đầu tiên biết về những hành trình hấp dẫn nhất, ưu đãi độc quyền, và cảm hứng du lịch mỗi tuần.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- ============ SECTION DIVIDER ============ -->
+                    <tr>
+                        <td style="padding: 0 40px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    <td style="padding: 20px 0;">
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="border-top: 1px solid #e5e1d8; font-size: 0; line-height: 0;">&nbsp;</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ============ FEATURED TOURS HEADING ============ -->
+                    <tr>
+                        <td style="padding: 0 40px 8px;">
+                            <p style="margin: 0 0 4px; font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #d4764e;">Tours nổi bật</p>
+                            <h2 style="margin: 0; font-size: 22px; font-weight: 700; color: #1a1a2e; line-height: 1.3;">Được yêu thích nhất tuần này</h2>
+                        </td>
+                    </tr>
+
+                    <!-- ============ TOUR CARDS ============ -->
+                    {{ for tour in featured_tours }}
+                    <tr>
+                        <td style="padding: 16px 40px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #faf8f5; border-radius: 14px; overflow: hidden; border: 1px solid #e8e4dc;">
+                                {{ if tour.image_url }}
+                                <tr>
+                                    <td style="padding: 0;">
+                                        <a href="{{ tour.deep_link }}" style="text-decoration: none; display: block;">
+                                            <img src="{{ tour.image_url }}" alt="{{ tour.title }}" width="520" style="width: 100%; height: auto; max-height: 240px; object-fit: cover; display: block; border-radius: 14px 14px 0 0;" />
+                                        </a>
+                                    </td>
+                                </tr>
+                                {{ end }}
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td>
+                                                    <a href="{{ tour.deep_link }}" style="text-decoration: none;">
+                                                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 700; color: #1a1a2e; line-height: 1.4;">{{ tour.title }}</h3>
+                                                    </a>
+                                                    <p style="margin: 0 0 20px; font-size: 14px; color: #6b7280; line-height: 1.6; max-height: 44px; overflow: hidden;">{{ tour.description }}</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td style="vertical-align: middle;">
+                                                                <span style="font-size: 20px; font-weight: 800; color: #d4764e; letter-spacing: -0.3px;">{{ tour.price_text }}</span>
+                                                            </td>
+                                                            <td align="right" style="vertical-align: middle;">
+                                                                <a href="{{ tour.deep_link }}" style="display: inline-block; background-color: #1a1a2e; color: #ffffff; padding: 10px 24px; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.3px;">Xem chi tiet</a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {{ end }}
+
+                    <!-- ============ CTA BUTTON ============ -->
+                    <tr>
+                        <td style="padding: 28px 40px 8px;" align="center">
+                            <a href="{{ view_more_link }}" style="display: inline-block; background: linear-gradient(145deg, #1a1a2e, #16213e); color: #ffffff; padding: 14px 40px; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 600; letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(26, 26, 46, 0.25);">Kham pha tat ca tour</a>
+                        </td>
+                    </tr>
+
+                    <!-- ============ BOTTOM DIVIDER ============ -->
+                    <tr>
+                        <td style="padding: 32px 40px 0;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    <td style="border-top: 1px solid #e5e1d8; font-size: 0; line-height: 0;">&nbsp;</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ============ FOOTER ============ -->
+                    <tr>
+                        <td style="padding: 28px 40px 36px; text-align: center;">
+                            <p style="margin: 0 0 6px; font-size: 12px; color: #9ca3af; line-height: 1.6;">
+                                Email này được gửi tự động tới <strong style="color: #6b7280;">{{ email }}</strong>
+                            </p>
+                            <p style="margin: 0 0 12px; font-size: 12px; color: #9ca3af; line-height: 1.6;">
+                                vì bạn đã đăng ký nhận bản tin trên Pathora.
+                            </p>
+                            <p style="margin: 0; font-size: 11px; color: #c4b5a0; letter-spacing: 0.5px;">
+                                &copy; 2026 Pathora &middot; Đại học FPT Hà Nội
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+                <!-- End main container -->
+
+            </td>
+        </tr>
+    </table>
+    <!-- End outer wrapper -->
+
 </body>
 </html>

@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Mails;
 using ErrorOr;
 using FluentValidation;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,16 +30,20 @@ public sealed class SubscribeNewsletterCommandValidator : AbstractValidator<Subs
 
 public sealed class SubscribeNewsletterCommandHandler(
     ITourRepository tourRepository,
-    IMailRepository mailRepository)
+    IMailRepository mailRepository,
+    IConfiguration configuration)
     : ICommandHandler<SubscribeNewsletterCommand, ErrorOr<Success>>
 {
     private readonly ITourRepository _tourRepository = tourRepository;
     private readonly IMailRepository _mailRepository = mailRepository;
+    private readonly IConfiguration _configuration = configuration;
 
     public async Task<ErrorOr<Success>> Handle(
         SubscribeNewsletterCommand request,
         CancellationToken cancellationToken)
     {
+        var frontendBaseUrl = (_configuration["AppConfig:FrontendBaseUrl"] ?? "http://localhost:3003").TrimEnd('/');
+
         // 1. Fetch featured tours (limit 3)
         var tours = await _tourRepository.FindFeaturedTours(3, cancellationToken) ?? [];
 
@@ -74,7 +79,7 @@ public sealed class SubscribeNewsletterCommandHandler(
                 ? $"{classification.BasePrice:N0} VND" 
                 : "Liên hệ";
 
-            var deepLink = $"/tours/{t.Id}";
+            var deepLink = $"{frontendBaseUrl}/tours/{t.Id}";
             var imageUrl = t.Thumbnail?.PublicURL ?? "";
             
             // Limit description to prevent overflow in email layout
@@ -96,7 +101,7 @@ public sealed class SubscribeNewsletterCommandHandler(
         var welcomeMail = new NewsletterWelcomeMail(
             request.Email,
             tourDtos,
-            "/tours");
+            $"{frontendBaseUrl}/tours");
 
         var mailEntity = welcomeMail.ToMail(request.Email);
 
@@ -110,3 +115,4 @@ public sealed class SubscribeNewsletterCommandHandler(
         return Result.Success;
     }
 }
+

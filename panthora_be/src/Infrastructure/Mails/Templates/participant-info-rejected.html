@@ -1,48 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Thông tin hành khách cần cập nhật - Pathora</title>
 </head>
-<body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1f2937; background-color: #f9fafb; margin: 0; padding: 24px;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #e5e7eb;">
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; padding: 24px; text-align: center;">
-            <h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px;">CẦN CẬP NHẬT THÔNG TIN HÀNH KHÁCH</h2>
-        </div>
-        
-        <!-- Body -->
-        <div style="padding: 24px;">
-            <p style="margin-top: 0; font-size: 16px;">Xin chào <strong>{{ customer_name ?? customername }}</strong>,</p>
-            <p style="font-size: 15px;">Chúng tôi xin thông báo rằng thông tin hành khách của booking <strong>#{{ booking_code ?? bookingcode }}</strong> đã được kiểm duyệt bởi Tour Operator.</p>
-            
-            <p style="font-size: 15px;">Tuy nhiên, thông tin của hành khách <strong>{{ participant_full_name ?? participantfullname }}</strong> cần được điều chỉnh hoặc bổ sung do chưa hợp lệ.</p>
-            
-            <!-- Rejection Reason Card -->
-            <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 20px 0;">
-                <strong style="color: #b45309; font-size: 14px; text-transform: uppercase; display: block; margin-bottom: 4px;">Lý do từ chối:</strong>
-                <span style="color: #78350f; font-size: 15px;">{{ rejection_reason ?? rejectionreason }}</span>
-            </div>
-            
-            <p style="font-size: 15px;">Vui lòng nhấp vào liên kết dưới đây để cập nhật lại thông tin cá nhân hoặc hộ chiếu của hành khách này:</p>
-            
-            <!-- CTA Button -->
-            <div style="text-align: center; margin: 24px 0;">
-                <a href="{{ update_link ?? updatelink }}" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 9999px; display: inline-block; font-weight: 600; font-size: 15px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">Cập Nhật Thông Tin Ngay</a>
-            </div>
-            
-            <p style="font-size: 14px; color: #4b5563; margin-bottom: 0;">Nếu cần hỗ trợ thêm, vui lòng liên hệ với đội ngũ CSKH qua hotline:</p>
-            
-            <!-- Hotline Card -->
-            <div style="background-color: #f3f4f6; border-radius: 6px; padding: 12px; margin-top: 10px; border: 1px solid #e5e7eb;">
-                <strong style="color: #374151;">Hotline hỗ trợ:</strong> <span style="color: #2563eb; font-weight: 600;">{{ hotline_phone ?? hotlinephone }}</span>
-            </div>
-        </div>
-        
-        <!-- Footer -->
-        <div style="background-color: #f9fafb; padding: 16px 24px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280;">
-            Đây là email thông báo tự động từ hệ thống Pathora. Vui lòng không trả lời email này.
-        </div>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #f0ece4; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f0ece4;">
+        <tr>
+            <td align="center" style="padding: 40px 16px;">
+
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.08);">
+
+                    <!-- ============ HEADER ============ -->
+                    <tr>
+                        <td style="background: linear-gradient(145deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%); padding: 40px; text-align: center;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    <td align="center" style="padding-bottom: 16px;">
+                                        <span style="font-size: 13px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: #fca5a5;">P A T H O R A</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center">
+                                        <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #ffffff; line-height: 1.4;">Thong tin hanh khach can cap nhat</h1>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top: 14px;">
+                                        <div style="width: 48px; height: 3px; background-color: #fca5a5; border-radius: 2px;"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ============ BODY ============ -->
+                    <tr>
+                        <td style="padding: 36px 40px 12px;">
+                            <p style="margin: 0 0 16px; font-size: 16px; color: #374151; line-height: 1.7;">
+                                Xin chào <strong style="color: #1a1a2e;">{{ customer_name ?? customername }}</strong>,
+                            </p>
+                            <p style="margin: 0 0 16px; font-size: 15px; color: #4b5563; line-height: 1.7;">
+                                Chúng tôi xin thông báo rằng thông tin hành khách của booking <strong style="color: #1a1a2e;">#{{ booking_code ?? bookingcode }}</strong> đã được kiểm duyệt bởi Tour Operator.
+                            </p>
+                            <p style="margin: 0; font-size: 15px; color: #4b5563; line-height: 1.7;">
+                                Tuy nhiên, thông tin của hành khách <strong style="color: #1a1a2e;">{{ participant_full_name ?? participantfullname }}</strong> cần được điều chỉnh hoặc bổ sung.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- ============ REJECTION REASON ============ -->
+                    <tr>
+                        <td style="padding: 16px 40px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #fef3e2; border-radius: 12px; border: 1px solid #f3e0c5;">
+                                <tr>
+                                    <td style="padding: 20px 24px;">
+                                        <p style="margin: 0 0 8px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #c2710c;">Ly do tu choi</p>
+                                        <p style="margin: 0; font-size: 15px; color: #78350f; line-height: 1.6;">{{ rejection_reason ?? rejectionreason }}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ============ CTA ============ -->
+                    <tr>
+                        <td style="padding: 12px 40px 8px;">
+                            <p style="margin: 0 0 20px; font-size: 15px; color: #4b5563; line-height: 1.7;">
+                                Vui lòng nhấp vào nút dưới đây để cập nhật lại thông tin:
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0 40px 12px;" align="center">
+                            <a href="{{ update_link ?? updatelink }}" style="display: inline-block; background: linear-gradient(145deg, #1a1a2e, #16213e); color: #ffffff; padding: 14px 36px; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 600; letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(26, 26, 46, 0.25);">Cap Nhat Thong Tin</a>
+                        </td>
+                    </tr>
+
+                    <!-- ============ HOTLINE ============ -->
+                    <tr>
+                        <td style="padding: 16px 40px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #faf8f5; border-radius: 10px; border: 1px solid #e8e4dc;">
+                                <tr>
+                                    <td style="padding: 16px 20px; text-align: center;">
+                                        <span style="font-size: 13px; color: #6b7280;">Can ho tro?</span>
+                                        <span style="font-size: 15px; font-weight: 700; color: #1a1a2e; margin-left: 8px;">{{ hotline_phone ?? hotlinephone }}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ============ DIVIDER ============ -->
+                    <tr>
+                        <td style="padding: 20px 40px 0;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    <td style="border-top: 1px solid #e5e1d8; font-size: 0; line-height: 0;">&nbsp;</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ============ FOOTER ============ -->
+                    <tr>
+                        <td style="padding: 24px 40px 32px; text-align: center;">
+                            <p style="margin: 0 0 8px; font-size: 12px; color: #9ca3af; line-height: 1.6;">
+                                Đây là email thông báo tự động từ hệ thống Pathora.
+                            </p>
+                            <p style="margin: 0; font-size: 11px; color: #c4b5a0; letter-spacing: 0.5px;">
+                                &copy; 2026 Pathora &middot; Đại học FPT Hà Nội
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
 </body>
 </html>
