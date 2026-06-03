@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chào mừng bạn đến với Pathora</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #f4f5f7;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background-color: #fa8b02;
+            padding: 30px 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .content {
+            padding: 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .welcome-text {
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+        .tour-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            background-color: #ffffff;
+            transition: transform 0.2s;
+        }
+        .tour-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .tour-info {
+            padding: 20px;
+        }
+        .tour-title {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+        }
+        .tour-desc {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #4a5568;
+            height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        .tour-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tour-price {
+            font-weight: 700;
+            color: #fa8b02;
+            font-size: 16px;
+        }
+        .tour-btn {
+            background-color: #fa8b02;
+            color: #ffffff !important;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .view-all-btn {
+            display: block;
+            width: 200px;
+            margin: 30px auto 10px;
+            background-color: #1e293b;
+            color: #ffffff !important;
+            text-align: center;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .footer {
+            background-color: #0f172a;
+            color: #94a3b8;
+            padding: 24px;
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .footer a {
+            color: #fa8b02;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Chào mừng bạn đến với Pathora!</h1>
+        </div>
+        
+        <div class="content">
+            <div class="welcome-text">
+                <p>Chào bạn,</p>
+                <p>Cảm ơn bạn đã đăng ký nhận bản tin từ <strong>Pathora</strong>. Chúng tôi rất hân hạnh được đồng hành cùng bạn trên những hành trình khám phá thế giới tuyệt vời phía trước.</p>
+                <p>Dưới đây là một số tour du lịch nổi bật và được yêu thích nhất đang chờ đón bạn:</p>
+            </div>
+            
+            <!-- Loop through featured tours -->
+            {{ for tour in featured_tours }}
+            <div class="tour-card">
+                {{ if tour.image_url }}
+                <img class="tour-image" src="{{ tour.image_url }}" alt="{{ tour.title }}" />
+                {{ end }}
+                <div class="tour-info">
+                    <h3 class="tour-title">{{ tour.title }}</h3>
+                    <p class="tour-desc">{{ tour.description }}</p>
+                    <div class="tour-footer">
+                        <span class="tour-price">{{ tour.price_text }}</span>
+                        <a class="tour-btn" href="{{ tour.deep_link }}">Khám phá ngay</a>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+            
+            <a class="view-all-btn" href="{{ view_more_link }}">Xem thêm nhiều Tour</a>
+        </div>
+        
+        <div class="footer">
+            <p>Email này được gửi tự động tới địa chỉ <strong>{{ email }}</strong> vì bạn đã đăng ký nhận bản tin trên website của chúng tôi.</p>
+            <p style="margin-top: 8px;">© 2026 Pathora. Đại học FPT Hà Nội. Mọi quyền được bảo lưu.</p>
+        </div>
+    </div>
+</body>
+</html>

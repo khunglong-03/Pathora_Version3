@@ -1,9 +1,11 @@
 "use client";
-import React, { FormEvent, useId } from "react";
+import React, { FormEvent, useId, useState } from "react";
 import Link from "next/link";
 import { Button, Icon, TextInput } from "@/components/ui";
 import { useTranslation } from "react-i18next";
 import { APP_STORES } from "@/configs/urls";
+import { toast } from "react-toastify";
+import { homeService } from "@/api/services/homeService";
 
 const companyLinks = [
   { labelKey: "landing.footer.links.company.aboutUs", href: "/#about-us" },
@@ -68,9 +70,36 @@ const socialLinks = [
 export const LandingFooter = () => {
   const { t } = useTranslation();
   const newsletterInputId = useId();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubscribe = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubscribe = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) return;
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const email = (formData.get("newsletterEmail") as string)?.trim();
+
+    if (!email) {
+      toast.error(t("landing.footer.newsletterNested.invalidEmail"));
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error(t("landing.footer.newsletterNested.invalidEmail"));
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await homeService.subscribeNewsletter(email);
+      toast.success(t("landing.footer.newsletterNested.subscribeSuccess"));
+      form.reset();
+    } catch {
+      toast.error(t("landing.footer.newsletterNested.subscribeError"));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -184,11 +213,13 @@ export const LandingFooter = () => {
                 label={t("landing.footer.newsletterNested.title")}
                 classLabel="sr-only"
                 placeholder={t("landing.footer.newsletterNested.placeholder")}
+                disabled={isSubmitting}
                 className="flex-1 bg-slate-900 border-slate-800 text-white placeholder:text-slate-500 rounded-xl min-h-11 px-4 py-3 text-sm shadow-sm focus:border-[#fa8b02] focus:ring-1 focus:ring-[#fa8b02]"
               />
               <Button
                 type="submit"
                 text={t("landing.footer.newsletterNested.send")}
+                isLoading={isSubmitting}
                 className="bg-[#fa8b02] text-white min-h-11 px-5 py-3 rounded-xl text-sm font-semibold hover:bg-[#e67a00] transition-colors shrink-0"
               />
             </form>

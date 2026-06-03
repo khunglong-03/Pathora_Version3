@@ -3760,7 +3760,10 @@
         "title": "Newsletter",
         "description": "Subscribe to our newsletter and get exciting offers and news.",
         "placeholder": "Enter your email",
-        "send": "Send"
+        "send": "Send",
+        "invalidEmail": "Invalid email address.",
+        "subscribeSuccess": "Successfully subscribed! Check your mailbox to explore our featured tours.",
+        "subscribeError": "Newsletter subscription failed. Please try again later."
       },
       "mobileApps": {
         "title": "Mobile Apps",

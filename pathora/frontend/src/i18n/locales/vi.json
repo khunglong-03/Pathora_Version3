@@ -3748,7 +3748,10 @@
         "title": "Bản tin",
         "description": "Đăng ký nhận bản tin để nhận các ưu đãi và tin tức thú vị.",
         "placeholder": "Nhập email của bạn",
-        "send": "Gửi"
+        "send": "Gửi",
+        "invalidEmail": "Địa chỉ email không hợp lệ.",
+        "subscribeSuccess": "Đăng ký thành công! Hãy kiểm tra hòm thư của bạn để xem gợi ý các tour hot nhất.",
+        "subscribeError": "Đăng ký bản tin thất bại. Vui lòng thử lại sau."
       },
       "mobileApps": {
         "title": "Ứng dụng di động",
