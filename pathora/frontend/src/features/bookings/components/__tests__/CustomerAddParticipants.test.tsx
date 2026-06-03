@@ -12,6 +12,7 @@ vi.mock("react-toastify", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    info: vi.fn(),
   },
 }));
 
@@ -748,6 +749,165 @@ describe("CustomerAddParticipants", () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("Có lỗi xảy ra khi lưu một số hành khách. Vui lòng kiểm tra lại.");
       expect(bookingService.updateParticipant).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Assisted visa flow display", () => {
+    const assistedParticipantBase = {
+      participantId: "p-assisted-1",
+      fullName: "Assisted Passenger",
+      dateOfBirth: "1990-01-01",
+      gender: 0,
+      nationality: "VN",
+      participantType: "Adult",
+      passport: {
+        passportId: "pass-1",
+        passportNumber: null,
+        nationality: "VN",
+        issuedAt: null,
+        expiresAt: null,
+        fileUrl: "https://cdn/passport.jpg",
+      },
+    };
+
+    const visaRequiredBooking = {
+      id: "bk-visa",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: true,
+    };
+
+    it("renders 'Đang chờ operator báo phí' for assisted participant with no service fee", async () => {
+      getBookingDetailMock.mockResolvedValue(visaRequiredBooking as any);
+      getParticipantsMock.mockResolvedValue([
+        {
+          ...assistedParticipantBase,
+          visaApplications: [
+            {
+              visaApplicationId: "v-1",
+              passportId: "pass-1",
+              destinationCountry: null,
+              status: "Pending",
+              minReturnDate: null,
+              visaFileUrl: null,
+              isSystemAssisted: true,
+              serviceFee: null,
+              serviceFeePaidAt: null,
+              visa: null,
+            },
+          ],
+        },
+      ]);
+
+      render(<CustomerAddParticipants bookingId="bk-visa" />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("assisted-status-pending-fee")).toBeInTheDocument();
+      });
+
+      // Passport number/issued/expires inputs MUST NOT render in assisted mode
+      expect(screen.queryByLabelText(/Passport Number/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/Issued Date/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/Expires Date/i)).not.toBeInTheDocument();
+      // Visa file upload (has_visa flow) MUST NOT render in assisted mode
+      expect(screen.queryByText("Ảnh File Visa (tùy chọn)")).not.toBeInTheDocument();
+    });
+
+    it("renders fee quoted panel with formatted amount when operator quoted fee", async () => {
+      getBookingDetailMock.mockResolvedValue(visaRequiredBooking as any);
+      getParticipantsMock.mockResolvedValue([
+        {
+          ...assistedParticipantBase,
+          visaApplications: [
+            {
+              visaApplicationId: "v-2",
+              passportId: "pass-1",
+              destinationCountry: null,
+              status: "Pending",
+              minReturnDate: null,
+              visaFileUrl: null,
+              isSystemAssisted: true,
+              serviceFee: 500000,
+              serviceFeePaidAt: null,
+              visa: null,
+            },
+          ],
+        },
+      ]);
+
+      render(<CustomerAddParticipants bookingId="bk-visa" />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("assisted-status-fee-quoted")).toBeInTheDocument();
+      });
+      const payBtn = screen.getByTestId("assisted-status-fee-pay-action");
+      expect(payBtn).toBeInTheDocument();
+      fireEvent.click(payBtn);
+      expect(toast.info).toHaveBeenCalledWith("Tính năng thanh toán phí dịch vụ sẽ sớm có. Vui lòng liên hệ operator để thanh toán.");
+    });
+
+    it("renders processing panel when fee paid but visa not yet issued", async () => {
+      getBookingDetailMock.mockResolvedValue(visaRequiredBooking as any);
+      getParticipantsMock.mockResolvedValue([
+        {
+          ...assistedParticipantBase,
+          visaApplications: [
+            {
+              visaApplicationId: "v-3",
+              passportId: "pass-1",
+              destinationCountry: null,
+              status: "Pending",
+              minReturnDate: null,
+              visaFileUrl: null,
+              isSystemAssisted: true,
+              serviceFee: 500000,
+              serviceFeePaidAt: "2026-06-01T00:00:00Z",
+              visa: null,
+            },
+          ],
+        },
+      ]);
+
+      render(<CustomerAddParticipants bookingId="bk-visa" />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("assisted-status-processing")).toBeInTheDocument();
+      });
+    });
+
+    it("renders Block 2 (visa mode selector) before Block 3 (passport block) in DOM order when both visible", async () => {
+      getBookingDetailMock.mockResolvedValue(visaRequiredBooking as any);
+      getParticipantsMock.mockResolvedValue([
+        {
+          ...assistedParticipantBase,
+          visaApplications: [
+            {
+              visaApplicationId: "v-4",
+              passportId: "pass-1",
+              destinationCountry: null,
+              status: "Pending",
+              minReturnDate: null,
+              visaFileUrl: null,
+              isSystemAssisted: true,
+              serviceFee: null,
+              serviceFeePaidAt: null,
+              visa: null,
+            },
+          ],
+        },
+      ]);
+
+      render(<CustomerAddParticipants bookingId="bk-visa" />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("assisted-status-pending-fee")).toBeInTheDocument();
+      });
+
+      const selector = screen.getByTestId("visa-mode-selector-p-assisted-1");
+      const block3 = screen.getByTestId("visa-passport-block-p-assisted-1");
+      const order = selector.compareDocumentPosition(block3);
+      expect(order & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
   });
 });

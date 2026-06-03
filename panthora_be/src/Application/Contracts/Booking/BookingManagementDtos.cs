@@ -175,6 +175,12 @@ public sealed record VisaDto(
     [property: JsonPropertyName("fileUrl")] string? FileUrl
 );
 
+/// <summary>
+/// Visa application DTO dùng cho endpoint <c>GET /api/customer/bookings/{id}/participants</c>
+/// (<see cref="Application.Features.BookingManagement.Participant.GetBookingParticipantsQueryHandler"/>).
+/// Lưu ý: có một DTO khác cùng tên ở <c>Application/Features/VisaApplication/DTOs/VisaApplicationDto.cs</c>
+/// dùng cho luồng VisaApplication riêng — KHÔNG nhầm hai DTO này.
+/// </summary>
 public sealed record VisaApplicationDto(
     [property: JsonPropertyName("visaApplicationId")] Guid VisaApplicationId,
     [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
@@ -184,7 +190,10 @@ public sealed record VisaApplicationDto(
     [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate,
     [property: JsonPropertyName("refusalReason")] string? RefusalReason,
     [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl,
-    [property: JsonPropertyName("visa")] VisaDto? Visa
+    [property: JsonPropertyName("visa")] VisaDto? Visa,
+    [property: JsonPropertyName("isSystemAssisted")] bool IsSystemAssisted,
+    [property: JsonPropertyName("serviceFee")] decimal? ServiceFee,
+    [property: JsonPropertyName("serviceFeePaidAt")] DateTimeOffset? ServiceFeePaidAt
 );
 
 public sealed record ParticipantDto(

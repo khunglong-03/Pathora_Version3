@@ -4202,6 +4202,18 @@
         "uploadPassport": "Tải ảnh mặt Passport",
         "visaSupportRequest": "Yêu cầu hỗ trợ làm visa",
         "visaSupportExplanation": "Hệ thống sẽ dùng thông tin passport trên để tạo yêu cầu hỗ trợ. Operator sẽ báo phí dịch vụ sau.",
+        "assistedStatus": {
+          "pendingFeeTitle": "Đang chờ operator báo phí",
+          "pendingFeeBody": "Operator sẽ xem hồ sơ và báo phí dịch vụ visa cho bạn trong thời gian sớm nhất.",
+          "feeQuotedTitle": "Phí dịch vụ: {{amount}}",
+          "feeQuotedBody": "Vui lòng thanh toán phí dịch vụ để operator bắt đầu xử lý visa.",
+          "feeQuotedAction": "Thanh toán phí dịch vụ",
+          "feeQuotedActionComingSoon": "Tính năng thanh toán phí dịch vụ sẽ sớm có. Vui lòng liên hệ operator để thanh toán.",
+          "processingTitle": "Đang xử lý visa",
+          "processingBody": "Đã thanh toán phí. Operator đang xử lý hồ sơ visa của bạn.",
+          "visaIssuedTitle": "Visa đã cấp",
+          "viewVisaFile": "Xem file visa"
+        },
         "savingInfo": "Đang lưu thông tin...",
         "savedSuccess": "Đã lưu thành công",
         "saveSuccess": "Lưu thông tin hành khách thành công.",

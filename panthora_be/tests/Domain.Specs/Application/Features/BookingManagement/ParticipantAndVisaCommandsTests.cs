@@ -1,7 +1,9 @@
 using Application.Common.Constant;
 using Application.Common.Interfaces;
+using Application.Contracts.Booking;
 using Application.Features.BookingManagement.Participant;
 using Application.Features.VisaApplication.Commands;
+using Application.Services;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
@@ -173,5 +175,135 @@ public class ParticipantAndVisaCommandsTests
         savedApplication.Should().NotBeNull();
         savedApplication.DestinationCountry.Should().BeNull();
         savedApplication.IsSystemAssisted.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetBookingParticipants_Assisted_ReturnsIsSystemAssistedAndFeeMetadata()
+    {
+        // Arrange
+        var ownershipMock = Substitute.For<IOwnershipValidator>();
+        var userRepoMock = Substitute.For<IUserRepository>();
+        var visaImageRepoMock = Substitute.For<IVisaRepository>();
+
+        var handler = new GetBookingParticipantsQueryHandler(
+            _participantRepoMock,
+            _passportRepoMock,
+            _visaRepoMock,
+            visaImageRepoMock,
+            _bookingRepoMock,
+            ownershipMock,
+            userRepoMock);
+
+        var userId = Guid.NewGuid();
+        var tourInstance = TourInstanceEntity.Create(Guid.NewGuid(), Guid.NewGuid(), "Title", "Name", "Code", "Class", TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 10, 1000m, "system");
+        var booking = BookingEntity.Create(tourInstance.Id, "Customer Name", "0123456789", 1, 1000m, PaymentMethod.VnPay, true, "system", userId);
+        booking.TourInstance = tourInstance;
+
+        var participant = BookingParticipantEntity.Create(booking.Id, "Adult", "John Doe", "system");
+        var passport = PassportEntity.Create(participant.Id, null, "system", "VN", null, null, "https://cdn/passport.jpg");
+
+        var visaApp = VisaApplicationEntity.Create(
+            participant.Id,
+            passport.Id,
+            destinationCountry: null,
+            performedBy: "system",
+            minReturnDate: null,
+            visaFileUrl: null,
+            isSystemAssisted: true);
+        visaApp.ServiceFee = 500_000m;
+        visaApp.ServiceFeePaidAt = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);
+
+        _bookingRepoMock.GetByIdAsync(booking.Id, Arg.Any<CancellationToken>()).Returns(booking);
+        ownershipMock.CanAccessAsync(userId, Arg.Any<CancellationToken>()).Returns(true);
+        _participantRepoMock.GetByBookingIdAsync(booking.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<BookingParticipantEntity> { participant });
+        _passportRepoMock.GetByBookingParticipantIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, PassportEntity> { { participant.Id, passport } });
+        _visaRepoMock.GetByBookingParticipantIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<VisaApplicationEntity> { visaApp });
+        visaImageRepoMock.GetByVisaApplicationIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, VisaEntity>());
+        userRepoMock.FindByIds(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<UserEntity>());
+
+        var query = new GetBookingParticipantsQuery(booking.Id);
+
+        // Act
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.Should().HaveCount(1);
+        var dto = result.Value[0];
+        dto.VisaApplications.Should().HaveCount(1);
+        var visaDto = dto.VisaApplications[0];
+        visaDto.IsSystemAssisted.Should().BeTrue();
+        visaDto.ServiceFee.Should().Be(500_000m);
+        visaDto.ServiceFeePaidAt.Should().Be(new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero));
+        visaDto.VisaFileUrl.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetBookingParticipants_NonAssisted_ReturnsIsSystemAssistedFalse()
+    {
+        // Arrange
+        var ownershipMock = Substitute.For<IOwnershipValidator>();
+        var userRepoMock = Substitute.For<IUserRepository>();
+        var visaImageRepoMock = Substitute.For<IVisaRepository>();
+
+        var handler = new GetBookingParticipantsQueryHandler(
+            _participantRepoMock,
+            _passportRepoMock,
+            _visaRepoMock,
+            visaImageRepoMock,
+            _bookingRepoMock,
+            ownershipMock,
+            userRepoMock);
+
+        var userId = Guid.NewGuid();
+        var tourInstance = TourInstanceEntity.Create(Guid.NewGuid(), Guid.NewGuid(), "Title", "Name", "Code", "Class", TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 10, 1000m, "system");
+        var booking = BookingEntity.Create(tourInstance.Id, "Customer Name", "0123456789", 1, 1000m, PaymentMethod.VnPay, true, "system", userId);
+        booking.TourInstance = tourInstance;
+
+        var participant = BookingParticipantEntity.Create(booking.Id, "Adult", "Jane Doe", "system");
+        var passport = PassportEntity.Create(participant.Id, "C1234567", "system", "VN",
+            new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            "https://cdn/passport.jpg");
+
+        var visaApp = VisaApplicationEntity.Create(
+            participant.Id,
+            passport.Id,
+            destinationCountry: "JP",
+            performedBy: "system",
+            minReturnDate: null,
+            visaFileUrl: "https://cdn/visa.jpg",
+            isSystemAssisted: false);
+
+        _bookingRepoMock.GetByIdAsync(booking.Id, Arg.Any<CancellationToken>()).Returns(booking);
+        ownershipMock.CanAccessAsync(userId, Arg.Any<CancellationToken>()).Returns(true);
+        _participantRepoMock.GetByBookingIdAsync(booking.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<BookingParticipantEntity> { participant });
+        _passportRepoMock.GetByBookingParticipantIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, PassportEntity> { { participant.Id, passport } });
+        _visaRepoMock.GetByBookingParticipantIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<VisaApplicationEntity> { visaApp });
+        visaImageRepoMock.GetByVisaApplicationIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, VisaEntity>());
+        userRepoMock.FindByIds(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<UserEntity>());
+
+        var query = new GetBookingParticipantsQuery(booking.Id);
+
+        // Act
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        var visaDto = result.Value[0].VisaApplications[0];
+        visaDto.IsSystemAssisted.Should().BeFalse();
+        visaDto.ServiceFee.Should().BeNull();
+        visaDto.ServiceFeePaidAt.Should().BeNull();
+        visaDto.VisaFileUrl.Should().Be("https://cdn/visa.jpg");
     }
 }

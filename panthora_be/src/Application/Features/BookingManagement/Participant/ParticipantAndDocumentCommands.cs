@@ -661,7 +661,7 @@ public sealed class CreateVisaCommandHandler(
 
 public sealed record GetBookingParticipantsQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<ParticipantDto>>>, ICacheable
 {
-    public string CacheKey => $"{Application.Common.CacheKey.Booking}:participants:{BookingId}";
+    public string CacheKey => $"{Application.Common.CacheKey.Booking}:participants:v2:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
 }
 
@@ -785,7 +785,10 @@ public sealed class GetBookingParticipantsQueryHandler(
                     visa.EntryType,
                     visa.IssuedAt,
                     visa.ExpiresAt,
-                    visa.FileUrl));
+                    visa.FileUrl),
+            application.IsSystemAssisted,
+            application.ServiceFee,
+            application.ServiceFeePaidAt);
     }
 }
 
@@ -864,7 +867,10 @@ public sealed class GetParticipantVisasQueryHandler(
                         visa.EntryType,
                         visa.IssuedAt,
                         visa.ExpiresAt,
-                        visa.FileUrl)));
+                        visa.FileUrl),
+                application.IsSystemAssisted,
+                application.ServiceFee,
+                application.ServiceFeePaidAt));
         }
 
         return result;

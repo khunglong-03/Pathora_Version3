@@ -3,6 +3,12 @@ using System.Text.Json.Serialization;
 
 namespace Application.Features.VisaApplication.DTOs;
 
+/// <summary>
+/// Visa application DTO dùng cho các endpoint VisaApplication
+/// (operator listing, customer visa requirements, manager queries).
+/// Lưu ý: có một DTO khác cùng tên ở <c>Application/Contracts/Booking/BookingManagementDtos.cs</c>
+/// dùng cho endpoint <c>GET /api/customer/bookings/{id}/participants</c> — KHÔNG nhầm hai DTO này.
+/// </summary>
 public sealed record VisaApplicationDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,

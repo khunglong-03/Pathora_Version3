@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, WarningCircle, CheckCircle, Spinner, IdentificationCard, HandHeart, Info, File as FileIcon, UploadSimple } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, WarningCircle, CheckCircle, Spinner, IdentificationCard, HandHeart, Info, File as FileIcon, UploadSimple, Clock, Receipt, Hourglass, SealCheck } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { bookingService } from "@/api/services/bookingService";
@@ -39,6 +39,12 @@ interface Participant {
   destinationCountry: string;
   minReturnDate: string;
   visaFileUrl: string;
+
+  // Assisted visa metadata (used when visaMode === "needs_support")
+  isSystemAssisted?: boolean;
+  serviceFee?: number | null;
+  serviceFeePaidAt?: string | null;
+  visaIssuedFileUrl?: string | null;
 
   // Review fields
   infoReviewStatus?: "NotReviewed" | "Approved" | "Rejected";
@@ -345,6 +351,82 @@ function DobSelector({ value, onChange, t, disabled }: DobSelectorProps) {
   );
 }
 
+type AssistedVisaStatusPanelProps = {
+  serviceFee: number | null;
+  serviceFeePaidAt: string | null;
+  visaFileUrl: string | null;
+  visaIssuedFileUrl: string | null;
+  t: (key: string, optionsOrDefault?: string | Record<string, unknown>, defaultValue?: string) => string;
+};
+
+function AssistedVisaStatusPanel({ serviceFee, serviceFeePaidAt, visaFileUrl, visaIssuedFileUrl, t }: AssistedVisaStatusPanelProps) {
+  const issuedFileUrl = visaIssuedFileUrl ?? visaFileUrl;
+  const visaIssued = !!issuedFileUrl;
+  const feePaid = !!serviceFeePaidAt;
+  const feeQuoted = typeof serviceFee === "number" && serviceFee > 0;
+
+  // Ordering matters: visaIssued > feePaid > feeQuoted > pending.
+  // A paid fee implies it was previously quoted, so the processing branch absorbs
+  // the (paid && quoted) case without falling through to the quote panel.
+
+  if (visaIssued) {
+    return (
+      <div data-testid="assisted-status-visa-issued" className="mt-2 bg-emerald-50/60 rounded-2xl p-4 border border-emerald-200/60 text-xs text-emerald-900 leading-relaxed font-semibold font-sans">
+        <div className="flex items-center gap-1.5 mb-1 text-emerald-700">
+          <SealCheck weight="fill" className="size-4 shrink-0" />
+          <span>{t("landing.bookings.addParticipantsPage.assistedStatus.visaIssuedTitle", "Visa đã cấp")}</span>
+        </div>
+        <a href={issuedFileUrl!} target="_blank" rel="noreferrer" className="underline hover:text-emerald-700">
+          {t("landing.bookings.addParticipantsPage.assistedStatus.viewVisaFile", "Xem file visa")}
+        </a>
+      </div>
+    );
+  }
+
+  if (feePaid) {
+    return (
+      <div data-testid="assisted-status-processing" className="mt-2 bg-sky-50/60 rounded-2xl p-4 border border-sky-200/60 text-xs text-sky-900 leading-relaxed font-semibold font-sans">
+        <div className="flex items-center gap-1.5 mb-1 text-sky-700">
+          <Hourglass weight="fill" className="size-4 shrink-0" />
+          <span>{t("landing.bookings.addParticipantsPage.assistedStatus.processingTitle", "Đang xử lý visa")}</span>
+        </div>
+        {t("landing.bookings.addParticipantsPage.assistedStatus.processingBody", "Đã thanh toán phí. Operator đang xử lý hồ sơ visa của bạn.")}
+      </div>
+    );
+  }
+
+  if (feeQuoted) {
+    const formatted = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(serviceFee!);
+    return (
+      <div data-testid="assisted-status-fee-quoted" className="mt-2 bg-amber-50/60 rounded-2xl p-4 border border-amber-200/60 text-xs text-amber-900 leading-relaxed font-semibold font-sans">
+        <div className="flex items-center gap-1.5 mb-1 text-amber-700">
+          <Receipt weight="fill" className="size-4 shrink-0" />
+          <span>{t("landing.bookings.addParticipantsPage.assistedStatus.feeQuotedTitle", { amount: formatted })}</span>
+        </div>
+        <p className="mb-2">{t("landing.bookings.addParticipantsPage.assistedStatus.feeQuotedBody", "Vui lòng thanh toán phí dịch vụ để operator bắt đầu xử lý visa.")}</p>
+        <button
+          type="button"
+          data-testid="assisted-status-fee-pay-action"
+          onClick={() => toast.info(t("landing.bookings.addParticipantsPage.assistedStatus.feeQuotedActionComingSoon", "Tính năng thanh toán phí dịch vụ sẽ sớm có. Vui lòng liên hệ operator để thanh toán."))}
+          className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-[11px] font-extrabold rounded-xl transition-all shadow-sm font-sans"
+        >
+          {t("landing.bookings.addParticipantsPage.assistedStatus.feeQuotedAction", "Thanh toán phí dịch vụ")}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid="assisted-status-pending-fee" className="mt-2 bg-amber-50/50 rounded-2xl p-4 border border-amber-200/50 text-xs text-amber-900 leading-relaxed font-semibold font-sans">
+      <div className="flex items-center gap-1.5 mb-1 text-amber-700">
+        <Clock weight="fill" className="size-4 shrink-0" />
+        <span>{t("landing.bookings.addParticipantsPage.assistedStatus.pendingFeeTitle", "Đang chờ operator báo phí")}</span>
+      </div>
+      {t("landing.bookings.addParticipantsPage.assistedStatus.pendingFeeBody", "Operator sẽ xem hồ sơ và báo phí dịch vụ visa cho bạn trong thời gian sớm nhất.")}
+    </div>
+  );
+}
+
 export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -448,6 +530,10 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
           minReturnDate: latestApp?.minReturnDate ? latestApp.minReturnDate.split("T")[0] : returnDateIso,
           visaFileUrl: latestApp?.visaFileUrl ?? "",
           passportId: p.passport?.passportId ?? p.passport?.id ?? "",
+          isSystemAssisted: !!latestApp?.isSystemAssisted,
+          serviceFee: typeof latestApp?.serviceFee === "number" ? latestApp.serviceFee : null,
+          serviceFeePaidAt: latestApp?.serviceFeePaidAt ?? null,
+          visaIssuedFileUrl: latestApp?.visa?.fileUrl ?? null,
           infoReviewStatus: p.infoReviewStatus || "NotReviewed",
           infoRejectionReason: p.infoRejectionReason ?? null,
         };
@@ -1456,181 +1542,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                             </div>
                           </div>
 
-                          {/* Block 3: Passport (renders only when visaMode is set) */}
-                          {p.visaMode && (
-                            <div>
-                              {/* Divider between Block 1 and Block 3 */}
-                              <div className="border-t border-slate-200 my-6" />
-
-                              <div className="flex flex-col gap-4">
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest font-sans">{t("landing.bookings.addParticipantsPage.passportInfoLabel", "Thông tin passport")}</p>
-                                
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  {p.visaMode === "has_visa" && (
-                                    <>
-                                      <div className="flex flex-col gap-1.5">
-                                        <label htmlFor={`passport-number-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportNumber", "Passport Number")}</label>
-                                        <input
-                                          id={`passport-number-${p.id}`}
-                                          name={`passport-number-${p.id}`}
-                                          type="text"
-                                          value={p.passportNumber}
-                                          onChange={(e) => updateParticipant(p.id, "passportNumber", e.target.value)}
-                                          placeholder={t("landing.bookings.addParticipantsPage.passportNumberPlaceholder", "C1234567")}
-                                          disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
-                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
-                                        />
-                                      </div>
-                                      <div className="flex flex-col gap-1.5">
-                                        <label htmlFor={`passport-nationality-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportNationality", "Quốc gia cấp hộ chiếu")}</label>
-                                        <input
-                                          id={`passport-nationality-${p.id}`}
-                                          name={`passport-nationality-${p.id}`}
-                                          type="text"
-                                          maxLength={3}
-                                          value={p.passportNationality}
-                                          onChange={(e) => updateNationality(p.id, "passport", e.target.value.toUpperCase())}
-                                          placeholder="VN"
-                                          disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
-                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
-                                        />
-
-                                      </div>
-                                      <div className="flex flex-col gap-1.5">
-                                        <label htmlFor={`passport-issued-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportIssuedAt", "Issued Date")}</label>
-                                        <input
-                                          id={`passport-issued-${p.id}`}
-                                          name={`passport-issued-${p.id}`}
-                                          type="date"
-                                          value={p.passportIssuedAt}
-                                          onChange={(e) => updateParticipant(p.id, "passportIssuedAt", e.target.value)}
-                                          disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
-                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
-                                        />
-                                      </div>
-                                      <div className="flex flex-col gap-1.5">
-                                        <label htmlFor={`passport-expires-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">
-                                          {t("landing.bookings.addParticipantsPage.passportExpiresAt", "Expires Date")} {tourReturnDate && <span className="font-semibold text-slate-400 text-[10px] tracking-tight">({t("landing.bookings.addParticipantsPage.afterDate", "sau")} {tourReturnDate})</span>}
-                                        </label>
-                                        <input
-                                          id={`passport-expires-${p.id}`}
-                                          name={`passport-expires-${p.id}`}
-                                          type="date"
-                                          value={p.passportExpiresAt}
-                                          onChange={(e) => updateParticipant(p.id, "passportExpiresAt", e.target.value)}
-                                          disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
-                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
-                                        />
-                                      </div>
-                                    </>
-                                  )}
-
-                                  <div className="sm:col-span-2">
-                                    <label className="text-[11px] font-bold text-slate-500 block mb-1.5 font-sans">
-                                      {p.visaMode === "needs_support" 
-                                        ? t("landing.bookings.addParticipantsPage.uploadPassportRequired", "Upload ảnh mặt Passport (Bắt buộc)") 
-                                        : t("landing.bookings.addParticipantsPage.passportImageOptional", "Ảnh Passport (tùy chọn)")}
-                                    </label>
-                                    {p.passportFileUrl ? (
-                                      <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]">
-                                        <div className="relative size-16 shrink-0">
-                                          <img
-                                            src={p.passportFileUrl}
-                                            alt={t('landing.bookings.addParticipantsPage.passportAlt', 'Passport')}
-                                            className="size-16 rounded-xl object-cover border border-slate-200"
-                                            loading="lazy"
-                                            onError={(e) => {
-                                              e.currentTarget.style.display = 'none';
-                                              (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
-                                            }}
-                                          />
-                                          <div className="hidden size-16 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center">
-                                            <FileIcon className="size-4 text-slate-400" />
-                                            <span className="text-[8px] text-slate-400 mt-0.5 px-1 text-center leading-tight">
-                                              {t('participantUpload.imageLoadError', 'Không load được ảnh')}
-                                            </span>
-                                          </div>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <a href={p.passportFileUrl} target="_blank" rel="noreferrer" className="text-slate-900 hover:text-slate-700 text-xs font-bold truncate block hover:underline font-sans">
-                                            {t("landing.bookings.addParticipantsPage.viewPassport", "Xem ảnh đầy đủ")}
-                                          </a>
-                                          <p className="text-[10px] text-slate-400 font-semibold uppercase font-sans">{t("landing.bookings.addParticipantsPage.uploaded", "ĐÃ TẢI LÊN")}</p>
-                                        </div>
-                                        {!isFieldsDisabled && (
-                                          <label className="cursor-pointer px-3.5 py-2 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 text-[10px] font-extrabold rounded-xl hover:bg-slate-100 transition-colors active:scale-[0.98] shrink-0 select-none font-sans">
-                                            {t("landing.bookings.addParticipantsPage.changeImage", "Đổi ảnh")}
-                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                              if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
-                                            }} />
-                                          </label>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <div className="relative">
-                                        <label
-                                          tabIndex={0}
-                                          onKeyDown={(e) => {
-                                            if (e.key === "Enter" || e.key === " ") {
-                                              (e.currentTarget.querySelector('input') as HTMLInputElement)?.click();
-                                            }
-                                          }}
-                                          onPaste={(e) => handlePaste(e, p.id, "passportFileUrl", isFieldsDisabled)}
-                                          onDragOver={handleDragOver}
-                                          onDrop={(e) => handleDrop(e, p.id, "passportFileUrl", isFieldsDisabled)}
-                                          className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-500/10 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 outline-none ${
-                                            uploadingFiles[`${p.id}-passportFileUrl`] || isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
-                                          }`}
-                                        >
-                                          <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) => {
-                                              if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
-                                            }}
-                                            disabled={uploadingFiles[`${p.id}-passportFileUrl`] || isFieldsDisabled}
-                                            className="hidden"
-                                          />
-                                          <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2.5 group-hover/upload:scale-105 transition-transform duration-500">
-                                            <UploadSimple weight="bold" className="size-5 text-slate-400" />
-                                          </div>
-                                          <span className="text-xs font-bold text-slate-700 font-sans">{t("landing.bookings.addParticipantsPage.uploadPassport", "Tải ảnh mặt Passport")} hoặc Kéo thả / Dán ảnh</span>
-                                          <span className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider font-sans">PNG, JPG, JPEG (Hỗ trợ kéo thả, Cmd+V / Ctrl+V)</span>
-                                        </label>
-                                      </div>
-                                    )}
-                                    {uploadingFiles[`${p.id}-passportFileUrl`] && (
-                                      <div className="mt-2 pl-1">
-                                        <div className="flex items-center justify-between mb-1">
-                                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-sans">
-                                            {uploadProgress[`${p.id}-passportFileUrl`] === 100
-                                              ? t('participantUpload.processing', 'Đang xử lý...')
-                                              : t('participantUpload.uploadProgress', { percent: uploadProgress[`${p.id}-passportFileUrl`] ?? 0 })}
-                                          </span>
-                                        </div>
-                                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                          <div
-                                            className="h-full bg-slate-700 transition-all duration-200"
-                                            style={{ width: `${uploadProgress[`${p.id}-passportFileUrl`] ?? 0}%` }}
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-
-                                {p.visaMode === "needs_support" && (
-                                  <div className="mt-2 bg-amber-50/50 rounded-xl p-4 border border-amber-200/50 text-xs text-amber-900 leading-relaxed font-semibold font-sans">
-                                    <div className="flex items-center gap-1.5 mb-1 text-amber-700">
-                                      <Info weight="fill" className="size-4 shrink-0" />
-                                      <span>{t("landing.bookings.addParticipantsPage.visaSupportRequest", "Yêu cầu hỗ trợ làm visa")}</span>
-                                    </div>
-                                    {t("landing.bookings.addParticipantsPage.visaSupportExplanation", "Hệ thống sẽ dùng thông tin passport trên để tạo yêu cầu hỗ trợ. Operator sẽ báo phí dịch vụ sau.")}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
+                          {/* Block 3 moved below Block 2 — see after the visa selector card */}
                         </div>
                       ) : (
                         /* If visa is not required, render original Block 1 as a normal grid */
@@ -1747,7 +1659,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
 
                       {/* Block 2: Visa Selection blocks - Beautiful interactive options */}
                       {isVisaRequired && (
-                        <div className="mt-4 pt-6 border-t border-slate-100 border-dashed">
+                        <div className="mt-4 pt-6 border-t border-slate-100 border-dashed" data-testid={`visa-mode-selector-${p.id}`}>
                           <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 font-sans">{t("landing.bookings.addParticipantsPage.visaStatusHeader", "Tình trạng visa")}</h4>
                           
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1906,6 +1818,180 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                             </div>
                           )}
 
+                        </div>
+                      )}
+
+                      {/* Block 3: Passport + assisted status (renders only when visaMode is set) */}
+                      {isVisaRequired && p.visaMode && (
+                        <div data-testid={`visa-passport-block-${p.id}`}>
+                          <div className="border-t border-slate-200 my-6" />
+
+                          <div className="flex flex-col gap-4">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest font-sans">{t("landing.bookings.addParticipantsPage.passportInfoLabel", "Thông tin passport")}</p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              {p.visaMode === "has_visa" && (
+                                <>
+                                  <div className="flex flex-col gap-1.5">
+                                    <label htmlFor={`passport-number-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportNumber", "Passport Number")}</label>
+                                    <input
+                                      id={`passport-number-${p.id}`}
+                                      name={`passport-number-${p.id}`}
+                                      type="text"
+                                      value={p.passportNumber}
+                                      onChange={(e) => updateParticipant(p.id, "passportNumber", e.target.value)}
+                                      placeholder={t("landing.bookings.addParticipantsPage.passportNumberPlaceholder", "C1234567")}
+                                      disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1.5">
+                                    <label htmlFor={`passport-nationality-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportNationality", "Quốc gia cấp hộ chiếu")}</label>
+                                    <input
+                                      id={`passport-nationality-${p.id}`}
+                                      name={`passport-nationality-${p.id}`}
+                                      type="text"
+                                      maxLength={3}
+                                      value={p.passportNationality}
+                                      onChange={(e) => updateNationality(p.id, "passport", e.target.value.toUpperCase())}
+                                      placeholder="VN"
+                                      disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1.5">
+                                    <label htmlFor={`passport-issued-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportIssuedAt", "Issued Date")}</label>
+                                    <input
+                                      id={`passport-issued-${p.id}`}
+                                      name={`passport-issued-${p.id}`}
+                                      type="date"
+                                      value={p.passportIssuedAt}
+                                      onChange={(e) => updateParticipant(p.id, "passportIssuedAt", e.target.value)}
+                                      disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1.5">
+                                    <label htmlFor={`passport-expires-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">
+                                      {t("landing.bookings.addParticipantsPage.passportExpiresAt", "Expires Date")} {tourReturnDate && <span className="font-semibold text-slate-400 text-[10px] tracking-tight">({t("landing.bookings.addParticipantsPage.afterDate", "sau")} {tourReturnDate})</span>}
+                                    </label>
+                                    <input
+                                      id={`passport-expires-${p.id}`}
+                                      name={`passport-expires-${p.id}`}
+                                      type="date"
+                                      value={p.passportExpiresAt}
+                                      onChange={(e) => updateParticipant(p.id, "passportExpiresAt", e.target.value)}
+                                      disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
+                                    />
+                                  </div>
+                                </>
+                              )}
+
+                              <div className="sm:col-span-2">
+                                <label className="text-[11px] font-bold text-slate-500 block mb-1.5 font-sans">
+                                  {p.visaMode === "needs_support"
+                                    ? t("landing.bookings.addParticipantsPage.uploadPassportRequired", "Upload ảnh mặt Passport (Bắt buộc)")
+                                    : t("landing.bookings.addParticipantsPage.passportImageOptional", "Ảnh Passport (tùy chọn)")}
+                                </label>
+                                {p.passportFileUrl ? (
+                                  <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]">
+                                    <div className="relative size-16 shrink-0">
+                                      <img
+                                        src={p.passportFileUrl}
+                                        alt={t('landing.bookings.addParticipantsPage.passportAlt', 'Passport')}
+                                        className="size-16 rounded-xl object-cover border border-slate-200"
+                                        loading="lazy"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = 'none';
+                                          (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                                        }}
+                                      />
+                                      <div className="hidden size-16 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center">
+                                        <FileIcon className="size-4 text-slate-400" />
+                                        <span className="text-[8px] text-slate-400 mt-0.5 px-1 text-center leading-tight">
+                                          {t('participantUpload.imageLoadError', 'Không load được ảnh')}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <a href={p.passportFileUrl} target="_blank" rel="noreferrer" className="text-slate-900 hover:text-slate-700 text-xs font-bold truncate block hover:underline font-sans">
+                                        {t("landing.bookings.addParticipantsPage.viewPassport", "Xem ảnh đầy đủ")}
+                                      </a>
+                                      <p className="text-[10px] text-slate-400 font-semibold uppercase font-sans">{t("landing.bookings.addParticipantsPage.uploaded", "ĐÃ TẢI LÊN")}</p>
+                                    </div>
+                                    {!isFieldsDisabled && (
+                                      <label className="cursor-pointer px-3.5 py-2 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 text-[10px] font-extrabold rounded-xl hover:bg-slate-100 transition-colors active:scale-[0.98] shrink-0 select-none font-sans">
+                                        {t("landing.bookings.addParticipantsPage.changeImage", "Đổi ảnh")}
+                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                          if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
+                                        }} />
+                                      </label>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="relative">
+                                    <label
+                                      tabIndex={0}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                          (e.currentTarget.querySelector('input') as HTMLInputElement)?.click();
+                                        }
+                                      }}
+                                      onPaste={(e) => handlePaste(e, p.id, "passportFileUrl", isFieldsDisabled)}
+                                      onDragOver={handleDragOver}
+                                      onDrop={(e) => handleDrop(e, p.id, "passportFileUrl", isFieldsDisabled)}
+                                      className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-500/10 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 outline-none ${
+                                        uploadingFiles[`${p.id}-passportFileUrl`] || isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
+                                      }`}
+                                    >
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                          if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
+                                        }}
+                                        disabled={uploadingFiles[`${p.id}-passportFileUrl`] || isFieldsDisabled}
+                                        className="hidden"
+                                      />
+                                      <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2.5 group-hover/upload:scale-105 transition-transform duration-500">
+                                        <UploadSimple weight="bold" className="size-5 text-slate-400" />
+                                      </div>
+                                      <span className="text-xs font-bold text-slate-700 font-sans">{t("landing.bookings.addParticipantsPage.uploadPassport", "Tải ảnh mặt Passport")} hoặc Kéo thả / Dán ảnh</span>
+                                      <span className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider font-sans">PNG, JPG, JPEG (Hỗ trợ kéo thả, Cmd+V / Ctrl+V)</span>
+                                    </label>
+                                  </div>
+                                )}
+                                {uploadingFiles[`${p.id}-passportFileUrl`] && (
+                                  <div className="mt-2 pl-1">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-sans">
+                                        {uploadProgress[`${p.id}-passportFileUrl`] === 100
+                                          ? t('participantUpload.processing', 'Đang xử lý...')
+                                          : t('participantUpload.uploadProgress', { percent: uploadProgress[`${p.id}-passportFileUrl`] ?? 0 })}
+                                      </span>
+                                    </div>
+                                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full bg-slate-700 transition-all duration-200"
+                                        style={{ width: `${uploadProgress[`${p.id}-passportFileUrl`] ?? 0}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {p.visaMode === "needs_support" && (
+                              <AssistedVisaStatusPanel
+                                serviceFee={p.serviceFee ?? null}
+                                serviceFeePaidAt={p.serviceFeePaidAt ?? null}
+                                visaFileUrl={p.visaFileUrl || null}
+                                visaIssuedFileUrl={p.visaIssuedFileUrl ?? null}
+                                t={t}
+                              />
+                            )}
+                          </div>
                         </div>
                       )}
 

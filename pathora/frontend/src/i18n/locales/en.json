@@ -4216,6 +4216,18 @@
         "uploadPassport": "Upload passport page",
         "visaSupportRequest": "Visa support request",
         "visaSupportExplanation": "The system will use the passport details above to request support. The operator will advise the service fee later.",
+        "assistedStatus": {
+          "pendingFeeTitle": "Awaiting operator fee quote",
+          "pendingFeeBody": "The operator will review your file and quote the visa service fee shortly.",
+          "feeQuotedTitle": "Service fee: {{amount}}",
+          "feeQuotedBody": "Please pay the service fee so the operator can start processing your visa.",
+          "feeQuotedAction": "Pay service fee",
+          "feeQuotedActionComingSoon": "Service fee payment is coming soon. Please contact the operator to pay.",
+          "processingTitle": "Processing visa",
+          "processingBody": "Fee paid. The operator is processing your visa application.",
+          "visaIssuedTitle": "Visa issued",
+          "viewVisaFile": "View visa file"
+        },
         "savingInfo": "Saving details...",
         "savedSuccess": "Saved successfully",
         "saveSuccess": "Saved passenger details successfully.",
