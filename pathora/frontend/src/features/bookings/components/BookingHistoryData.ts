@@ -6,7 +6,9 @@ export type BookingStatus =
   | "pending_approval"
   | "approved"
   | "cancelled"
-  | "rejected";
+  | "rejected"
+  | "paid"
+  | "deposited";
 
 export type TourTier = "standard" | "luxury" | "premium";
 export type PaymentStatus = "paid" | "partial" | "unpaid";

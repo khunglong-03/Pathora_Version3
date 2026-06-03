@@ -1558,34 +1558,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                 {t("landing.bookings.addParticipantsPage.visaHeader", { index: index + 1 })}
                               </h4>
 
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-1.5">
-                                  <label className="text-[11px] font-bold text-slate-500 font-sans">
-                                    {t("landing.bookings.addParticipantsPage.destinationCountry", "Quốc gia đến (ISO)")} <span className="text-slate-400 font-normal">({t("landing.bookings.addParticipantsPage.autoFilled", "Hệ thống tự điền")})</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    maxLength={3}
-                                    value={p.destinationCountry}
-                                    onChange={(e) => updateParticipant(p.id, "destinationCountry", e.target.value.toUpperCase())}
-                                    placeholder={t("landing.bookings.addParticipantsPage.destinationCountryPlaceholder", "JP, US, KR...")}
-                                    disabled={true}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 outline-none font-semibold text-sm font-sans"
-                                  />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                  <label className="text-[11px] font-bold text-slate-500 font-sans">
-                                    {t("landing.bookings.addParticipantsPage.minReturnDate", "Ngày về tối thiểu")} <span className="text-slate-400 font-normal">({t("landing.bookings.addParticipantsPage.autoFilled", "Hệ thống tự điền")})</span>
-                                  </label>
-                                  <input
-                                    type="date"
-                                    value={p.minReturnDate}
-                                    onChange={(e) => updateParticipant(p.id, "minReturnDate", e.target.value)}
-                                    disabled={true}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 outline-none font-semibold text-sm font-sans"
-                                  />
-                                </div>
-                                <div className="sm:col-span-2">
+                              <div className="w-full">
+                                <div>
                                   <label className="text-[11px] font-bold text-slate-500 block mb-1.5 font-sans">{t("landing.bookings.addParticipantsPage.visaFileImageLabel", "Ảnh File Visa (tùy chọn)")}</label>
                                   {p.visaFileUrl ? (
                                     <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]">
