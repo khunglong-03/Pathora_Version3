@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, WarningCircle, CheckCircle, Spinner, IdentificationCard, HandHeart, Info, File, UploadSimple } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, WarningCircle, CheckCircle, Spinner, IdentificationCard, HandHeart, Info, File as FileIcon, UploadSimple } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { bookingService } from "@/api/services/bookingService";
@@ -45,24 +45,28 @@ interface Participant {
   infoRejectionReason?: string | null;
 }
 
-const getDestinationCountryIso = (location?: string): string => {
-  if (!location) return "";
-  const loc = location.toLowerCase();
-  if (loc.includes("nhật") || loc.includes("japan") || loc.includes("tokyo") || loc.includes("osaka")) return "JP";
-  if (loc.includes("hàn quốc") || loc.includes("korea") || loc.includes("seoul")) return "KR";
-  if (loc.includes("mỹ") || loc.includes("hoa kỳ") || loc.includes("usa") || loc.includes("us") || loc.includes("united states")) return "US";
-  if (loc.includes("pháp") || loc.includes("france") || loc.includes("paris")) return "FR";
-  if (loc.includes("úc") || loc.includes("australia") || loc.includes("sydney")) return "AU";
-  if (loc.includes("trung quốc") || loc.includes("china") || loc.includes("beijing")) return "CN";
-  if (loc.includes("đài loan") || loc.includes("taiwan") || loc.includes("taipei")) return "TW";
-  if (loc.includes("anh") || loc.includes("uk") || loc.includes("london") || loc.includes("united kingdom")) return "GB";
-  if (loc.includes("thái lan") || loc.includes("thailand") || loc.includes("bangkok")) return "TH";
-  if (loc.includes("singapore")) return "SG";
-  if (loc.includes("châu âu") || loc.includes("europe")) return "EU";
+const getDestinationCountryIso = (location?: string, tourName?: string): string => {
+  const loc = (location || "").trim();
+  const title = (tourName || "").trim();
+  const searchStr = `${loc} ${title}`.toLowerCase();
   
-  const trimmed = location.trim();
-  if (trimmed.length >= 2 && trimmed.length <= 3 && /^[A-Za-z]+$/.test(trimmed)) {
-    return trimmed.toUpperCase();
+  if (searchStr.includes("nhật") || searchStr.includes("japan") || searchStr.includes("tokyo") || searchStr.includes("osaka")) return "JP";
+  if (searchStr.includes("hàn quốc") || searchStr.includes("korea") || searchStr.includes("seoul")) return "KR";
+  if (searchStr.includes("mỹ") || searchStr.includes("hoa kỳ") || searchStr.includes("usa") || searchStr.includes("us") || searchStr.includes("united states")) return "US";
+  if (searchStr.includes("pháp") || searchStr.includes("france") || searchStr.includes("paris")) return "FR";
+  if (searchStr.includes("úc") || searchStr.includes("australia") || searchStr.includes("sydney")) return "AU";
+  if (searchStr.includes("trung quốc") || searchStr.includes("china") || searchStr.includes("beijing")) return "CN";
+  if (searchStr.includes("đài loan") || searchStr.includes("taiwan") || searchStr.includes("taipei")) return "TW";
+  if (searchStr.includes("anh") || searchStr.includes("uk") || searchStr.includes("london") || searchStr.includes("united kingdom")) return "GB";
+  if (searchStr.includes("thái lan") || searchStr.includes("thailand") || searchStr.includes("bangkok")) return "TH";
+  if (searchStr.includes("singapore")) return "SG";
+  if (searchStr.includes("châu âu") || searchStr.includes("europe")) return "EU";
+  
+  if (loc) {
+    const trimmed = loc.trim();
+    if (trimmed.length >= 2 && trimmed.length <= 3 && /^[A-Za-z]+$/.test(trimmed)) {
+      return trimmed.toUpperCase();
+    }
   }
   return "JP";
 };
@@ -92,17 +96,58 @@ const blankVisaFields = (defaults?: { nationality?: string; minReturnDate?: stri
   nationalityOverride: false,
 });
 
-const compressImage = (file: File, maxWidth = 1600, maxHeight = 1600, quality = 0.82): Promise<File> => {
-  return new Promise((resolve) => {
-    if (!file.type.startsWith("image/")) {
-      return resolve(file);
-    }
+const compressImage = async (file: File, maxWidth = 1600, maxHeight = 1600, quality = 0.82): Promise<File> => {
+  if (!file.type.startsWith("image/")) {
+    return file;
+  }
 
+  // Branch A: OffscreenCanvas (modern path)
+  if (typeof OffscreenCanvas !== "undefined" && typeof createImageBitmap !== "undefined") {
+    try {
+      const imageBitmap = await createImageBitmap(file);
+      let width = imageBitmap.width;
+      let height = imageBitmap.height;
+
+      if (width > maxWidth || height > maxHeight) {
+        if (width > height) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        } else {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      const offscreen = new OffscreenCanvas(width, height);
+      const ctx = offscreen.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(imageBitmap, 0, 0, width, height);
+        const blob = await offscreen.convertToBlob({ type: "image/jpeg", quality });
+        if (blob) {
+          return new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+            type: "image/jpeg",
+            lastModified: Date.now(),
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("OffscreenCanvas compression failed, falling back to legacy canvas", e);
+    }
+  }
+
+  // Branch B: Legacy Canvas fallback with requestIdleCallback or setTimeout yielding
+  await new Promise((resolve) => {
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(() => resolve(undefined));
+    } else {
+      setTimeout(() => resolve(undefined), 0);
+    }
+  });
+
+  return new Promise((resolve) => {
     const reader = new FileReader();
-    reader.readAsDataURL(file);
     reader.onload = (event) => {
       const img = new Image();
-      img.src = event.target?.result as string;
       img.onload = () => {
         let width = img.width;
         let height = img.height;
@@ -144,8 +189,10 @@ const compressImage = (file: File, maxWidth = 1600, maxHeight = 1600, quality = 
         );
       };
       img.onerror = () => resolve(file);
+      img.src = event.target?.result as string;
     };
     reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
   });
 };
 
@@ -310,6 +357,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [bookingPax, setBookingPax] = useState({ adults: 0, children: 0, infants: 0 });
   const [bookerName, setBookerName] = useState<string>("");
   const [unlockedApprovedIds, setUnlockedApprovedIds] = useState<string[]>([]);
@@ -363,7 +411,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
       const returnDateIso = returnDateRaw ? String(returnDateRaw).split("T")[0] : "";
       setTourReturnDate(returnDateIso);
 
-      const defaultDestCountry = getDestinationCountryIso((bookingData as any)?.location);
+      const defaultDestCountry = getDestinationCountryIso((bookingData as any)?.location, (bookingData as any)?.tourName);
       let existingSeq = 0;
       const existing: Participant[] = (participantsData || []).map((p: any) => {
         const hasPassport = !!p.passport;
@@ -468,14 +516,9 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   const updateNationality = (id: string, source: "guest" | "passport", value: string) => {
     setParticipants(prev => prev.map(p => {
       if (p.id !== id) return p;
-      if (p.nationalityOverride) {
-        // override active: chỉ update field user chạm
-        return source === "guest"
-          ? { ...p, nationality: value }
-          : { ...p, passportNationality: value };
-      }
-      // sync mode: update cả 2
-      return { ...p, nationality: value, passportNationality: value };
+      return source === "guest"
+        ? { ...p, nationality: value }
+        : { ...p, passportNationality: value };
     }));
   };
 
@@ -537,17 +580,33 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   };
 
   const handleFileUpload = async (participantId: string, field: "passportFileUrl" | "visaFileUrl", file: File) => {
-    setUploadingFiles((prev) => ({ ...prev, [`${participantId}-${field}`]: true }));
+    const key = `${participantId}-${field}`;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error(t("participantUpload.fileTooLarge", "Ảnh quá lớn, vui lòng chọn file dưới 10MB"));
+      return;
+    }
+
+    setUploadingFiles((prev) => ({ ...prev, [key]: true }));
+    setUploadProgress((prev) => ({ ...prev, [key]: 0 }));
+
     try {
       const compressedFile = await compressImage(file);
-      const res = await fileService.uploadFile(compressedFile);
+      const res = await fileService.uploadFile(compressedFile, {
+        onProgress: (pct) => setUploadProgress((prev) => ({ ...prev, [key]: pct }))
+      });
       updateParticipant(participantId, field, res.url);
       toast.success(t("landing.bookings.addParticipantsPage.savedSuccess"));
     } catch (err) {
       console.error(err);
       toast.error(t("landing.bookings.addParticipantsPage.saveFailed"));
     } finally {
-      setUploadingFiles((prev) => ({ ...prev, [`${participantId}-${field}`]: false }));
+      setUploadingFiles((prev) => ({ ...prev, [key]: false }));
+      setUploadProgress((prev) => {
+        const copy = { ...prev };
+        delete copy[key];
+        return copy;
+      });
     }
   };
 
@@ -600,6 +659,12 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
     if (new Date(p.dob) > new Date()) {
       return `${guestLabel}: ${t("landing.bookings.addParticipantsPage.validationDobFuture", "ngày sinh không thể ở tương lai.")}`;
     }
+    if (p.designatedType && p.participantType !== p.designatedType) {
+      return `${guestLabel}: ${t("landing.bookings.addParticipantsPage.validationTypeMismatch", {
+        inferred: t("landing.bookings.addParticipantsPage." + p.participantType.toLowerCase(), p.participantType),
+        designated: t("landing.bookings.addParticipantsPage." + p.designatedType.toLowerCase(), p.designatedType)
+      })}`;
+    }
     if (!isVisaActionable(p)) return null;
     if (!p.visaMode) return `${guestLabel}: ${t("landing.bookings.addParticipantsPage.validationVisaModeRequired", "vui lòng chọn tình trạng visa.")}`;
     if (p.visaMode) {
@@ -623,11 +688,16 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
 
   const diffParticipant = (oldP: Participant | undefined, newP: Participant) => {
     if (!oldP) {
+      const hasPassportInput =
+        !!(newP.passportNumber || "").trim() ||
+        !!newP.passportIssuedAt ||
+        !!newP.passportExpiresAt ||
+        !!newP.passportFileUrl;
       return {
         participantChanged: true,
-        passportChanged: !!newP.visaMode,
-        visaChanged: newP.visaMode === "has_visa" && !newP.hasVisaApp,
-        supportChanged: newP.visaMode === "needs_support" && !newP.hasVisaApp,
+        passportChanged: hasPassportInput,
+        visaChanged: newP.visaMode === "has_visa",
+        supportChanged: newP.visaMode === "needs_support",
       };
     }
 
@@ -638,17 +708,14 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
       oldP.nationality !== newP.nationality;
 
     const passportChanged =
-      newP.visaMode !== "" &&
-      (oldP.visaMode !== newP.visaMode ||
-        oldP.passportNumber !== newP.passportNumber ||
-        oldP.passportNationality !== newP.passportNationality ||
-        oldP.passportIssuedAt !== newP.passportIssuedAt ||
-        oldP.passportExpiresAt !== newP.passportExpiresAt ||
-        oldP.passportFileUrl !== newP.passportFileUrl);
+      oldP.passportNumber !== newP.passportNumber ||
+      oldP.passportNationality !== newP.passportNationality ||
+      oldP.passportIssuedAt !== newP.passportIssuedAt ||
+      oldP.passportExpiresAt !== newP.passportExpiresAt ||
+      oldP.passportFileUrl !== newP.passportFileUrl;
 
     const visaChanged =
       newP.visaMode === "has_visa" &&
-      !newP.hasVisaApp &&
       (oldP.visaMode !== "has_visa" ||
         oldP.destinationCountry !== newP.destinationCountry ||
         oldP.minReturnDate !== newP.minReturnDate ||
@@ -656,7 +723,6 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
 
     const supportChanged =
       newP.visaMode === "needs_support" &&
-      !newP.hasVisaApp &&
       oldP.visaMode !== "needs_support";
 
     return {
@@ -694,6 +760,39 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   const handleSave = async () => {
     if (participants.length === 0) {
       router.push(`/bookings/${bookingId}#visa`);
+      return;
+    }
+
+    // Run individual validation on all active/dirty rows first
+    let hasValidationErrors = false;
+    const errors: Record<string, string> = { ...rowError };
+    const statuses: Record<string, "idle" | "saving" | "saved" | "error"> = { ...rowStatus };
+
+    for (const p of participants) {
+      const oldP = initialSnapshot.find(item => item.id === p.id);
+      const diff = diffParticipant(oldP, p);
+      const isDirty = p.isNew || diff.participantChanged || diff.passportChanged || diff.visaChanged || diff.supportChanged;
+
+      if (isDirty) {
+        const err = validateRow(p);
+        if (err) {
+          hasValidationErrors = true;
+          errors[p.id] = err;
+          statuses[p.id] = "error";
+        } else {
+          // Clear error if it was resolved
+          delete errors[p.id];
+          if (statuses[p.id] === "error") {
+            statuses[p.id] = "idle";
+          }
+        }
+      }
+    }
+
+    if (hasValidationErrors) {
+      setRowStatus(statuses);
+      setRowError(errors);
+      toast.error(t("landing.bookings.addParticipantsPage.saveFailedToastError", "Có lỗi xảy ra khi lưu một số hành khách. Vui lòng kiểm tra lại."));
       return;
     }
 
@@ -757,7 +856,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
         }
 
         let passportId = p.passportId || "";
-        if (isVisaRequired && currentParticipantId && p.visaMode) {
+        if (isVisaRequired && currentParticipantId) {
           if (diff.passportChanged) {
             passportId = await bookingService.upsertParticipantPassport(bookingId, currentParticipantId, {
               passportNumber: p.passportNumber.trim() ? p.passportNumber.trim() : null,
@@ -768,16 +867,40 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
             });
           }
 
-          if (p.visaMode === "has_visa" && diff.visaChanged) {
-            await bookingService.submitVisaApplication(bookingId, {
-              bookingParticipantId: currentParticipantId,
-              passportId: passportId,
-              destinationCountry: p.destinationCountry,
-              minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
-              visaFileUrl: p.visaFileUrl || undefined,
-            });
-          } else if (p.visaMode === "needs_support" && diff.supportChanged) {
-            await bookingService.requestVisaSupport(bookingId, currentParticipantId);
+          if (p.visaMode) {
+            if (p.visaMode === "has_visa" && diff.visaChanged) {
+              if (p.hasVisaApp) {
+                const visaApps = (p as any).visaApplications || [];
+                const latestApp = visaApps[visaApps.length - 1];
+                const applicationId = latestApp?.visaApplicationId ?? latestApp?.id;
+                if (applicationId) {
+                  await bookingService.updateVisaApplication(bookingId, applicationId, {
+                    destinationCountry: p.destinationCountry,
+                    minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
+                    visaFileUrl: p.visaFileUrl || undefined,
+                    isResubmitting: p.infoReviewStatus === "Rejected"
+                  });
+                } else {
+                  await bookingService.submitVisaApplication(bookingId, {
+                    bookingParticipantId: currentParticipantId,
+                    passportId: passportId,
+                    destinationCountry: p.destinationCountry,
+                    minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
+                    visaFileUrl: p.visaFileUrl || undefined,
+                  });
+                }
+              } else {
+                await bookingService.submitVisaApplication(bookingId, {
+                  bookingParticipantId: currentParticipantId,
+                  passportId: passportId,
+                  destinationCountry: p.destinationCountry,
+                  minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
+                  visaFileUrl: p.visaFileUrl || undefined,
+                });
+              }
+            } else if (p.visaMode === "needs_support" && diff.supportChanged) {
+              await bookingService.requestVisaSupport(bookingId, currentParticipantId);
+            }
           }
         }
 
@@ -1071,9 +1194,11 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                       className={`p-1.5 rounded-[2.5rem] bg-slate-200/50 border shadow-[0_15px_30px_-10px_rgba(28,25,23,0.03)] hover:shadow-[0_25px_45px_-15px_rgba(28,25,23,0.06)] transition-all duration-750 ease-[cubic-bezier(0.32,0.72,0,1)] relative overflow-hidden ${
                         highlightedId === p.id 
                           ? "border-amber-400 ring-4 ring-amber-400/20" 
-                          : !p.isNew && p.infoReviewStatus === "Rejected"
-                            ? "border-red-300 ring-2 ring-red-500/5"
-                            : "border-slate-300/30"
+                          : rowStatus[p.id] === "error"
+                            ? "border-red-400 ring-4 ring-red-500/10"
+                            : !p.isNew && p.infoReviewStatus === "Rejected"
+                              ? "border-red-300 ring-2 ring-red-500/5"
+                              : "border-slate-300/30"
                       }`}
                     >
                       <div className="bg-white rounded-[calc(2.5rem-0.375rem)] p-8 md:p-10 relative overflow-hidden border border-slate-100/50 flex flex-col gap-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)]">
@@ -1344,8 +1469,10 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                   {p.visaMode === "has_visa" && (
                                     <>
                                       <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportNumber", "Passport Number")}</label>
+                                        <label htmlFor={`passport-number-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportNumber", "Passport Number")}</label>
                                         <input
+                                          id={`passport-number-${p.id}`}
+                                          name={`passport-number-${p.id}`}
                                           type="text"
                                           value={p.passportNumber}
                                           onChange={(e) => updateParticipant(p.id, "passportNumber", e.target.value)}
@@ -1355,8 +1482,10 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                         />
                                       </div>
                                       <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportNationality", "Quốc gia cấp hộ chiếu")}</label>
+                                        <label htmlFor={`passport-nationality-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportNationality", "Quốc gia cấp hộ chiếu")}</label>
                                         <input
+                                          id={`passport-nationality-${p.id}`}
+                                          name={`passport-nationality-${p.id}`}
                                           type="text"
                                           maxLength={3}
                                           value={p.passportNationality}
@@ -1365,33 +1494,13 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                           disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
                                           className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
                                         />
-                                        {/* Override Checkbox UI (Task 1.6) */}
-                                        <label className="flex items-center gap-2 text-xs text-slate-600 mt-1 font-sans select-none">
-                                          <input
-                                            type="checkbox"
-                                            checked={p.nationalityOverride}
-                                            disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
-                                            onChange={(e) => {
-                                              const checked = e.target.checked;
-                                              if (!checked) {
-                                                // resume sync: overwrite passportNationality về match nationality
-                                                setParticipants(prev => prev.map(pp =>
-                                                  pp.id === p.id
-                                                    ? { ...pp, nationalityOverride: false, passportNationality: pp.nationality }
-                                                    : pp
-                                                ));
-                                              } else {
-                                                updateParticipant(p.id, "nationalityOverride", true);
-                                              }
-                                            }}
-                                            className="rounded border-slate-350 text-slate-900 focus:ring-slate-900 disabled:opacity-50"
-                                          />
-                                          {t("landing.bookings.addParticipantsPage.nationalityMismatchCheckbox", "Hộ chiếu cấp ở quốc gia khác với quốc tịch hiện tại")}
-                                        </label>
+
                                       </div>
                                       <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportIssuedAt", "Issued Date")}</label>
+                                        <label htmlFor={`passport-issued-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.passportIssuedAt", "Issued Date")}</label>
                                         <input
+                                          id={`passport-issued-${p.id}`}
+                                          name={`passport-issued-${p.id}`}
                                           type="date"
                                           value={p.passportIssuedAt}
                                           onChange={(e) => updateParticipant(p.id, "passportIssuedAt", e.target.value)}
@@ -1400,10 +1509,12 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                         />
                                       </div>
                                       <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-bold text-slate-500 font-sans">
+                                        <label htmlFor={`passport-expires-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">
                                           {t("landing.bookings.addParticipantsPage.passportExpiresAt", "Expires Date")} {tourReturnDate && <span className="font-semibold text-slate-400 text-[10px] tracking-tight">({t("landing.bookings.addParticipantsPage.afterDate", "sau")} {tourReturnDate})</span>}
                                         </label>
                                         <input
+                                          id={`passport-expires-${p.id}`}
+                                          name={`passport-expires-${p.id}`}
                                           type="date"
                                           value={p.passportExpiresAt}
                                           onChange={(e) => updateParticipant(p.id, "passportExpiresAt", e.target.value)}
@@ -1422,12 +1533,27 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                     </label>
                                     {p.passportFileUrl ? (
                                       <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]">
-                                        <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                                          <File className="size-5 text-slate-400" />
+                                        <div className="relative size-16 shrink-0">
+                                          <img
+                                            src={p.passportFileUrl}
+                                            alt={t('landing.bookings.addParticipantsPage.passportAlt', 'Passport')}
+                                            className="size-16 rounded-xl object-cover border border-slate-200"
+                                            loading="lazy"
+                                            onError={(e) => {
+                                              e.currentTarget.style.display = 'none';
+                                              (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                                            }}
+                                          />
+                                          <div className="hidden size-16 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center">
+                                            <FileIcon className="size-4 text-slate-400" />
+                                            <span className="text-[8px] text-slate-400 mt-0.5 px-1 text-center leading-tight">
+                                              {t('participantUpload.imageLoadError', 'Không load được ảnh')}
+                                            </span>
+                                          </div>
                                         </div>
                                         <div className="flex-1 min-w-0">
                                           <a href={p.passportFileUrl} target="_blank" rel="noreferrer" className="text-slate-900 hover:text-slate-700 text-xs font-bold truncate block hover:underline font-sans">
-                                            {t("landing.bookings.addParticipantsPage.viewPassport", "Xem ảnh đã tải")}
+                                            {t("landing.bookings.addParticipantsPage.viewPassport", "Xem ảnh đầy đủ")}
                                           </a>
                                           <p className="text-[10px] text-slate-400 font-semibold uppercase font-sans">{t("landing.bookings.addParticipantsPage.uploaded", "ĐÃ TẢI LÊN")}</p>
                                         </div>
@@ -1474,9 +1600,21 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                       </div>
                                     )}
                                     {uploadingFiles[`${p.id}-passportFileUrl`] && (
-                                      <span className="text-[10px] font-bold text-slate-400 mt-2 flex items-center gap-1.5 uppercase tracking-wider pl-1 font-sans">
-                                        <Spinner size={12} className="animate-spin"/> {t("landing.bookings.addParticipantsPage.uploadingStatus", "Đang tải...")}
-                                      </span>
+                                      <div className="mt-2 pl-1">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-sans">
+                                            {uploadProgress[`${p.id}-passportFileUrl`] === 100
+                                              ? t('participantUpload.processing', 'Đang xử lý...')
+                                              : t('participantUpload.uploadProgress', { percent: uploadProgress[`${p.id}-passportFileUrl`] ?? 0 })}
+                                          </span>
+                                        </div>
+                                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                          <div
+                                            className="h-full bg-slate-700 transition-all duration-200"
+                                            style={{ width: `${uploadProgress[`${p.id}-passportFileUrl`] ?? 0}%` }}
+                                          />
+                                        </div>
+                                      </div>
                                     )}
                                   </div>
                                 </div>
@@ -1608,17 +1746,20 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                       )}
 
                       {/* Block 2: Visa Selection blocks - Beautiful interactive options */}
-                      {isVisaActionable(p) && (
+                      {isVisaRequired && (
                         <div className="mt-4 pt-6 border-t border-slate-100 border-dashed">
                           <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 font-sans">{t("landing.bookings.addParticipantsPage.visaStatusHeader", "Tình trạng visa")}</h4>
                           
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             
                             <motion.button
-                              whileTap={{ scale: 0.98 }}
+                              whileTap={isFieldsDisabled ? undefined : { scale: 0.98 }}
                               type="button"
-                              onClick={() => updateParticipant(p.id, "visaMode", "has_visa")}
+                              onClick={() => !isFieldsDisabled && updateParticipant(p.id, "visaMode", "has_visa")}
+                              disabled={isFieldsDisabled}
                               className={`group/btn flex items-start gap-3 p-5 rounded-3xl border-2 text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                                isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
+                              } ${
                                 p.visaMode === "has_visa"
                                   ? "border-slate-950 bg-slate-900 text-white shadow-[0_12px_24px_-10px_rgba(15,23,42,0.15)]"
                                   : "border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50/30 text-slate-800"
@@ -1638,10 +1779,13 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                             </motion.button>
 
                             <motion.button
-                              whileTap={{ scale: 0.98 }}
+                              whileTap={isFieldsDisabled ? undefined : { scale: 0.98 }}
                               type="button"
-                              onClick={() => updateParticipant(p.id, "visaMode", "needs_support")}
+                              onClick={() => !isFieldsDisabled && updateParticipant(p.id, "visaMode", "needs_support")}
+                              disabled={isFieldsDisabled}
                               className={`group/btn flex items-start gap-3 p-5 rounded-3xl border-2 text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                                isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
+                              } ${
                                 p.visaMode === "needs_support"
                                   ? "border-amber-600 bg-amber-50 text-amber-950 shadow-[0_12px_24px_-10px_rgba(217,119,6,0.15)]"
                                   : "border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/5 text-slate-800"
@@ -1674,12 +1818,27 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                   <label className="text-[11px] font-bold text-slate-500 block mb-1.5 font-sans">{t("landing.bookings.addParticipantsPage.visaFileImageLabel", "Ảnh File Visa (tùy chọn)")}</label>
                                   {p.visaFileUrl ? (
                                     <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]">
-                                      <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                                        <File className="size-5 text-slate-400" />
+                                      <div className="relative size-16 shrink-0">
+                                        <img
+                                          src={p.visaFileUrl}
+                                          alt={t('landing.bookings.addParticipantsPage.visaAlt', 'Visa')}
+                                          className="size-16 rounded-xl object-cover border border-slate-200"
+                                          loading="lazy"
+                                          onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                            (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                                          }}
+                                        />
+                                        <div className="hidden size-16 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center">
+                                          <FileIcon className="size-4 text-slate-400" />
+                                          <span className="text-[8px] text-slate-400 mt-0.5 px-1 text-center leading-tight">
+                                            {t('participantUpload.imageLoadError', 'Không load được ảnh')}
+                                          </span>
+                                        </div>
                                       </div>
                                       <div className="flex-1 min-w-0">
                                         <a href={p.visaFileUrl} target="_blank" rel="noreferrer" className="text-slate-900 hover:text-slate-700 text-xs font-bold truncate block hover:underline font-sans">
-                                          {t("landing.bookings.addParticipantsPage.viewVisa", "Xem visa đã tải")}
+                                          {t("landing.bookings.addParticipantsPage.viewVisa", "Xem ảnh đầy đủ")}
                                         </a>
                                         <p className="text-[10px] text-slate-400 font-semibold uppercase font-sans">{t("landing.bookings.addParticipantsPage.uploaded", "ĐÃ TẢI LÊN")}</p>
                                       </div>
@@ -1726,9 +1885,21 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                     </div>
                                   )}
                                   {uploadingFiles[`${p.id}-visaFileUrl`] && (
-                                    <span className="text-[10px] font-bold text-slate-400 mt-2 flex items-center gap-1.5 uppercase tracking-wider pl-1 font-sans">
-                                      <Spinner size={12} className="animate-spin"/> {t("landing.bookings.addParticipantsPage.uploadingStatus", "Đang tải...")}
-                                    </span>
+                                    <div className="mt-2 pl-1">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-sans">
+                                          {uploadProgress[`${p.id}-visaFileUrl`] === 100
+                                            ? t('participantUpload.processing', 'Đang xử lý...')
+                                            : t('participantUpload.uploadProgress', { percent: uploadProgress[`${p.id}-visaFileUrl`] ?? 0 })}
+                                        </span>
+                                      </div>
+                                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div
+                                          className="h-full bg-slate-700 transition-all duration-200"
+                                          style={{ width: `${uploadProgress[`${p.id}-visaFileUrl`] ?? 0}%` }}
+                                        />
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                               </div>

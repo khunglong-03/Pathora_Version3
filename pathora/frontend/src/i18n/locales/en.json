@@ -4220,6 +4220,7 @@
         "savedSuccess": "Saved successfully",
         "saveSuccess": "Saved passenger details successfully.",
         "saveFailed": "Save failed",
+        "validationTypeMismatch": "Age category ({{inferred}}) does not match purchased category ({{designated}}). Please check date of birth.",
         "mismatchToastError": "Passenger structure does not match registration ({{mismatch}}). Please adjust DOB.",
         "saveFailedToastError": "An error occurred while saving some passengers. Please double check.",
         "visaHeader": "Visa Profile — Guest {{index}}",
@@ -4247,6 +4248,8 @@
         "uploadingStatus": "Uploading...",
         "hasVisaTitle": "Already have visa",
         "hasVisaSub": "Enter passport + visa file yourself",
+        "passportAlt": "Passport Image",
+        "visaAlt": "Visa Image",
         "needsVisaSupportTitle": "Need system support",
         "needsVisaSupportSub": "Request visa support (service fee applies)",
         "visaStatusHeader": "Visa status",
@@ -4548,5 +4551,12 @@
       "noActiveTooltip": "No active passengers to review",
       "retryTooltip": "Reload status"
     }
+  },
+  "participantUpload": {
+    "imageLoadError": "Failed to load image",
+    "uploadProgress": "Uploading: {{percent}}%",
+    "processing": "Processing...",
+    "compressing": "Compressing image...",
+    "fileTooLarge": "Image too large, please choose a file under 10MB"
   }
 }

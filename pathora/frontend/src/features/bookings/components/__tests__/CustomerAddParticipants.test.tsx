@@ -1,10 +1,11 @@
 import "@testing-library/jest-dom/vitest";
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CustomerAddParticipants } from "../CustomerAddParticipants";
 import { bookingService } from "@/api/services/bookingService";
+import { fileService } from "@/api/services/fileService";
 import { toast } from "react-toastify";
 
 vi.mock("react-toastify", () => ({
@@ -252,38 +253,22 @@ describe("CustomerAddParticipants", () => {
 
     const guestNatInput = screen.getByPlaceholderText("VN, US, JP...");
     const passportNatInput = screen.getByPlaceholderText("VN");
-    const overrideCheckbox = screen.getByLabelText("Hộ chiếu cấp ở quốc gia khác với quốc tịch hiện tại");
 
     expect(guestNatInput).toHaveValue("VN");
     expect(passportNatInput).toHaveValue("VN");
-    expect(overrideCheckbox).not.toBeChecked();
 
-    // 1. Changing guest nationality -> passport nationality auto syncs
+    // 1. Changing guest nationality -> passport nationality should NOT change (independent)
     fireEvent.change(guestNatInput, { target: { value: "US" } });
     expect(guestNatInput).toHaveValue("US");
-    expect(passportNatInput).toHaveValue("US");
+    expect(passportNatInput).toHaveValue("VN");
 
-    // 2. Changing passport nationality -> guest nationality auto syncs
+    // 2. Changing passport nationality -> guest nationality should NOT change (independent)
     fireEvent.change(passportNatInput, { target: { value: "JP" } });
-    expect(guestNatInput).toHaveValue("JP");
+    expect(guestNatInput).toHaveValue("US");
     expect(passportNatInput).toHaveValue("JP");
-
-    // 3. Tick override checkbox -> sync breaks
-    fireEvent.click(overrideCheckbox);
-    expect(overrideCheckbox).toBeChecked();
-
-    // Change guest nationality -> passport nationality should NOT change
-    fireEvent.change(guestNatInput, { target: { value: "FR" } });
-    expect(guestNatInput).toHaveValue("FR");
-    expect(passportNatInput).toHaveValue("JP");
-
-    // 4. Untick override checkbox -> resumes sync, passport nationality resets to match guest nationality
-    fireEvent.click(overrideCheckbox);
-    expect(overrideCheckbox).not.toBeChecked();
-    expect(passportNatInput).toHaveValue("FR");
   });
 
-  it("detects initial override state correctly when loading existing participants", async () => {
+  it("loads nationality and passport nationality correctly when they differ", async () => {
     getBookingDetailMock.mockResolvedValue({
       id: "bk-123",
       adults: 2,
@@ -325,14 +310,14 @@ describe("CustomerAddParticipants", () => {
       expect(screen.getByText("Guest 2")).toBeInTheDocument();
     });
 
-    const checkboxes = screen.getAllByLabelText("Hộ chiếu cấp ở quốc gia khác với quốc tịch hiện tại");
-    expect(checkboxes.length).toBe(2);
+    const guestNatInputs = screen.getAllByPlaceholderText("VN, US, JP...");
+    const passportNatInputs = screen.getAllByPlaceholderText("VN");
 
-    // Guest 1: nationality VN, passport nationality VN -> override unchecked
-    expect(checkboxes[0]).not.toBeChecked();
+    expect(guestNatInputs[0]).toHaveValue("VN");
+    expect(passportNatInputs[0]).toHaveValue("VN");
 
-    // Guest 2: nationality VN, passport nationality US -> override checked
-    expect(checkboxes[1]).toBeChecked();
+    expect(guestNatInputs[1]).toHaveValue("VN");
+    expect(passportNatInputs[1]).toHaveValue("US");
   });
 
   it("pre-fills booker fullName to participant 1 when no existing participants exist", async () => {
@@ -478,4 +463,292 @@ describe("CustomerAddParticipants", () => {
     expect(screen.getByRole("button", { name: "Tiếp tục sửa" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Huỷ bỏ" })).toBeInTheDocument();
   });
+
+  it("renders passport preview image with correct URL and alt text", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: true,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Test Passenger",
+        dateOfBirth: "1995-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+        passport: {
+          passportNumber: "P123",
+          nationality: "VN",
+          issuedAt: "2020-01-01",
+          expiresAt: "2030-01-01",
+          fileUrl: "https://example.com/passport.jpg",
+        },
+      },
+    ]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    const passportImg = screen.getByAltText("Passport");
+    expect(passportImg).toBeInTheDocument();
+    expect(passportImg).toHaveAttribute("src", "https://example.com/passport.jpg");
+  });
+
+  it("renders visa preview image with correct URL and alt text after selecting visa status", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: true,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Test Passenger",
+        dateOfBirth: "1995-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+        visaApplications: [
+          {
+            destinationCountry: "JP",
+            minReturnDate: "2026-07-01",
+            visaFileUrl: "https://example.com/visa.jpg",
+          }
+        ]
+      },
+    ]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    // Click "Đã có visa" button to set visaMode = "has_visa"
+    fireEvent.click(screen.getByText("Đã có visa"));
+
+    const visaImg = screen.getByAltText("Visa");
+    expect(visaImg).toBeInTheDocument();
+    expect(visaImg).toHaveAttribute("src", "https://example.com/visa.jpg");
+  });
+
+  it("hides the image and shows the file error fallback when image load fails (onError)", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: true,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Test Passenger",
+        dateOfBirth: "1995-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+        passport: {
+          passportNumber: "P123",
+          nationality: "VN",
+          issuedAt: "2020-01-01",
+          expiresAt: "2030-01-01",
+          fileUrl: "https://example.com/passport.jpg",
+        },
+      },
+    ]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    const passportImg = screen.getByAltText("Passport");
+    expect(passportImg).toBeInTheDocument();
+
+    // Trigger onError event on the image
+    fireEvent.error(passportImg);
+
+    expect(passportImg).toHaveStyle({ display: "none" });
+    const fallbackText = screen.getByText("Không load được ảnh");
+    expect(fallbackText).toBeInTheDocument();
+  });
+
+  it("rejects files larger than 10MB and shows toast error", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: true,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Test Passenger",
+        dateOfBirth: "1995-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+        passport: {
+          passportNumber: "P123",
+          nationality: "VN",
+          issuedAt: "2020-01-01",
+          expiresAt: "2030-01-01",
+          fileUrl: "",
+        },
+      },
+    ]);
+
+    const { container } = render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    const fileInput = container.querySelector('input[type="file"]');
+    expect(fileInput).toBeInTheDocument();
+
+    // Create file larger than 10MB
+    const largeFile = new File(["dummy"], "large.jpg", { type: "image/jpeg" });
+    Object.defineProperty(largeFile, "size", { value: 11 * 1024 * 1024 });
+
+    fireEvent.change(fileInput!, { target: { files: [largeFile] } });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Ảnh quá lớn, vui lòng chọn file dưới 10MB");
+      expect(vi.mocked(fileService.uploadFile)).not.toHaveBeenCalled();
+    });
+  });
+
+  it("updates progress bar during upload and displays processing when upload is complete", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: true,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Test Passenger",
+        dateOfBirth: "1995-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+        passport: {
+          passportNumber: "P123",
+          nationality: "VN",
+          issuedAt: "2020-01-01",
+          expiresAt: "2030-01-01",
+          fileUrl: "",
+        },
+      },
+    ]);
+
+    let triggerProgress: ((percent: number) => void) | undefined;
+    let resolveUpload: ((value: any) => void) | undefined;
+
+    vi.mocked(fileService.uploadFile).mockImplementation((_file, options) => {
+      triggerProgress = options?.onProgress;
+      return new Promise((resolve) => {
+        resolveUpload = resolve;
+      });
+    });
+
+    const { container } = render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    const fileInput = container.querySelector('input[type="file"]');
+    expect(fileInput).toBeInTheDocument();
+
+    // Use a non-image file type to skip compressImage canvas flow in jsdom environment
+    const testFile = new File(["dummy"], "passport.pdf", { type: "application/pdf" });
+
+    fireEvent.change(fileInput!, { target: { files: [testFile] } });
+
+    // Wait for the mock to be called and capture progress trigger
+    await waitFor(() => {
+      expect(triggerProgress).toBeDefined();
+    });
+
+    // Simulate 50% progress
+    act(() => {
+      triggerProgress!(50);
+    });
+    await waitFor(() => {
+      const progressBar = container.querySelector('.bg-slate-700');
+      expect(progressBar).toHaveStyle({ width: '50%' });
+    });
+
+    // Simulate 100% progress
+    act(() => {
+      triggerProgress!(100);
+    });
+    await waitFor(() => {
+      const progressBar = container.querySelector('.bg-slate-700');
+      expect(progressBar).toHaveStyle({ width: '100%' });
+      expect(screen.getByText("Đang xử lý...")).toBeInTheDocument();
+    });
+
+    // Resolve upload response
+    act(() => {
+      resolveUpload!({ url: "https://example.com/new-passport.jpg" });
+    });
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("landing.bookings.addParticipantsPage.savedSuccess");
+    });
+  });
+
+  it("validates age mismatch between participantType and designatedType on save and marks card with error", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 1,
+      children: 0,
+      infants: 0,
+      isVisaRequired: false,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Child In Adult Seat",
+        dateOfBirth: "2020-05-15",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Child",
+        designatedType: "Adult",
+      },
+    ]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    // Triggers mismatch validation on save
+    const saveButton = screen.getByText("Lưu thông tin hành khách");
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Có lỗi xảy ra khi lưu một số hành khách. Vui lòng kiểm tra lại.");
+      expect(bookingService.updateParticipant).not.toHaveBeenCalled();
+    });
+  });
 });
+

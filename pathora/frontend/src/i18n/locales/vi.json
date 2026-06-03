@@ -4206,6 +4206,7 @@
         "savedSuccess": "Đã lưu thành công",
         "saveSuccess": "Lưu thông tin hành khách thành công.",
         "saveFailed": "Lưu thông tin thất bại",
+        "validationTypeMismatch": "Phân loại độ tuổi ({{inferred}}) không khớp với loại chỗ đã đặt mua ({{designated}}). Vui lòng kiểm tra lại ngày sinh.",
         "mismatchToastError": "Cơ cấu hành khách không khớp với đăng ký ({{mismatch}}). Vui lòng điều chỉnh lại ngày sinh.",
         "saveFailedToastError": "Có lỗi xảy ra khi lưu một số hành khách. Vui lòng kiểm tra lại.",
         "visaHeader": "Hồ sơ visa — Hành khách {{index}}",
@@ -4233,6 +4234,8 @@
         "uploadingStatus": "Đang tải...",
         "hasVisaTitle": "Đã có visa",
         "hasVisaSub": "Tự nhập passport + file visa",
+        "passportAlt": "Ảnh Passport",
+        "visaAlt": "Ảnh Visa",
         "needsVisaSupportTitle": "Cần hệ thống hỗ trợ",
         "needsVisaSupportSub": "Yêu cầu làm visa (có tính phí dịch vụ)",
         "visaStatusHeader": "Tình trạng visa",
@@ -4534,5 +4537,12 @@
       "noActiveTooltip": "Không có hành khách để duyệt",
       "retryTooltip": "Tải lại trạng thái"
     }
+  },
+  "participantUpload": {
+    "imageLoadError": "Không load được ảnh",
+    "uploadProgress": "Đang tải: {{percent}}%",
+    "processing": "Đang xử lý...",
+    "compressing": "Đang nén ảnh...",
+    "fileTooLarge": "Ảnh quá lớn, vui lòng chọn file dưới 10MB"
   }
 }

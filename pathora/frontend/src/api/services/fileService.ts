@@ -8,13 +8,23 @@ export interface FileMetadata {
   size: number;
 }
 
+export interface UploadOptions {
+  onProgress?: (percent: number) => void;
+}
+
 export const fileService = {
   /** Upload a single file. Returns the stored file metadata (including public URL). */
-  uploadFile: async (file: File): Promise<FileMetadata> => {
+  uploadFile: async (file: File, options?: UploadOptions): Promise<FileMetadata> => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await api.post<FileMetadata>("/api/file/upload", formData);
+    const res = await api.post<FileMetadata>("/api/file/upload", formData, {
+      onUploadProgress: (e) => {
+        if (e.total) {
+          options?.onProgress?.(Math.round((e.loaded / e.total) * 100));
+        }
+      }
+    });
     return res.data;
   },
 
