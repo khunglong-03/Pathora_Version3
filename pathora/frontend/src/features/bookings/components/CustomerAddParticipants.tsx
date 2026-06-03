@@ -39,6 +39,10 @@ interface Participant {
   destinationCountry: string;
   minReturnDate: string;
   visaFileUrl: string;
+
+  // Review fields
+  infoReviewStatus?: "NotReviewed" | "Approved" | "Rejected";
+  infoRejectionReason?: string | null;
 }
 
 const blankVisaFields = (defaults?: { nationality?: string; minReturnDate?: string }): Pick<
@@ -229,6 +233,9 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [bookingPax, setBookingPax] = useState({ adults: 0, children: 0, infants: 0 });
   const [bookerName, setBookerName] = useState<string>("");
+  const [unlockedApprovedIds, setUnlockedApprovedIds] = useState<string[]>([]);
+  const [confirmUnlockId, setConfirmUnlockId] = useState<string | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const isVisaActionable = (p: Participant): boolean => {
     if (!isVisaRequired) return false;
@@ -239,6 +246,26 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
+
+  useEffect(() => {
+    if (isLoading || participants.length === 0) return;
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (hash && hash.startsWith("#participant-")) {
+      const id = hash.replace("#participant-", "");
+      setHighlightedId(id);
+      setTimeout(() => {
+        const el = document.getElementById(`participant-${id}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 500);
+      const timer = setTimeout(() => {
+        setHighlightedId(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, participants]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -293,6 +320,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
           minReturnDate: latestApp?.minReturnDate ? latestApp.minReturnDate.split("T")[0] : returnDateIso,
           visaFileUrl: latestApp?.visaFileUrl ?? "",
           passportId: p.passport?.passportId ?? p.passport?.id ?? "",
+          infoReviewStatus: p.infoReviewStatus || "NotReviewed",
+          infoRejectionReason: p.infoRejectionReason ?? null,
         };
       });
 
@@ -322,6 +351,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
           hasVisaApp: false,
           isNew: true,
           ...blankVisaFields({ nationality: "VN", minReturnDate: returnDateIso }),
+          infoReviewStatus: "NotReviewed",
+          infoRejectionReason: null,
         });
       };
       for (let i = 0; i < remainingByType.Adult; i++) pushBlank("Adult");
@@ -906,70 +937,155 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                 </div>
               </div>
 
-              {participants.map((p, index) => (
-                <React.Fragment key={p.id}>
-                  {/* Card 1: Basic details and Passport if isVisaRequired */}
-                  <motion.div
-                    variants={cardVariants}
-                    className="p-1.5 rounded-[2.5rem] bg-slate-200/50 border border-slate-300/30 shadow-[0_15px_30px_-10px_rgba(28,25,23,0.03)] hover:shadow-[0_25px_45px_-15px_rgba(28,25,23,0.06)] transition-all duration-750 ease-[cubic-bezier(0.32,0.72,0,1)] relative overflow-hidden"
-                  >
-                    <div className="bg-white rounded-[calc(2.5rem-0.375rem)] p-8 md:p-10 relative overflow-hidden border border-slate-100/50 flex flex-col gap-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)]">
-                      
-                      {/* Decorative color border on side matching status */}
-                      <div className={`absolute left-0 top-0 bottom-0 w-2 ${
-                        rowStatus[p.id] === "saved" ? "bg-emerald-500" :
-                        rowStatus[p.id] === "error" ? "bg-red-500" :
-                        rowStatus[p.id] === "saving" ? "bg-slate-400" :
-                        "bg-slate-200/60"
-                      }`} />
-
-                      {/* Title & Top indicators */}
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-2xl font-bold tracking-tight text-slate-900">
-                          {t("landing.bookings.addParticipantsPage.guestNumberWithDesignated", {
-                            index: index + 1,
-                            type: t(`landing.bookings.addParticipantsPage.${(p.designatedType || p.participantType).toLowerCase()}`)
-                          })}
-                        </h3>
+              {participants.map((p, index) => {
+                const isFieldsDisabled = !p.isNew && p.infoReviewStatus === "Approved" && !unlockedApprovedIds.includes(p.id);
+                return (
+                  <React.Fragment key={p.id}>
+                    {/* Card 1: Basic details and Passport if isVisaRequired */}
+                    <motion.div
+                      id={`participant-${p.id}`}
+                      variants={cardVariants}
+                      className={`p-1.5 rounded-[2.5rem] bg-slate-200/50 border shadow-[0_15px_30px_-10px_rgba(28,25,23,0.03)] hover:shadow-[0_25px_45px_-15px_rgba(28,25,23,0.06)] transition-all duration-750 ease-[cubic-bezier(0.32,0.72,0,1)] relative overflow-hidden ${
+                        highlightedId === p.id 
+                          ? "border-amber-400 ring-4 ring-amber-400/20" 
+                          : !p.isNew && p.infoReviewStatus === "Rejected"
+                            ? "border-red-300 ring-2 ring-red-500/5"
+                            : "border-slate-300/30"
+                      }`}
+                    >
+                      <div className="bg-white rounded-[calc(2.5rem-0.375rem)] p-8 md:p-10 relative overflow-hidden border border-slate-100/50 flex flex-col gap-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)]">
                         
-                        <div className="flex items-center gap-2">
-                          <AnimatePresence mode="wait">
-                            {rowStatus[p.id] === "saving" && (
-                              <motion.span
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 text-xs font-extrabold rounded-full border border-slate-200"
-                              >
-                                <Spinner className="animate-spin size-3.5" />
-                                {t("landing.bookings.addParticipantsPage.saving")}
-                              </motion.span>
-                            )}
-                            {rowStatus[p.id] === "saved" && (
-                              <motion.span
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-100"
-                              >
-                                <CheckCircle weight="fill" className="size-4 text-emerald-600" />
-                                {t("landing.bookings.addParticipantsPage.saved")}
-                              </motion.span>
-                            )}
-                            {rowStatus[p.id] === "error" && (
-                              <motion.span
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 text-xs font-extrabold rounded-full border border-red-100"
-                              >
-                                <WarningCircle weight="fill" className="size-4 text-red-600" />
-                                {t("landing.bookings.addParticipantsPage.error")}
-                              </motion.span>
-                            )}
-                          </AnimatePresence>
+                        {/* Decorative color border on side matching status */}
+                        <div className={`absolute left-0 top-0 bottom-0 w-2 ${
+                          rowStatus[p.id] === "saved" ? "bg-emerald-500" :
+                          rowStatus[p.id] === "error" ? "bg-red-500" :
+                          rowStatus[p.id] === "saving" ? "bg-slate-400" :
+                          !p.isNew && p.infoReviewStatus === "Approved" ? "bg-emerald-500" :
+                          !p.isNew && p.infoReviewStatus === "Rejected" ? "bg-red-500" :
+                          "bg-slate-200/60"
+                        }`} />
+
+                        {/* Title & Top indicators */}
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-2xl font-bold tracking-tight text-slate-900">
+                            {t("landing.bookings.addParticipantsPage.guestNumberWithDesignated", {
+                              index: index + 1,
+                              type: t(`landing.bookings.addParticipantsPage.${(p.designatedType || p.participantType).toLowerCase()}`)
+                            })}
+                          </h3>
+                          
+                          <div className="flex items-center gap-2">
+                            <AnimatePresence mode="wait">
+                              {!p.isNew && p.infoReviewStatus === "Approved" && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100">
+                                  <CheckCircle weight="fill" className="size-3.5 text-emerald-600" />
+                                  {t("landing.bookings.addParticipantsPage.statusApproved", "Đã duyệt")}
+                                </span>
+                              )}
+                              {!p.isNew && p.infoReviewStatus === "Rejected" && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 text-xs font-bold rounded-full border border-red-100">
+                                  <WarningCircle weight="fill" className="size-3.5 text-red-600" />
+                                  {t("landing.bookings.addParticipantsPage.statusRejected", "Từ chối")}
+                                </span>
+                              )}
+                              {!p.isNew && p.infoReviewStatus === "NotReviewed" && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-500 text-xs font-bold rounded-full border border-slate-200">
+                                  <Info weight="fill" className="size-3.5 text-slate-400" />
+                                  {t("landing.bookings.addParticipantsPage.statusNotReviewed", "Chờ duyệt")}
+                                </span>
+                              )}
+
+                              {rowStatus[p.id] === "saving" && (
+                                <motion.span
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.9 }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 text-xs font-extrabold rounded-full border border-slate-200"
+                                >
+                                  <Spinner className="animate-spin size-3.5" />
+                                  {t("landing.bookings.addParticipantsPage.saving")}
+                                </motion.span>
+                              )}
+                              {rowStatus[p.id] === "saved" && (
+                                <motion.span
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.9 }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-100"
+                                >
+                                  <CheckCircle weight="fill" className="size-4 text-emerald-600" />
+                                  {t("landing.bookings.addParticipantsPage.saved")}
+                                </motion.span>
+                              )}
+                              {rowStatus[p.id] === "error" && (
+                                <motion.span
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.9 }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 text-xs font-extrabold rounded-full border border-red-100"
+                                >
+                                  <WarningCircle weight="fill" className="size-4 text-red-600" />
+                                  {t("landing.bookings.addParticipantsPage.error")}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
-                      </div>
+
+                        {/* Rejected Warn Banner */}
+                        {!p.isNew && p.infoReviewStatus === "Rejected" && (
+                          <div className="flex flex-col gap-4 bg-red-50 border border-red-200 p-5 rounded-3xl mb-2">
+                            <div className="flex items-start gap-3">
+                              <WarningCircle weight="fill" className="size-5 text-red-600 shrink-0 mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-red-800 font-bold">
+                                  {t("participantReview.customerBanner.title", "Thông tin hành khách bị từ chối duyệt")}
+                                </p>
+                                <p className="text-xs text-red-700 font-semibold mt-1 leading-relaxed">
+                                  {t("landing.bookings.addParticipantsPage.rejectedBannerReason", "Lý do: ")} {p.infoRejectionReason || t("landing.bookings.addParticipantsPage.noReasonProvided", "Cần cập nhật lại thông tin chính xác.")}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 pl-8">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const nameInput = document.getElementById(`participant-${p.id}`)?.querySelector('input');
+                                  if (nameInput) (nameInput as HTMLInputElement).focus();
+                                }}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
+                              >
+                                {t("participantReview.customerBanner.cta", "Cập nhật thông tin")}
+                              </button>
+                              <a
+                                href="tel:19001234"
+                                className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all shadow-sm inline-flex items-center gap-1.5"
+                              >
+                                <HandHeart className="size-3.5 text-slate-500" />
+                                {t("participantReview.customerBanner.hotline", "Liên hệ hotline")}
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Approved Lock Alert Banner */}
+                        {isFieldsDisabled && (
+                          <div className="flex items-center justify-between gap-3 bg-amber-50/60 border border-amber-250 p-4 rounded-2xl mb-2">
+                            <div className="flex items-center gap-2">
+                              <WarningCircle weight="fill" className="size-5 text-amber-500 shrink-0" />
+                              <p className="text-xs text-amber-800 font-semibold leading-normal">
+                                {t("landing.bookings.addParticipantsPage.approvedLockWarning", "Thông tin đã được duyệt. Sửa đổi sẽ yêu cầu duyệt lại.")}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmUnlockId(p.id)}
+                              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
+                            >
+                              {t("landing.bookings.addParticipantsPage.unlockBtn", "Mở khóa chỉnh sửa")}
+                            </button>
+                          </div>
+                        )}
 
                       {isVisaRequired ? (
                         <div className="border border-slate-200/60 rounded-3xl p-6 md:p-8 bg-slate-50/30">
@@ -987,7 +1103,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                 value={p.fullName}
                                 onChange={(e) => updateParticipant(p.id, "fullName", e.target.value)}
                                 placeholder={t("landing.bookings.addParticipantsPage.fullNamePlaceholder")}
-                                className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900"
+                                disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
                               />
                               {index === 0 && p.isNew && bookerName && p.fullName === bookerName && (
                                 <p className="text-[10px] text-slate-400 mt-1 font-sans">{t("landing.bookings.addParticipantsPage.prefilledNote")}</p>
@@ -1002,7 +1119,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                 value={p.dob}
                                 onChange={(val) => handleDobChange(p.id, val)}
                                 t={t}
-                                disabled={rowStatus[p.id] === "saving"}
+                                disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
                               />
                               {p.dob && (() => {
                                 const age = getAgeFromDob(p.dob);
@@ -1036,7 +1153,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                               <select
                                 value={p.gender}
                                 onChange={(e) => updateParticipant(p.id, "gender", Number(e.target.value))}
-                                className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900"
+                                disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
                               >
                                 <option value={0}>{t("landing.bookings.addParticipantsPage.male", "Nam")}</option>
                                 <option value={1}>{t("landing.bookings.addParticipantsPage.female", "Nữ")}</option>
@@ -1052,7 +1170,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                 maxLength={3}
                                 onChange={(e) => updateNationality(p.id, "guest", e.target.value.toUpperCase())}
                                 placeholder={t("landing.bookings.addParticipantsPage.nationalityPlaceholder", "VN, US, JP...")}
-                                className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900"
+                                disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none font-semibold text-slate-900 disabled:bg-slate-100 disabled:text-slate-400"
                               />
                             </div>
 
@@ -1108,7 +1227,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                           value={p.passportNumber}
                                           onChange={(e) => updateParticipant(p.id, "passportNumber", e.target.value)}
                                           placeholder={t("landing.bookings.addParticipantsPage.passportNumberPlaceholder", "C1234567")}
-                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans"
+                                          disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
                                         />
                                       </div>
                                       <div className="flex flex-col gap-1.5">
@@ -1119,13 +1239,15 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                           value={p.passportNationality}
                                           onChange={(e) => updateNationality(p.id, "passport", e.target.value.toUpperCase())}
                                           placeholder="VN"
-                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans"
+                                          disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
                                         />
                                         {/* Override Checkbox UI (Task 1.6) */}
                                         <label className="flex items-center gap-2 text-xs text-slate-600 mt-1 font-sans select-none">
                                           <input
                                             type="checkbox"
                                             checked={p.nationalityOverride}
+                                            disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
                                             onChange={(e) => {
                                               const checked = e.target.checked;
                                               if (!checked) {
@@ -1139,7 +1261,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                                 updateParticipant(p.id, "nationalityOverride", true);
                                               }
                                             }}
-                                            className="rounded border-slate-350 text-slate-900 focus:ring-slate-900"
+                                            className="rounded border-slate-350 text-slate-900 focus:ring-slate-900 disabled:opacity-50"
                                           />
                                           {t("landing.bookings.addParticipantsPage.nationalityMismatchCheckbox", "Hộ chiếu cấp ở quốc gia khác với quốc tịch hiện tại")}
                                         </label>
@@ -1150,7 +1272,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                           type="date"
                                           value={p.passportIssuedAt}
                                           onChange={(e) => updateParticipant(p.id, "passportIssuedAt", e.target.value)}
-                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans"
+                                          disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
                                         />
                                       </div>
                                       <div className="flex flex-col gap-1.5">
@@ -1161,7 +1284,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                           type="date"
                                           value={p.passportExpiresAt}
                                           onChange={(e) => updateParticipant(p.id, "passportExpiresAt", e.target.value)}
-                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans"
+                                          disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
                                         />
                                       </div>
                                     </>
@@ -1184,17 +1308,19 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                           </a>
                                           <p className="text-[10px] text-slate-400 font-semibold uppercase font-sans">{t("landing.bookings.addParticipantsPage.uploaded", "ĐÃ TẢI LÊN")}</p>
                                         </div>
-                                        <label className="cursor-pointer px-3.5 py-2 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 text-[10px] font-extrabold rounded-xl hover:bg-slate-100 transition-colors active:scale-[0.98] shrink-0 select-none font-sans">
-                                          {t("landing.bookings.addParticipantsPage.changeImage", "Đổi ảnh")}
-                                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                            if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
-                                          }} />
-                                        </label>
+                                        {!isFieldsDisabled && (
+                                          <label className="cursor-pointer px-3.5 py-2 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 text-[10px] font-extrabold rounded-xl hover:bg-slate-100 transition-colors active:scale-[0.98] shrink-0 select-none font-sans">
+                                            {t("landing.bookings.addParticipantsPage.changeImage", "Đổi ảnh")}
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                              if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
+                                            }} />
+                                          </label>
+                                        )}
                                       </div>
                                     ) : (
                                       <div className="relative">
                                         <label className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 ${
-                                          uploadingFiles[`${p.id}-passportFileUrl`] ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
+                                          uploadingFiles[`${p.id}-passportFileUrl`] || isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
                                         }`}>
                                           <input
                                             type="file"
@@ -1202,7 +1328,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                             onChange={(e) => {
                                               if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
                                             }}
-                                            disabled={uploadingFiles[`${p.id}-passportFileUrl`]}
+                                            disabled={uploadingFiles[`${p.id}-passportFileUrl`] || isFieldsDisabled}
                                             className="hidden"
                                           />
                                           <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2.5 group-hover/upload:scale-105 transition-transform duration-500">
@@ -1484,7 +1610,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                               value={p.destinationCountry}
                               onChange={(e) => updateParticipant(p.id, "destinationCountry", e.target.value.toUpperCase())}
                               placeholder={t("landing.bookings.addParticipantsPage.destinationCountryPlaceholder", "JP, US, KR...")}
-                              disabled={!p.isNew && p.hasVisaApp}
+                              disabled={isFieldsDisabled || (!p.isNew && p.hasVisaApp)}
                               className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
                             />
                           </div>
@@ -1494,7 +1620,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                               type="date"
                               value={p.minReturnDate}
                               onChange={(e) => updateParticipant(p.id, "minReturnDate", e.target.value)}
-                              disabled={!p.isNew && p.hasVisaApp}
+                              disabled={isFieldsDisabled || (!p.isNew && p.hasVisaApp)}
                               className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
                             />
                           </div>
@@ -1511,17 +1637,19 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                   </a>
                                   <p className="text-[10px] text-slate-400 font-semibold uppercase font-sans">{t("landing.bookings.addParticipantsPage.uploaded", "ĐÃ TẢI LÊN")}</p>
                                 </div>
-                                <label className="cursor-pointer px-3.5 py-2 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 text-[10px] font-extrabold rounded-xl hover:bg-slate-100 transition-colors active:scale-[0.98] shrink-0 select-none font-sans">
-                                  {t("landing.bookings.addParticipantsPage.changeImage", "Đổi ảnh")}
-                                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                    if (e.target.files?.[0]) handleFileUpload(p.id, "visaFileUrl", e.target.files[0]);
-                                  }} />
-                                </label>
+                                {!isFieldsDisabled && !p.hasVisaApp && (
+                                  <label className="cursor-pointer px-3.5 py-2 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 text-[10px] font-extrabold rounded-xl hover:bg-slate-100 transition-colors active:scale-[0.98] shrink-0 select-none font-sans">
+                                    {t("landing.bookings.addParticipantsPage.changeImage", "Đổi ảnh")}
+                                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                      if (e.target.files?.[0]) handleFileUpload(p.id, "visaFileUrl", e.target.files[0]);
+                                    }} />
+                                  </label>
+                                )}
                               </div>
                             ) : (
                               <div className="relative">
                                 <label className={`group/upload cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-slate-400 bg-white rounded-2xl p-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-50/50 ${
-                                  uploadingFiles[`${p.id}-visaFileUrl`] ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
+                                  uploadingFiles[`${p.id}-visaFileUrl`] || isFieldsDisabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""
                                 }`}>
                                   <input
                                     type="file"
@@ -1529,7 +1657,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                     onChange={(e) => {
                                       if (e.target.files?.[0]) handleFileUpload(p.id, "visaFileUrl", e.target.files[0]);
                                     }}
-                                    disabled={uploadingFiles[`${p.id}-visaFileUrl`]}
+                                    disabled={uploadingFiles[`${p.id}-visaFileUrl`] || isFieldsDisabled}
                                     className="hidden"
                                   />
                                   <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-2.5 group-hover/upload:scale-105 transition-transform duration-500">
@@ -1551,7 +1679,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                     </motion.div>
                   )}
                 </React.Fragment>
-              ))}
+              );
+            })}
             </motion.div>
 
             {/* Bottom Stream CTA Buttons */}
@@ -1602,13 +1731,59 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                 </div>
               </motion.button>
             </div>
-
           </div>
-
         </div>
-
       </div>
 
+      {/* Unlock Confirmation Modal */}
+      <AnimatePresence>
+        {confirmUnlockId && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white rounded-[2rem] p-8 max-w-md w-full border border-slate-100 shadow-[0_30px_60px_-15px_rgba(15,23,42,0.3)] flex flex-col gap-6"
+            >
+              <div className="flex items-start gap-4">
+                <div className="size-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                  <WarningCircle weight="bold" className="size-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
+                    {t("participantReview.editWarning.title", "Hành khách này đã được duyệt")}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">
+                    {t("participantReview.editWarning.body", "Chỉnh sửa sẽ huỷ trạng thái duyệt và phải chờ Tour Operator duyệt lại.")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmUnlockId(null)}
+                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
+                >
+                  {t("participantReview.editWarning.cancel", "Huỷ bỏ")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirmUnlockId) {
+                      setUnlockedApprovedIds(prev => [...prev, confirmUnlockId]);
+                      setConfirmUnlockId(null);
+                    }
+                  }}
+                  className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
+                >
+                  {t("participantReview.editWarning.continue", "Tiếp tục sửa")}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

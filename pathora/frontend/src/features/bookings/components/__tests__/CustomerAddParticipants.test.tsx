@@ -31,6 +31,10 @@ vi.mock("react-i18next", () => {
   };
   return {
     useTranslation: () => ({ t }),
+    initReactI18next: {
+      type: "3rdParty",
+      init: () => {},
+    },
   };
 });
 
@@ -391,5 +395,87 @@ describe("CustomerAddParticipants", () => {
     // Should NOT pre-fill since it is an existing participant
     expect(nameInput).toHaveValue("Existing Guest Name");
     expect(screen.queryByText("Tự điền từ thông tin đặt — chỉnh nếu khách khác.")).not.toBeInTheDocument();
+  });
+
+  it("renders rejected warning banner with custom CTA buttons", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 2,
+      children: 0,
+      infants: 0,
+      isVisaRequired: false,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Nguyễn Văn A",
+        dateOfBirth: "1990-01-01",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+        infoReviewStatus: "Rejected",
+        infoRejectionReason: "Sai ngày sinh trên hộ chiếu",
+      },
+      {
+        participantId: "p-uuid-2",
+        fullName: "Nguyễn Văn B",
+        dateOfBirth: "1995-05-05",
+        gender: 1,
+        nationality: "VN",
+        participantType: "Adult",
+        infoReviewStatus: "Approved",
+      }
+    ]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    // Check Rejected warning banner text and reasons
+    expect(screen.getByText(/Sai ngày sinh trên hộ chiếu/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cập nhật thông tin" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Liên hệ hotline/ })).toBeInTheDocument();
+  });
+
+  it("triggers edit warning confirmation modal when unlocking approved participant", async () => {
+    getBookingDetailMock.mockResolvedValue({
+      id: "bk-123",
+      adults: 2,
+      children: 0,
+      infants: 0,
+      isVisaRequired: false,
+    } as any);
+    getParticipantsMock.mockResolvedValue([
+      {
+        participantId: "p-uuid-1",
+        fullName: "Nguyễn Văn A",
+        dateOfBirth: "1990-01-01",
+        gender: 0,
+        nationality: "VN",
+        participantType: "Adult",
+        infoReviewStatus: "Approved",
+      }
+    ]);
+
+    render(<CustomerAddParticipants bookingId="bk-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Guest 1")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Thông tin đã được duyệt. Sửa đổi sẽ yêu cầu duyệt lại.")).toBeInTheDocument();
+
+    const unlockBtn = screen.getByRole("button", { name: "Mở khóa chỉnh sửa" });
+    expect(unlockBtn).toBeInTheDocument();
+
+    // Click Mở khóa chỉnh sửa to trigger modal
+    fireEvent.click(unlockBtn);
+
+    expect(screen.getByText("Hành khách này đã được duyệt")).toBeInTheDocument();
+    expect(screen.getByText("Chỉnh sửa sẽ huỷ trạng thái duyệt và phải chờ Tour Operator duyệt lại.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tiếp tục sửa" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Huỷ bỏ" })).toBeInTheDocument();
   });
 });

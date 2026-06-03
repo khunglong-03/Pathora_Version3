@@ -128,7 +128,12 @@ public sealed class BookingManagementApiControllerTests
             null,
             ReservationStatus.Pending,
             null,
-            new List<VisaApplicationDto>());
+            new List<VisaApplicationDto>(),
+            ParticipantInfoReviewStatus.NotReviewed,
+            null,
+            null,
+            null,
+            null);
 
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<BookingManagementController, GetBookingParticipantsQuery, List<ParticipantDto>>(

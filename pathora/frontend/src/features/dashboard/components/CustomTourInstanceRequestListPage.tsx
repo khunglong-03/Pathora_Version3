@@ -459,6 +459,7 @@ export function CustomTourInstanceRequestListPage({
                                 src={inst.thumbnail.publicURL}
                                 alt={inst.title || inst.tourName}
                                 className="w-full h-full object-cover"
+                                style={{ height: "100%", width: "100%", objectFit: "cover" }}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-amber-600">
@@ -598,7 +599,7 @@ export function CustomTourInstanceRequestListPage({
                     <div className="w-full h-48 rounded-2xl overflow-hidden bg-stone-100">
                       {drawerDetail.thumbnail?.publicURL ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={drawerDetail.thumbnail.publicURL} alt={drawerDetail.title} className="w-full h-full object-cover" />
+                        <img src={drawerDetail.thumbnail.publicURL} alt={drawerDetail.title} className="w-full h-full object-cover" style={{ height: "100%", width: "100%", objectFit: "cover" }} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-stone-300">
                           <Icon icon="heroicons:photo" className="size-16" />

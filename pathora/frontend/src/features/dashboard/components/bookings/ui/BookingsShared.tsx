@@ -26,9 +26,15 @@ import { rowVariants } from "../BookingsPageData";
 export const TableRow = React.memo(function TableRow({
   booking,
   index,
+  onReviewParticipants,
+  t,
+  isTourOperator,
 }: {
   booking: AdminBooking;
   index: number;
+  onReviewParticipants: (bookingId: string) => void;
+  t: any;
+  isTourOperator: boolean;
 }) {
   return (
     <motion.tr
@@ -70,6 +76,36 @@ export const TableRow = React.memo(function TableRow({
       </td>
       <td className="px-6 py-4">
         <StatusBadge status={booking.status ?? "pending"} />
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => onReviewParticipants(booking.id.toString())}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold shadow-[inset_0_1px_1px_rgba(255,255,255,0.65)] hover:bg-stone-50 cursor-pointer ${
+              booking.hasRejectedParticipants
+                ? "bg-red-50 text-red-700 border-red-200"
+                : booking.approvedParticipants === booking.totalParticipants && booking.totalParticipants > 0
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-stone-100 text-stone-700 border-stone-200"
+            }`}
+          >
+            {booking.hasRejectedParticipants && (
+              <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+            )}
+            {booking.approvedParticipants ?? 0}/{booking.totalParticipants ?? 0} {t("participantReview.status.approvedCountSuffix", "duyệt")}
+          </button>
+          
+          {isTourOperator && (
+            <button
+              type="button"
+              onClick={() => onReviewParticipants(booking.id.toString())}
+              className="text-xs font-bold text-amber-600 hover:text-amber-700 hover:underline cursor-pointer"
+            >
+              {t("participantReview.button", "Duyệt")}
+            </button>
+          )}
+        </div>
       </td>
     </motion.tr>
   );

@@ -381,14 +381,21 @@ const LoginView = ({
         : null;
 
       // Get next parameter from URL (preserved from original protected destination)
-      const nextParam = searchParams.get("next");
+      const nextParam = searchParams.get("next") || searchParams.get("return");
 
-      const destination = resolveLoginDestination({
+      let destination = resolveLoginDestination({
         next: nextParam,
         defaultPath: userInfo?.defaultPath ?? loginResult.data?.defaultPath ?? null,
         portal: userInfo?.portal ?? loginResult.data?.portal ?? null,
         roles: userInfo?.roles ?? null,
       });
+
+      // Task 10.4: Preserve hash fragment during auth-redirect
+      if (typeof window !== "undefined" && window.location.hash) {
+        if (!destination.includes("#")) {
+          destination += window.location.hash;
+        }
+      }
 
       toast.success(t("landing.auth.loginSuccess"));
 

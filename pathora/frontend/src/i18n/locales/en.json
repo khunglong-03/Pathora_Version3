@@ -3279,7 +3279,8 @@
       "departure": "Departure",
       "pax": "Pax",
       "amount": "Amount",
-      "status": "Status"
+      "status": "Status",
+      "passengers": "Passengers"
     },
     "empty": {
       "title": "No bookings yet",
@@ -4272,7 +4273,18 @@
         "guideVisaItem1": "Already have visa: Enter passport details (valid for over 6 months from return date) and attach your visa file.",
         "guideVisaItem2": "Need support: Simply upload a clear photo of your passport page. Our staff will contact you to assist with visa processing.",
         "guestNumberWithDesignated": "Passenger {{index}} (Slot: {{type}})",
-        "cardTypeMismatchWarning": "The entered age group ({{inferred}}) does not match the purchased slot ({{designated}})."
+        "cardTypeMismatchWarning": "The entered age group ({{inferred}}) does not match the purchased slot ({{designated}}).",
+        "statusApproved": "Approved",
+        "statusRejected": "Rejected",
+        "statusNotReviewed": "Pending Review",
+        "rejectedBannerTitle": "Information Rejected",
+        "rejectedBannerReason": "Reason: ",
+        "approvedLockWarning": "Information has been approved. Editing will require re-approval.",
+        "unlockBtn": "Unlock Edit",
+        "unlockModalTitle": "Confirm Edit",
+        "unlockModalContent": "This passenger's details have been approved. Modifying important fields will reset the approval status, requiring re-review by the tour operator.",
+        "cancelEdit": "Cancel",
+        "confirmEdit": "Confirm"
       }
     },
     "bookingDetail": {
@@ -4307,7 +4319,12 @@
       "noPassengers": "No passengers entered yet.",
       "ageLabelAdult": "Age 13+",
       "ageLabelChild": "Age 2-12",
-      "ageLabelInfant": "Under 2"
+      "ageLabelInfant": "Under 2",
+      "reviewStatusApproved": "Approved",
+      "reviewStatusRejected": "Requires Update",
+      "reviewStatusNotReviewed": "Pending Review",
+      "rejectedPassengerDetailsWarning": "Some passenger details were rejected. Please update them.",
+      "noRejectionReason": "Requires update"
     }
   },
   "adminSupplierModal": {
@@ -4446,6 +4463,74 @@
     "Booking": {
       "InvalidRefundStatusTransition": "Invalid refund status transition.",
       "RefundStatusOnlyForCancelled": "Only cancelled bookings can have refund status updated."
+    }
+  },
+  "participantReview": {
+    "column": "Passengers",
+    "button": "Review Info",
+    "modal": {
+      "title": "Review Passenger Details",
+      "approve": "Approve",
+      "reject": "Reject",
+      "reasonPlaceholder": "E.g. Passport image blurry, please upload a clearer scan...",
+      "reasonRequired": "Please enter a rejection reason.",
+      "reasonMaxLength": "Rejection reason cannot exceed 2000 characters.",
+      "reviewAgain": "Review Again",
+      "rejectionReasonLabel": "Rejection Reason",
+      "submitReject": "Submit Reject"
+    },
+    "status": {
+      "notReviewed": "Pending",
+      "approved": "Approved",
+      "rejected": "Requires Update",
+      "cancelled": "Cancelled",
+      "approvedCountSuffix": "approved"
+    },
+    "state": {
+      "loading": "Loading...",
+      "empty": "No passengers entered yet",
+      "emptyDesc": "This booking currently does not contain any passenger details.",
+      "error": "Failed to load passengers list",
+      "errorDesc": "An error occurred while connecting to the system.",
+      "errorRetry": "Retry"
+    },
+    "bulk": {
+      "button": "Approve All Pending ({{count}})",
+      "confirm": "Confirm approve all pending?",
+      "progress": "Bulk approval in progress...",
+      "summary": "Successfully approved {{count}} passengers."
+    },
+    "counts": {
+      "notReviewed": "Pending",
+      "approved": "Approved",
+      "rejected": "Requires Update"
+    },
+    "reviewer": {
+      "unknown": "Former Tour Operator"
+    },
+    "customerBanner": {
+      "title": "Passenger details rejected",
+      "cta": "Update Passenger Details",
+      "hotline": "Contact Hotline"
+    },
+    "editWarning": {
+      "title": "This passenger details have been approved",
+      "body": "Modifying details will reset the approval status, requiring re-review by the tour operator.",
+      "cancel": "Cancel",
+      "continue": "Confirm"
+    },
+    "toast": {
+      "success": {
+        "approved": "Successfully approved passenger details.",
+        "rejected": "Successfully rejected passenger details."
+      },
+      "error": {
+        "notAssigned": "You are not the assigned Tour Operator for this booking.",
+        "conflict": "Someone reviewed before you — reloading details.",
+        "cancelled": "Cannot review a cancelled passenger.",
+        "bookingNotReviewable": "Cannot review a cancelled or completed booking.",
+        "general": "An error occurred. Please try again."
+      }
     }
   }
 }

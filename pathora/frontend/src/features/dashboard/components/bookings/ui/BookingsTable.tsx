@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Card from "@/components/ui/Card";
 import { Icon } from "@/components/ui";
@@ -7,15 +7,19 @@ import { TableRow, StatusBadge } from "./BookingsShared";
 import { rowVariants } from "../BookingsPageData";
 import type { AdminBooking } from "@/api/services/adminService";
 import { formatCurrency } from "@/utils/format";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
+import ParticipantReviewModal from "./ParticipantReviewModal";
 
 interface BookingsTableProps {
   bookings: AdminBooking[];
-  t: (key: string) => string;
+  t: any;
   totalCount: number;
   currentPage: number;
   totalPages: number;
   onPreviousPage: () => void;
   onNextPage: () => void;
+  onRefresh?: () => void;
 }
 
 export function BookingsTable({
@@ -26,7 +30,13 @@ export function BookingsTable({
   totalPages,
   onPreviousPage,
   onNextPage,
+  onRefresh,
 }: BookingsTableProps) {
+  const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
+
+  const user = useSelector((state: RootState) => state.auth.user);
+  const isTourOperator = user?.roles?.some((r) => r.name === "TourOperator");
+
   const columns = [
     "bookings.column.booking",
     "bookings.column.customer",
@@ -35,6 +45,7 @@ export function BookingsTable({
     "bookings.column.pax",
     "bookings.column.amount",
     "bookings.column.status",
+    "bookings.column.passengers",
   ];
 
   return (
@@ -73,7 +84,14 @@ export function BookingsTable({
           </thead>
           <tbody>
             {bookings.map((booking, i) => (
-              <TableRow key={booking.id} booking={booking} index={i} />
+              <TableRow
+                key={booking.id}
+                booking={booking}
+                index={i}
+                onReviewParticipants={(id) => setReviewBookingId(id)}
+                t={t}
+                isTourOperator={!!isTourOperator}
+              />
             ))}
           </tbody>
         </table>
@@ -113,6 +131,37 @@ export function BookingsTable({
                 {formatCurrency(booking.amount ?? 0)}
               </p>
             </div>
+            {/* Passengers row in mobile layout */}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-stone-100">
+              <span className="text-xs font-semibold text-stone-500">{t("bookings.column.passengers", "Hành khách")}:</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReviewBookingId(booking.id.toString())}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold shadow-[inset_0_1px_1px_rgba(255,255,255,0.65)] hover:bg-stone-50 cursor-pointer ${
+                    booking.hasRejectedParticipants
+                      ? "bg-red-50 text-red-700 border-red-200"
+                      : booking.approvedParticipants === booking.totalParticipants && booking.totalParticipants > 0
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-stone-100 text-stone-700 border-stone-200"
+                  }`}
+                >
+                  {booking.hasRejectedParticipants && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                  )}
+                  {booking.approvedParticipants ?? 0}/{booking.totalParticipants ?? 0} {t("participantReview.status.approvedCountSuffix", "duyệt")}
+                </button>
+                {isTourOperator && (
+                  <button
+                    type="button"
+                    onClick={() => setReviewBookingId(booking.id.toString())}
+                    className="text-xs font-bold text-amber-600 hover:text-amber-700 hover:underline"
+                  >
+                    {t("participantReview.button", "Duyệt")}
+                  </button>
+                )}
+              </div>
+            </div>
           </motion.div>
         ))}
       </div>
@@ -138,6 +187,17 @@ export function BookingsTable({
         </div>
       </div>
     </Card>
+
+    {reviewBookingId && (
+      <ParticipantReviewModal
+        bookingId={reviewBookingId}
+        isOpen={!!reviewBookingId}
+        onClose={() => setReviewBookingId(null)}
+        onReviewed={() => {
+          onRefresh?.();
+        }}
+      />
+    )}
     </div>
   );
 }

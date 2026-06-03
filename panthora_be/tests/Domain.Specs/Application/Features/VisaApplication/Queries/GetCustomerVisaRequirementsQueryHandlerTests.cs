@@ -54,10 +54,10 @@ public class GetCustomerVisaRequirementsQueryHandlerTests
         _bookingRepoMock.GetByIdWithDetailsAsync(booking.Id, Arg.Any<CancellationToken>())
             .Returns(booking);
 
-        _passportRepoMock.GetByBookingParticipantIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns((PassportEntity?)null);
+        _passportRepoMock.GetByBookingParticipantIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, PassportEntity>());
 
-        _visaAppRepoMock.GetByBookingParticipantIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _visaAppRepoMock.GetByBookingParticipantIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new List<VisaApplicationEntity>());
 
         var query = new GetCustomerVisaRequirementsQuery(booking.Id);

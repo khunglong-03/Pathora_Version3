@@ -22,7 +22,6 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
     dotnet publish "src/Api/Api.csproj" \
         -c $BUILD_CONFIGURATION \
         -o /app/publish \
-        --no-restore \
         /p:UseAppHost=false
 
 # Stage 2: Runtime

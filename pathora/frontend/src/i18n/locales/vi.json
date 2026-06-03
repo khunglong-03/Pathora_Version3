@@ -3278,7 +3278,8 @@
       "departure": "Ngày Khởi Hành",
       "pax": "Số Khách",
       "amount": "Số Tiền",
-      "status": "Trạng Thái"
+      "status": "Trạng Thái",
+      "passengers": "Hành khách"
     },
     "empty": {
       "title": "Chưa có đơn đặt chỗ",
@@ -4251,7 +4252,18 @@
         "guideVisaItem1": "Đã có visa: Vui lòng nhập số hộ chiếu (phải còn hạn trên 6 tháng tính từ ngày về của tour) và tải file visa.",
         "guideVisaItem2": "Cần hỗ trợ: Chỉ cần tải ảnh chụp hộ chiếu rõ nét. Đội ngũ hỗ trợ sẽ liên hệ bạn để hoàn tất hồ sơ visa.",
         "guestNumberWithDesignated": "Hành khách {{index}} (Chỗ: {{type}})",
-        "cardTypeMismatchWarning": "Nhóm tuổi ({{inferred}}) không khớp với chỗ đã mua ({{designated}})."
+        "cardTypeMismatchWarning": "Nhóm tuổi ({{inferred}}) không khớp với chỗ đã mua ({{designated}}).",
+        "statusApproved": "Đã duyệt",
+        "statusRejected": "Từ chối",
+        "statusNotReviewed": "Chờ duyệt",
+        "rejectedBannerTitle": "Thông tin bị từ chối duyệt",
+        "rejectedBannerReason": "Lý do: ",
+        "approvedLockWarning": "Thông tin đã được duyệt. Sửa đổi sẽ yêu cầu duyệt lại.",
+        "unlockBtn": "Mở khóa chỉnh sửa",
+        "unlockModalTitle": "Xác nhận chỉnh sửa",
+        "unlockModalContent": "Thông tin hành khách này đã được duyệt. Việc sửa đổi thông tin quan trọng sẽ làm mất trạng thái duyệt và chuyển về trạng thái Chờ duyệt lại bởi điều hành tour.",
+        "cancelEdit": "Hủy bỏ",
+        "confirmEdit": "Xác nhận"
       }
     },
     "bookingDetail": {
@@ -4286,7 +4298,12 @@
       "noPassengers": "Chưa có thông tin hành khách nào được nhập.",
       "ageLabelAdult": "Từ 13 tuổi trở lên",
       "ageLabelChild": "Từ 2-12 tuổi",
-      "ageLabelInfant": "Dưới 2 tuổi"
+      "ageLabelInfant": "Dưới 2 tuổi",
+      "reviewStatusApproved": "Đã duyệt",
+      "reviewStatusRejected": "Cần sửa",
+      "reviewStatusNotReviewed": "Chờ duyệt",
+      "rejectedPassengerDetailsWarning": "Có thông tin hành khách bị từ chối duyệt. Vui lòng cập nhật lại thông tin.",
+      "noRejectionReason": "Cần cập nhật lại thông tin"
     }
   },
   "adminSupplierModal": {
@@ -4425,6 +4442,74 @@
     "Booking": {
       "InvalidRefundStatusTransition": "Trạng thái hoàn tiền không hợp lệ.",
       "RefundStatusOnlyForCancelled": "Chỉ booking đã huỷ mới cập nhật được trạng thái hoàn tiền."
+    }
+  },
+  "participantReview": {
+    "column": "Hành khách",
+    "button": "Duyệt thông tin",
+    "modal": {
+      "title": "Duyệt Thông Tin Hành Khách",
+      "approve": "Duyệt",
+      "reject": "Từ chối",
+      "reasonPlaceholder": "Ví dụ: Ảnh hộ chiếu bị mờ, vui lòng tải lại...",
+      "reasonRequired": "Vui lòng nhập lý do từ chối.",
+      "reasonMaxLength": "Lý do từ chối không được vượt quá 2000 ký tự.",
+      "reviewAgain": "Duyệt lại",
+      "rejectionReasonLabel": "Lý do từ chối",
+      "submitReject": "Gửi từ chối"
+    },
+    "status": {
+      "notReviewed": "Chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Cần sửa",
+      "cancelled": "Đã huỷ",
+      "approvedCountSuffix": "duyệt"
+    },
+    "state": {
+      "loading": "Đang tải...",
+      "empty": "Chưa có hành khách nào",
+      "emptyDesc": "Đặt chỗ này hiện tại chưa có thông tin hành khách.",
+      "error": "Không thể tải danh sách hành khách",
+      "errorDesc": "Đã xảy ra lỗi kết nối hệ thống.",
+      "errorRetry": "Thử lại"
+    },
+    "bulk": {
+      "button": "Duyệt tất cả chưa duyệt ({{count}})",
+      "confirm": "Xác nhận duyệt tất cả?",
+      "progress": "Đang tiến hành duyệt hàng loạt...",
+      "summary": "Đã duyệt thành công {{count}} hành khách."
+    },
+    "counts": {
+      "notReviewed": "Chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Yêu cầu sửa"
+    },
+    "reviewer": {
+      "unknown": "Tour Operator cũ"
+    },
+    "customerBanner": {
+      "title": "Thông tin hành khách bị từ chối duyệt",
+      "cta": "Cập nhật thông tin",
+      "hotline": "Liên hệ hotline"
+    },
+    "editWarning": {
+      "title": "Hành khách này đã được duyệt",
+      "body": "Chỉnh sửa sẽ huỷ trạng thái duyệt và phải chờ Tour Operator duyệt lại.",
+      "cancel": "Huỷ bỏ",
+      "continue": "Xác nhận"
+    },
+    "toast": {
+      "success": {
+        "approved": "Đã duyệt thông tin hành khách.",
+        "rejected": "Đã từ chối duyệt thông tin hành khách."
+      },
+      "error": {
+        "notAssigned": "Bạn không phải Tour Operator được chỉ định cho đặt chỗ này.",
+        "conflict": "Đã có người duyệt trước — đang tải lại.",
+        "cancelled": "Không thể duyệt hành khách đã huỷ.",
+        "bookingNotReviewable": "Không thể duyệt đặt chỗ đã huỷ hoặc hoàn thành.",
+        "general": "Đã xảy ra lỗi. Vui lòng thử lại."
+      }
     }
   }
 }

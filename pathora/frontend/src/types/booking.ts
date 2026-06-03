@@ -65,6 +65,7 @@ export interface PassportDto {
   expiryDate: string | null;
   issuedPlace: string | null;
   countryCode: string | null;
+  fileUrl?: string | null;
 }
 
 export interface VisaApplicationDto {
@@ -88,6 +89,11 @@ export interface ParticipantDto {
   status: ReservationStatusEnum;
   passport: PassportDto | null;
   visaApplications: VisaApplicationDto[];
+  infoReviewStatus: "NotReviewed" | "Approved" | "Rejected";
+  infoRejectionReason: string | null;
+  infoReviewedAt: string | null;
+  infoReviewedBy: string | null;
+  infoReviewedByName: string | null;
 }
 
 export interface CreateParticipantDto {

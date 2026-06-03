@@ -408,55 +408,99 @@ public sealed class UpdateCustomerPassportCommandHandler(
         if (currentUserId == null)
             return Error.Unauthorized("User.Unauthorized", "User is not authenticated.");
 
-        var booking = await bookingRepository.GetByIdWithDetailsAsync(request.BookingId, cancellationToken);
-        if (booking == null)
-            return Error.NotFound("Booking.NotFound", "Booking không tồn tại.");
+        ErrorOr<Guid> result = default;
 
-        if (booking.UserId == null || booking.UserId != currentUserId)
-            return Error.Forbidden("Booking.Forbidden", "Bạn không có quyền truy cập booking này.");
-
-        var participant = booking.BookingParticipants.FirstOrDefault(p => p.Id == request.ParticipantId);
-        if (participant == null)
-            return Error.NotFound("Participant.NotFound", "Participant không thuộc booking này.");
-
-        var tourInstance = booking.TourInstance;
-        if (tourInstance == null)
-            return Error.NotFound("TourInstance.NotFound", "TourInstance không tồn tại.");
-
-        if (request.ExpiresAt.HasValue && request.ExpiresAt.Value < tourInstance.EndDate)
-            return Error.Validation("Passport.Expired", "Hộ chiếu phải còn hạn sau ngày kết thúc tour.");
-
-        Guid passportId;
-        var existingPassport = await passportRepository.GetByBookingParticipantIdAsync(request.ParticipantId, cancellationToken);
-        if (existingPassport != null)
+        try
         {
-            existingPassport.Update(
-                request.PassportNumber,
-                currentUserId.Value.ToString(),
-                request.Nationality,
-                request.IssuedAt?.ToUniversalTime(),
-                request.ExpiresAt?.ToUniversalTime(),
-                request.FileUrl
-            );
-            passportRepository.Update(existingPassport);
-            passportId = existingPassport.Id;
+            await unitOfWork.ExecuteTransactionAsync(System.Data.IsolationLevel.RepeatableRead, async () =>
+            {
+                var booking = await bookingRepository.GetByIdWithDetailsAsync(request.BookingId, cancellationToken);
+                if (booking == null)
+                {
+                    result = Error.NotFound("Booking.NotFound", "Booking không tồn tại.");
+                    return;
+                }
+
+                if (booking.UserId == null || booking.UserId != currentUserId)
+                {
+                    result = Error.Forbidden("Booking.Forbidden", "Bạn không có quyền truy cập booking này.");
+                    return;
+                }
+
+                var participant = booking.BookingParticipants.FirstOrDefault(p => p.Id == request.ParticipantId);
+                if (participant == null)
+                {
+                    result = Error.NotFound("Participant.NotFound", "Participant không thuộc booking này.");
+                    return;
+                }
+
+                var tourInstance = booking.TourInstance;
+                if (tourInstance == null)
+                {
+                    result = Error.NotFound("TourInstance.NotFound", "TourInstance không tồn tại.");
+                    return;
+                }
+
+                if (request.ExpiresAt.HasValue && request.ExpiresAt.Value < tourInstance.EndDate)
+                {
+                    result = Error.Validation("Passport.Expired", "Hộ chiếu phải còn hạn sau ngày kết thúc tour.");
+                    return;
+                }
+
+                var existingPassport = await passportRepository.GetByBookingParticipantIdAsync(request.ParticipantId, cancellationToken);
+                bool isPassportChanged = false;
+
+                if (existingPassport != null)
+                {
+                    isPassportChanged = existingPassport.PassportNumber != request.PassportNumber
+                        || existingPassport.Nationality != request.Nationality
+                        || existingPassport.IssuedAt != request.IssuedAt?.ToUniversalTime()
+                        || existingPassport.ExpiresAt != request.ExpiresAt?.ToUniversalTime()
+                        || existingPassport.FileUrl != request.FileUrl;
+
+                    if (isPassportChanged)
+                    {
+                        existingPassport.Update(
+                            request.PassportNumber,
+                            currentUserId.Value.ToString(),
+                            request.Nationality,
+                            request.IssuedAt?.ToUniversalTime(),
+                            request.ExpiresAt?.ToUniversalTime(),
+                            request.FileUrl
+                        );
+                        passportRepository.Update(existingPassport);
+                    }
+                    result = existingPassport.Id;
+                }
+                else
+                {
+                    isPassportChanged = true;
+                    var newPassport = PassportEntity.Create(
+                        bookingParticipantId: request.ParticipantId,
+                        passportNumber: request.PassportNumber,
+                        nationality: request.Nationality,
+                        issuedAt: request.IssuedAt?.ToUniversalTime(),
+                        expiresAt: request.ExpiresAt?.ToUniversalTime(),
+                        fileUrl: request.FileUrl,
+                        performedBy: currentUserId.Value.ToString()
+                    );
+                    await passportRepository.AddAsync(newPassport, cancellationToken);
+                    result = newPassport.Id;
+                }
+
+                if (isPassportChanged)
+                {
+                    participant.ResetInfoReviewOnEdit(currentUserId.Value.ToString());
+                }
+
+                await unitOfWork.SaveChangeAsync(cancellationToken);
+            });
         }
-        else
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
         {
-            var newPassport = PassportEntity.Create(
-                bookingParticipantId: request.ParticipantId,
-                passportNumber: request.PassportNumber,
-                nationality: request.Nationality,
-                issuedAt: request.IssuedAt?.ToUniversalTime(),
-                expiresAt: request.ExpiresAt?.ToUniversalTime(),
-                fileUrl: request.FileUrl,
-                performedBy: currentUserId.Value.ToString()
-            );
-            await passportRepository.AddAsync(newPassport, cancellationToken);
-            passportId = newPassport.Id;
+            return Error.Conflict("Passport.ConcurrencyConflict", "Thông tin passport đã bị thay đổi bởi yêu cầu khác. Vui lòng tải lại.");
         }
 
-        await unitOfWork.SaveChangeAsync(cancellationToken);
-        return passportId;
+        return result;
     }
 }

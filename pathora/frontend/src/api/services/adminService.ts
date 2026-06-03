@@ -49,6 +49,9 @@ export interface AdminBooking {
   numberAdult?: number;
   numberChild?: number;
   numberInfant?: number;
+  totalParticipants?: number;
+  approvedParticipants?: number;
+  hasRejectedParticipants?: boolean;
 }
 
 export interface AdminBookingPage {

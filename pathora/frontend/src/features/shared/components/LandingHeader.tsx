@@ -27,6 +27,7 @@ import { handleCustomizer } from "@/store/layout";
 import { logOut } from "@/store/infrastructure/authSlice";
 import { useLogoutMutation } from "@/store/api/auth/authApiSlice";
 import { Globe } from "@phosphor-icons/react";
+import { bookingService } from "@/api/services/bookingService";
 import {
   FiChevronDown,
   FiCheck,
@@ -153,6 +154,7 @@ const MobileSidebar = ({
   onLogout,
   dialogId,
   logoVariant = "svg",
+  rejectedCount = 0,
 }: {
   open: boolean;
   onClose: () => void;
@@ -160,6 +162,7 @@ const MobileSidebar = ({
   onLogout: () => void;
   dialogId: string;
   logoVariant?: "svg" | "text";
+  rejectedCount?: number;
 }) => {
   const { t, i18n } = useTranslation();
   const { isAuth, user } = useSelector((state: RootState) => state.auth);
@@ -350,6 +353,11 @@ const MobileSidebar = ({
                     <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
                       {t("bookings.title")}
                     </span>
+                    {mounted && rejectedCount > 0 && (
+                      <span className="ml-auto inline-flex items-center justify-center size-5 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full shrink-0">
+                        {rejectedCount}
+                      </span>
+                    )}
                   </Link>
                 </div>
               )}
@@ -486,6 +494,33 @@ export const LandingHeader = () => {
   const [authView, setAuthView] = useState<"signup" | "login" | "forgot">(
     "signup",
   );
+
+  const [rejectedCount, setRejectedCount] = useState<number>(0);
+
+  // If user has any staff/provider roles, they are not a customer and shouldn't fetch bookings
+  const isCustomer =
+    !user?.roles?.length ||
+    user.roles.every((r) => r.name.toLowerCase() === "customer");
+
+  useEffect(() => {
+    if (clientIsAuth && isCustomer) {
+      const fetchRejectedCount = async () => {
+        try {
+          const count = await bookingService.getRejectedParticipantCount();
+          setRejectedCount(count);
+        } catch (err) {
+          console.error("Failed to fetch rejected participant count:", err);
+        }
+      };
+
+      fetchRejectedCount();
+      
+      const interval = setInterval(fetchRejectedCount, 60000);
+      return () => clearInterval(interval);
+    } else {
+      setRejectedCount(0);
+    }
+  }, [clientIsAuth, isCustomer]);
 
   // Strip a stale, self-referencing `next` (e.g. `/?next=%2F%3Fnext%3D%252F...`)
   // whenever it shows up at the home route. Without this the URL keeps the
@@ -625,13 +660,6 @@ export const LandingHeader = () => {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [languageMenuOpen, userMenuOpen]);
-
-  // If user has any staff/provider roles, they are not a customer and shouldn't fetch bookings
-  const isCustomer =
-    !user?.roles?.length ||
-    user.roles.every((r) => r.name.toLowerCase() === "customer");
-
-
 
   return (
     <>
@@ -884,10 +912,15 @@ export const LandingHeader = () => {
                         onClick={() => setUserMenuOpen(false)}
                         className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
                       >
-                        <FiClipboard className="w-4 h-4" />
-                        <span>
+                        <FiClipboard className="w-4 h-4 shrink-0" />
+                        <span className="flex-1">
                           {t("bookings.title")}
                         </span>
+                        {mounted && rejectedCount > 0 && (
+                          <span className="inline-flex items-center justify-center size-5 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full shrink-0">
+                            {rejectedCount}
+                          </span>
+                        )}
                       </Link>
 
                       <button
@@ -951,6 +984,7 @@ export const LandingHeader = () => {
         onLogout={handleLogout}
         dialogId="landing-mobile-menu"
         logoVariant="svg"
+        rejectedCount={rejectedCount}
       />
       <AuthModal
         key={effectiveAuthView}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Thông tin hành khách cần cập nhật - Pathora</title>
+</head>
+<body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1f2937; background-color: #f9fafb; margin: 0; padding: 24px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #e5e7eb;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; padding: 24px; text-align: center;">
+            <h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px;">CẦN CẬP NHẬT THÔNG TIN HÀNH KHÁCH</h2>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 24px;">
+            <p style="margin-top: 0; font-size: 16px;">Xin chào <strong>{{ customer_name ?? customername }}</strong>,</p>
+            <p style="font-size: 15px;">Chúng tôi xin thông báo rằng thông tin hành khách của booking <strong>#{{ booking_code ?? bookingcode }}</strong> đã được kiểm duyệt bởi Tour Operator.</p>
+            
+            <p style="font-size: 15px;">Tuy nhiên, thông tin của hành khách <strong>{{ participant_full_name ?? participantfullname }}</strong> cần được điều chỉnh hoặc bổ sung do chưa hợp lệ.</p>
+            
+            <!-- Rejection Reason Card -->
+            <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 20px 0;">
+                <strong style="color: #b45309; font-size: 14px; text-transform: uppercase; display: block; margin-bottom: 4px;">Lý do từ chối:</strong>
+                <span style="color: #78350f; font-size: 15px;">{{ rejection_reason ?? rejectionreason }}</span>
+            </div>
+            
+            <p style="font-size: 15px;">Vui lòng nhấp vào liên kết dưới đây để cập nhật lại thông tin cá nhân hoặc hộ chiếu của hành khách này:</p>
+            
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="{{ update_link ?? updatelink }}" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 9999px; display: inline-block; font-weight: 600; font-size: 15px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">Cập Nhật Thông Tin Ngay</a>
+            </div>
+            
+            <p style="font-size: 14px; color: #4b5563; margin-bottom: 0;">Nếu cần hỗ trợ thêm, vui lòng liên hệ với đội ngũ CSKH qua hotline:</p>
+            
+            <!-- Hotline Card -->
+            <div style="background-color: #f3f4f6; border-radius: 6px; padding: 12px; margin-top: 10px; border: 1px solid #e5e7eb;">
+                <strong style="color: #374151;">Hotline hỗ trợ:</strong> <span style="color: #2563eb; font-weight: 600;">{{ hotline_phone ?? hotlinephone }}</span>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 16px 24px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280;">
+            Đây là email thông báo tự động từ hệ thống Pathora. Vui lòng không trả lời email này.
+        </div>
+    </div>
+</body>
+</html>

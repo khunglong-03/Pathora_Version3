@@ -368,6 +368,7 @@ export function PrivateTourInstanceListPage() {
                           src={inst.thumbnail.publicURL}
                           alt={inst.title || inst.tourName}
                           className="w-full h-full object-cover"
+                          style={{ height: "100%", width: "100%", objectFit: "cover" }}
                         />
                       ) : (
                         <div className="w-full h-full h-stack items-center justify-center text-slate-400">

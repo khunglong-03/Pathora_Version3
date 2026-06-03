@@ -294,6 +294,10 @@ public static class DependencyInjection
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("Manager") || context.User.IsInRole("TourGuide")));
 
+            // TourOperatorBookingTeam: TourOperator only (check team members inside handler)
+            options.AddPolicy("TourOperatorBookingTeam", policy =>
+                policy.RequireRole("TourOperator"));
+
             // CanManageTour: Resource-based authorization for strict ownership validation
             options.AddPolicy("CanManageTour", policy =>
                 policy.Requirements.Add(new global::Infrastructure.Identity.Authorization.ManageTourRequirement()));
