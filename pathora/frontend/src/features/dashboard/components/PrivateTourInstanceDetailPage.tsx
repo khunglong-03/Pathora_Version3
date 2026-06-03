@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Icon, TourStatusBadge } from "@/components/ui";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
+import { bookingService, type AdminBookingListResponse } from "@/api/services/bookingService";
 import { NormalizedTourInstanceDto } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
 import { formatDate } from "@/utils/format";
@@ -17,6 +18,8 @@ import {
   normalizeApprovalStatus,
   type ApprovalAppearance,
 } from "@/utils/approvalStatusHelper";
+import { useAuth } from "@/contexts/AuthContext";
+import ParticipantReviewModal from "./bookings/ui/ParticipantReviewModal";
 
 /* ── Animation Variants ───────────────────────────────────── */
 const itemVariants = {
@@ -175,6 +178,222 @@ export default function PrivateTourInstanceDetailPage() {
   const [addingDay, setAddingDay] = useState(false);
   const [newDayForm, setNewDayForm] = useState({ title: "", actualDate: "", description: "" });
   const [saving, setSaving] = useState(false);
+
+  // 1.3: Read role and loading state from useAuth()
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const isTourOperator = user?.roles?.some((r) => r.name === "TourOperator");
+
+  // Participant review state variables (Task 8.14)
+  const [booking, setBooking] = useState<AdminBookingListResponse | null>(null);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [isLoadingParticipants, setIsLoadingParticipants] = useState(false);
+  const [participantsError, setParticipantsError] = useState<string | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [showOpacity, setShowOpacity] = useState(false);
+  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 1.1: Fetch participants data callback
+  const fetchParticipantsData = useCallback(async (showIndicator = false, targetBookingId?: string) => {
+    const activeBookingId = targetBookingId || booking?.id;
+    if (!activeBookingId || !isTourOperator) return;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setParticipantsError(null);
+    let timeoutId: any = null;
+
+    if (showIndicator) {
+      timeoutId = setTimeout(() => {
+        setShowOpacity(true);
+      }, 200);
+    } else {
+      setIsLoadingParticipants(true);
+    }
+
+    try {
+      const data = await bookingService.getParticipants(activeBookingId);
+      if (controller.signal.aborted) return;
+      setParticipants(data || []);
+    } catch (err: any) {
+      if (controller.signal.aborted) return;
+      setParticipantsError(err?.response?.status === 403 ? "Forbidden" : "Error");
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!controller.signal.aborted) {
+        setIsLoadingParticipants(false);
+        setShowOpacity(false);
+      }
+    }
+  }, [booking?.id, isTourOperator]);
+
+  // Fetch booking and participants when ready (Task 8.14)
+  useEffect(() => {
+    const fetchBookingAndParticipants = async () => {
+      if (!isTourOperator || !id) return;
+      setBookingLoading(true);
+      try {
+        const bookings = await bookingService.getBookingsByTourInstance(id);
+        const activeBooking = (bookings || []).find((b) => b.status !== "Cancelled");
+        if (activeBooking) {
+          setBooking(activeBooking);
+          void fetchParticipantsData(false, activeBooking.id);
+        } else {
+          setBooking(null);
+          setParticipants([]);
+        }
+      } catch (err) {
+        console.error("Failed to load booking for tour instance", err);
+      } finally {
+        setBookingLoading(false);
+      }
+    };
+
+    if (isTourOperator && dataState === "ready") {
+      void fetchBookingAndParticipants();
+    } else {
+      setBooking(null);
+      setParticipants([]);
+    }
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [id, isTourOperator, dataState, reloadToken, fetchParticipantsData]);
+
+  // Compute badge counts from participants list
+  const badgeCounts = useMemo(() => {
+    const active = participants.filter((p) => p.status !== "Cancelled");
+    const approved = active.filter((p) => p.infoReviewStatus === "Approved").length;
+    const rejected = active.filter((p) => p.infoReviewStatus === "Rejected").length;
+    return {
+      approvedCount: approved,
+      rejectedCount: rejected,
+      totalActiveCount: active.length,
+    };
+  }, [participants]);
+
+  // Modal callbacks (Task 8.14)
+  const handleClose = useCallback(() => {
+    setIsReviewModalOpen(false);
+  }, []);
+
+  const handleReviewed = useCallback((updatedList?: any[]) => {
+    setIsReviewModalOpen(false);
+    if (Array.isArray(updatedList)) {
+      setParticipants(updatedList);
+    } else {
+      void fetchParticipantsData(true);
+    }
+  }, [fetchParticipantsData]);
+
+  const renderReviewBadgeAndButton = () => {
+    if (isAuthLoading || bookingLoading) {
+      return (
+        <div className="h-10 w-32 bg-stone-100 animate-pulse rounded-xl" />
+      );
+    }
+
+    if (!isTourOperator) return null;
+
+    if (participantsError === "Forbidden") {
+      return (
+        <span 
+          className="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-semibold bg-stone-50 text-stone-400 ring-1 ring-stone-200"
+          title={t("participantReview.publicBookingLanding.noPermissionTooltip", "Bạn không có quyền duyệt booking này")}
+        >
+          —
+        </span>
+      );
+    }
+
+    if (isLoadingParticipants && participants.length === 0) {
+      return (
+        <div className="h-10 w-24 bg-stone-100 animate-pulse rounded-xl" />
+      );
+    }
+
+    const { approvedCount, rejectedCount, totalActiveCount } = badgeCounts;
+
+    let badgeText = "";
+    let badgeCls = "";
+    let ariaLabel = "";
+
+    if (participantsError === "Error") {
+      badgeText = t("participantReview.publicBookingLanding.badge.loadError", "Tải lỗi");
+      badgeCls = "bg-stone-100 text-stone-700 ring-1 ring-stone-200";
+      ariaLabel = t("participantReview.publicBookingLanding.retryTooltip", "Tải lại trạng thái");
+    } else if (totalActiveCount === 0) {
+      badgeText = t("participantReview.publicBookingLanding.badge.empty", "Chưa có hành khách");
+      badgeCls = "bg-stone-100 text-stone-700 ring-1 ring-stone-200";
+      ariaLabel = t("participantReview.publicBookingLanding.badge.empty", "Chưa có hành khách");
+    } else if (approvedCount === totalActiveCount) {
+      badgeText = t("participantReview.publicBookingLanding.badge.allApproved", { approved: approvedCount, total: totalActiveCount, defaultValue: "{{approved}}/{{total}} đã duyệt" });
+      badgeCls = "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
+      ariaLabel = t("participantReview.publicBookingLanding.badgeAriaLabel", { approved: approvedCount, total: totalActiveCount, defaultValue: "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt" });
+    } else if (rejectedCount > 0) {
+      badgeText = t("participantReview.publicBookingLanding.badge.partial", { approved: approvedCount, total: totalActiveCount, defaultValue: "{{approved}}/{{total}} đã duyệt" }) + 
+                  t("participantReview.publicBookingLanding.badge.withRejected", { rejected: rejectedCount, defaultValue: " • {{rejected}} từ chối" });
+      badgeCls = "bg-red-50 text-red-700 ring-1 ring-red-200";
+      ariaLabel = t("participantReview.publicBookingLanding.badgeAriaLabel_withRejected", { approved: approvedCount, total: totalActiveCount, rejected: rejectedCount, defaultValue: "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt, {{rejected}} bị từ chối" });
+    } else {
+      badgeText = t("participantReview.publicBookingLanding.badge.partial", { approved: approvedCount, total: totalActiveCount, defaultValue: "{{approved}}/{{total}} đã duyệt" });
+      badgeCls = "bg-white text-stone-700 ring-1 ring-stone-200";
+      ariaLabel = t("participantReview.publicBookingLanding.badgeAriaLabel", { approved: approvedCount, total: totalActiveCount, defaultValue: "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt" });
+    }
+
+    const isButtonDisabled = participantsError !== "Error" && totalActiveCount === 0;
+
+    return (
+      <div 
+        className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 transition-opacity duration-200 w-full sm:w-auto ${showOpacity ? "opacity-60" : ""}`}
+      >
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span 
+            className={`inline-flex items-center justify-center px-2.5 py-2 sm:py-1 rounded-xl text-xs font-semibold w-full sm:w-auto text-center ${badgeCls}`}
+            aria-label={ariaLabel}
+            title={isButtonDisabled ? t("participantReview.publicBookingLanding.noActiveTooltip", "Không có hành khách để duyệt") : undefined}
+          >
+            {badgeText}
+          </span>
+          {participantsError === "Error" && (
+            <button
+              type="button"
+              onClick={() => fetchParticipantsData(false)}
+              className="p-1 rounded bg-stone-100 text-stone-600 hover:bg-stone-200 text-xs font-bold"
+            >
+              {t("participantReview.publicBookingLanding.retryTooltip", "Tải lại")}
+            </button>
+          )}
+        </div>
+        <button
+          ref={triggerButtonRef}
+          type="button"
+          disabled={isButtonDisabled || (isLoadingParticipants && showOpacity)}
+          onClick={(e) => {
+            triggerButtonRef.current = e.currentTarget;
+            setIsReviewModalOpen(true);
+          }}
+          className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl border transition-all w-full sm:w-auto min-h-[40px] sm:min-h-0 ${
+            isButtonDisabled
+              ? "bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed"
+              : "bg-amber-500 border-transparent text-white hover:bg-amber-600 cursor-pointer"
+          }`}
+          title={isButtonDisabled ? t("participantReview.publicBookingLanding.noActiveTooltip", "Không có hành khách để duyệt") : undefined}
+        >
+          <Icon icon="heroicons:clipboard-document-check" className="size-4" />
+          <span>{t("participantReview.publicBookingLanding.button", "Duyệt hành khách")}</span>
+        </button>
+      </div>
+    );
+  };
 
   /* ── Load data ───────────────────────────────────────────── */
   const loadData = useCallback(async () => {
@@ -449,6 +668,60 @@ export default function PrivateTourInstanceDetailPage() {
           />
         </motion.div>
       </motion.div>
+
+      {/* ── Booking & Passenger Info Card ──────────────────────── */}
+      {isTourOperator && booking && (
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="show"
+          className="bg-white rounded-[1.5rem] border border-slate-200/60 p-6 space-y-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.03)]"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Icon icon="heroicons:clipboard-document-list" className="size-5 text-slate-500" />
+                <h3 className="text-lg font-bold text-slate-900">
+                  {t("participantReview.bookingCard.title", "Thông tin Đặt chỗ & Hành khách")}
+                </h3>
+              </div>
+              <p className="text-sm text-slate-500">
+                Khách hàng: <span className="font-semibold text-slate-800">{booking.customerName}</span>
+                {booking.customerPhone && ` • ${booking.customerPhone}`}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {renderReviewBadgeAndButton()}
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3 pt-4 border-t border-slate-100 text-sm">
+            <div className="space-y-0.5">
+              <span className="text-slate-400">Số lượng khách</span>
+              <div className="font-semibold text-slate-700">
+                {booking.numberAdult} người lớn
+                {booking.numberChild > 0 && `, ${booking.numberChild} trẻ em`}
+                {booking.numberInfant > 0 && `, ${booking.numberInfant} em bé`}
+              </div>
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-slate-400">Trạng thái đặt chỗ</span>
+              <div>
+                <span className="inline-flex items-center gap-1.5 font-semibold text-slate-700">
+                  {booking.status}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-slate-400">Tổng tiền đặt chỗ</span>
+              <div className="font-bold text-slate-950 text-base">
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(booking.totalAmount ?? booking.totalPrice ?? 0)}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* ── Customization Notes ───────────────────────────────── */}
       {data.customizationNotes && (
@@ -799,6 +1072,15 @@ export default function PrivateTourInstanceDetailPage() {
           Quay lại danh sách
         </Link>
       </motion.div>
+
+      {booking && (
+        <ParticipantReviewModal
+          bookingId={booking.id}
+          isOpen={isReviewModalOpen}
+          onClose={handleClose}
+          onReviewed={handleReviewed}
+        />
+      )}
     </main>
   );
 }

@@ -23,6 +23,13 @@ public class PublicTourController : BaseApiController
         return HandleResult(result);
     }
 
+    [HttpGet("{id:guid}/similar")]
+    public async Task<IActionResult> GetSimilarTours(Guid id, [FromServices] ILanguageContext languageContext)
+    {
+        var result = await Sender.Send(new GetSimilarToursQuery(id, languageContext.CurrentLanguage));
+        return HandleResult(result);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAllTours(
         [FromQuery] string? searchText,

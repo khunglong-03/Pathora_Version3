@@ -25,6 +25,8 @@ import {
 } from "@/features/shared/components";
 import { useAuth } from "@/contexts/AuthContext";
 import { TourDto, InsuranceTypeMap } from "@/types/tour";
+import { SearchTour } from "@/types/home";
+import { TourCard } from "@/features/tours/components/TourCard";
 
 /* ── Motion & Style Constants ── */
 const SPRING_TRANSITION = { type: "spring", stiffness: 100, damping: 20 } as const;
@@ -87,7 +89,6 @@ export function TourDetailPage() {
   const { t, i18n } = useTranslation();
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
   const tourId = params?.id as string;
   
   const [apiLanguage, setApiLanguage] = useState(() =>
@@ -110,6 +111,7 @@ export function TourDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
+  const [similarTours, setSimilarTours] = useState<SearchTour[]>([]);
 
   useEffect(() => {
     if (!tourId) return;
@@ -142,6 +144,40 @@ export function TourDetailPage() {
       cancelled = true;
     };
   }, [tourId, apiLanguage, refetchTrigger]);
+
+  useEffect(() => {
+    if (!tourId) return;
+    let active = true;
+
+    const fetchSimilar = async () => {
+      try {
+        const data = await tourService.getSimilarTours(tourId, apiLanguage);
+        if (active) {
+          const mapped: SearchTour[] = data.map((t) => ({
+            id: t.id,
+            tourName: t.tourName,
+            thumbnail: t.thumbnail,
+            shortDescription: t.shortDescription,
+            location: t.location,
+            durationDays: t.durationDays,
+            basePrice: t.salePrice ?? t.price ?? 0,
+            classificationName: t.classificationName,
+            rating: t.rating,
+            isVisa: t.isVisa,
+          }));
+          setSimilarTours(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load similar tours:", err);
+      }
+    };
+
+    fetchSimilar();
+
+    return () => {
+      active = false;
+    };
+  }, [tourId, apiLanguage]);
 
   /* ── UI State ── */
   const [activeTab, setActiveTab] = useState<"overview" | "itinerary">("overview");
@@ -213,7 +249,6 @@ export function TourDetailPage() {
   const selectedClassification = classifications[selectedPackage] ?? null;
 
   const pricePerPerson = selectedClassification?.salePrice ?? selectedClassification?.price ?? 0;
-  const originalPrice = selectedClassification?.price ?? 0;
 
   const estimateBreakdown = useMemo(() => {
     return calculateTourEstimate(
@@ -227,7 +262,6 @@ export function TourDetailPage() {
 
   const serviceFee = 0;
   const estimatedTotal = estimateBreakdown.totalPrice + serviceFee;
-  const canBook = adults > 0 && departureDate !== "";
   const canRequestPrivate =
     Boolean(tourId && selectedClassification && departureDate && adults > 0);
 
@@ -576,6 +610,26 @@ export function TourDetailPage() {
               </div>
             </motion.div>
 
+            {similarTours.length > 0 && (
+              <motion.div
+                variants={itemVariants}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={SPRING_TRANSITION}
+                className="bg-white p-8 rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+              >
+                <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-6">
+                  {t("landing.tourDetail.similarTours", "Similar Tours")}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {similarTours.map((t) => (
+                    <TourCard key={t.id} tour={t} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
             {/* Additional Sections */}
             <motion.div variants={itemVariants}>
               <ReviewsSection />
@@ -789,6 +843,7 @@ export function TourDetailPage() {
           </motion.div>
 
         </div>
+
       </div>
 
 

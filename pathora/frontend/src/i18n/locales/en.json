@@ -3730,7 +3730,7 @@
       "followUs": "Follow Us",
       "contactNested": {
         "title": "Contact",
-        "address": "123 Travel Street, Wonder City, World"
+        "address": "FPT University Hanoi"
       },
       "company": {
         "title": "Company"
@@ -4086,13 +4086,7 @@
         "nameRequired": "Please enter your full name.",
         "phoneRequired": "Please enter your phone number."
       },
-      "customTour": {
-        "backToHome": "Back to Home",
-        "title": "Custom Tours",
-        "subtitle": "Create your own dream tour",
-        "comingSoon": "Coming Soon",
-        "comingSoonDesc": "We are working hard to bring this feature to you."
-      }
+      "similarTours": "Similar Tours"
     },
     "customTour": {
       "backToHome": "Back to Home",
@@ -4531,6 +4525,21 @@
         "bookingNotReviewable": "Cannot review a cancelled or completed booking.",
         "general": "An error occurred. Please try again."
       }
+    },
+    "publicBookingLanding": {
+      "button": "Review Booking Passengers",
+      "badgeAriaLabel": "Approval Status: {{approved}} out of {{total}} passengers approved",
+      "badgeAriaLabel_withRejected": "Approval Status: {{approved}} out of {{total}} passengers approved, {{rejected}} rejected",
+      "badge": {
+        "empty": "No passengers",
+        "allApproved": "{{approved}}/{{total}} approved",
+        "partial": "{{approved}}/{{total}} approved",
+        "withRejected": " • {{rejected}} rejected",
+        "loadError": "Load error"
+      },
+      "noPermissionTooltip": "You do not have permission to review this booking",
+      "noActiveTooltip": "No active passengers to review",
+      "retryTooltip": "Reload status"
     }
   }
 }

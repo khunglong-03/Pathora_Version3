@@ -27,6 +27,7 @@ export interface PublicHomeEndpoints {
   GET_DESTINATIONS: string;
   GET_CONTINENTS: string;
   GET_TOUR_DETAIL: (id: string) => string;
+  GET_SIMILAR_TOURS: (id: string) => string;
 }
 
 export interface SearchToursParams {
@@ -96,4 +97,5 @@ export const PUBLIC_HOME: PublicHomeEndpoints = {
   GET_DESTINATIONS: "/api/public/destinations",
   GET_CONTINENTS: "/api/public/continents",
   GET_TOUR_DETAIL: (id: string): string => `/api/public/tours/${id}`,
+  GET_SIMILAR_TOURS: (id: string): string => `/api/public/tours/${id}/similar`,
 };

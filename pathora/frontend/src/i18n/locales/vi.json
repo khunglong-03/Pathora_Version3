@@ -3718,7 +3718,7 @@
       "followUs": "Theo dõi chúng tôi",
       "contactNested": {
         "title": "Liên hệ",
-        "address": "123 Đường Du Lịch, Thành phố Tuyệt Vời, Thế giới"
+        "address": "Đại học FPT Hà Nội"
       },
       "company": {
         "title": "Công ty"
@@ -4073,7 +4073,8 @@
         "error": "Không thể bắt đầu đặt tour riêng. Vui lòng kiểm tra thông tin và thử lại.",
         "nameRequired": "Vui lòng nhập họ và tên.",
         "phoneRequired": "Vui lòng nhập số điện thoại."
-      }
+      },
+      "similarTours": "Tour du lịch tương tự"
     },
     "customTour": {
       "backToHome": "Trở về Trang chủ",
@@ -4510,6 +4511,21 @@
         "bookingNotReviewable": "Không thể duyệt đặt chỗ đã huỷ hoặc hoàn thành.",
         "general": "Đã xảy ra lỗi. Vui lòng thử lại."
       }
+    },
+    "publicBookingLanding": {
+      "button": "Duyệt hành khách của booking",
+      "badgeAriaLabel": "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt",
+      "badgeAriaLabel_withRejected": "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt, {{rejected}} bị từ chối",
+      "badge": {
+        "empty": "Chưa có hành khách",
+        "allApproved": "{{approved}}/{{total}} đã duyệt",
+        "partial": "{{approved}}/{{total}} đã duyệt",
+        "withRejected": " • {{rejected}} từ chối",
+        "loadError": "Tải lỗi"
+      },
+      "noPermissionTooltip": "Bạn không có quyền duyệt booking này",
+      "noActiveTooltip": "Không có hành khách để duyệt",
+      "retryTooltip": "Tải lại trạng thái"
     }
   }
 }
