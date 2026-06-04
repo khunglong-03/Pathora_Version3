@@ -1,5 +1,6 @@
 using Application.Common.Constant;
 using Application.Common.Interfaces;
+using Application.Services;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
 using Domain.Enums;
@@ -23,6 +24,7 @@ public sealed class GetCancellationFeeEstimateQueryHandler(
     IBookingRepository bookingRepository,
     ICancellationPolicyRepository cancellationPolicyRepository,
     ICurrentUser currentUser,
+    IBookingPaidAmountResolver paidAmountResolver,
     ILogger<GetCancellationFeeEstimateQueryHandler> logger)
     : IQueryHandler<GetCancellationFeeEstimateQuery, ErrorOr<CancellationFeeEstimateDto>>
 {
@@ -53,8 +55,8 @@ public sealed class GetCancellationFeeEstimateQueryHandler(
                 BookingCancellationErrors.AlreadyDepartedCode,
                 BookingCancellationErrors.AlreadyDepartedDescription.Vi);
 
-        // Calculate paid amount from deposits (Paid) + payments (all)
-        var paidAmount = CalculatePaidAmount(booking);
+        // Calculate paid amount using resolver
+        var paidAmount = await paidAmountResolver.ResolveAsync(booking, cancellationToken);
 
         // Look up active cancellation policy for tour scope
         var tourScope = booking.TourInstance?.Tour?.TourScope ?? TourScope.Domestic;
@@ -87,21 +89,6 @@ public sealed class GetCancellationFeeEstimateQueryHandler(
             daysBeforeDeparture,
             paidAmount,
             policyId);
-    }
-
-    private static decimal CalculatePaidAmount(Domain.Entities.BookingEntity booking)
-    {
-        var transactionSum = booking.PaymentTransactions?
-            .Where(t => t.Status == Domain.Enums.TransactionStatus.Completed)
-            .Sum(t => t.PaidAmount ?? t.Amount) ?? 0m;
-
-        var depositSum = booking.Deposits?
-            .Where(d => d.Status == DepositStatus.Paid)
-            .Sum(d => d.ExpectedAmount) ?? 0m;
-
-        var paymentSum = booking.Payments?.Sum(p => p.Amount) ?? 0m;
-
-        return transactionSum + depositSum + paymentSum;
     }
 
     private static decimal RoundVnd(decimal value)

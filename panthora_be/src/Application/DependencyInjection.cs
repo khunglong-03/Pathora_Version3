@@ -56,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<IOwnershipValidator, OwnershipValidator>();
         services.AddScoped<IPricingPolicyService, PricingPolicyService>();
         services.AddScoped<ICancellationPolicyService, CancellationPolicyService>();
+        services.AddScoped<IBookingPaidAmountResolver, BookingPaidAmountResolver>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IPrivateTourPolicyMetrics, LoggingPrivateTourPolicyMetrics>();
         services.AddScoped<PrivateTourTopUpDeadlineProcessor>();

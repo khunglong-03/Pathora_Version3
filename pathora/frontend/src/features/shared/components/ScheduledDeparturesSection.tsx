@@ -31,16 +31,14 @@ export function ScheduledDeparturesSection({ tourId, apiLanguage }: ScheduledDep
         );
         if (!cancelled) {
           const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const minDate = new Date(today);
-          minDate.setDate(today.getDate() + 10);
 
           const filtered = (data?.data ?? []).filter(
             (inst: NormalizedTourInstanceVm) => {
               if (inst.tourId !== tourId) return false;
-              const startDate = new Date(inst.startDate);
-              startDate.setHours(0, 0, 0, 0);
-              return startDate >= minDate;
+              const deadline = inst.confirmationDeadline 
+                ? new Date(inst.confirmationDeadline) 
+                : new Date(inst.startDate);
+              return deadline > today;
             }
           );
           setInstances(filtered);

@@ -43,6 +43,7 @@ const normalizePublicInstance = (
   currentParticipation: item.currentParticipation ?? 0,
   maxParticipation: item.maxParticipation ?? 0,
   status: normalizeStatus(item.status),
+  confirmationDeadline: item.confirmationDeadline ?? null,
   registeredParticipants: item.currentParticipation ?? 0,
 });
 

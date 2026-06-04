@@ -1,5 +1,6 @@
 using Application.Common.Constant;
 using Application.Common.Interfaces;
+using Application.Services;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
 using Domain.Entities;
@@ -49,6 +50,7 @@ public sealed class RequestBookingCancellationCommandHandler(
     ISupplierPayableRepository supplierPayableRepository,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser,
+    IBookingPaidAmountResolver paidAmountResolver,
     ILogger<RequestBookingCancellationCommandHandler> logger)
     : ICommandHandler<RequestBookingCancellationCommand, ErrorOr<RequestBookingCancellationResult>>
 {
@@ -113,7 +115,7 @@ public sealed class RequestBookingCancellationCommandHandler(
             }
 
             // Calculate paid amount inside tx
-            var paidAmount = CalculatePaidAmount(booking);
+            var paidAmount = await paidAmountResolver.ResolveAsync(booking, cancellationToken);
 
             // Bypass manager for any status if paidAmount == 0
             if (paidAmount == 0)
@@ -232,20 +234,6 @@ public sealed class RequestBookingCancellationCommandHandler(
         return result!;
     }
 
-    private static decimal CalculatePaidAmount(BookingEntity booking)
-    {
-        var transactionSum = booking.PaymentTransactions?
-            .Where(t => t.Status == Domain.Enums.TransactionStatus.Completed)
-            .Sum(t => t.PaidAmount ?? t.Amount) ?? 0m;
-
-        var depositSum = booking.Deposits?
-            .Where(d => d.Status == DepositStatus.Paid)
-            .Sum(d => d.ExpectedAmount) ?? 0m;
-
-        var paymentSum = booking.Payments?.Sum(p => p.Amount) ?? 0m;
-
-        return transactionSum + depositSum + paymentSum;
-    }
 
     private static decimal RoundVnd(decimal value)
         => Math.Round(value, 0, MidpointRounding.AwayFromZero);
