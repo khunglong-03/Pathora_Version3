@@ -62,7 +62,7 @@ public class BookingEntityAutoCancelTests
         booking.AutoCancelDueToApprovalDeadline(
             ErrorConstants.BookingApprovalDeadline.AutoCancelReasonCode,
             "system");
-        
+
         var initialApprovalAutoCancelledAt = booking.ApprovalAutoCancelledAt;
 
         // Act
@@ -101,7 +101,7 @@ public class BookingEntityAutoCancelTests
         booking.AutoCancelDueToApprovalDeadline(
             ErrorConstants.BookingApprovalDeadline.AutoCancelReasonCode,
             "system");
-        
+
         var initialEventsCount = booking.DomainEvents.Count;
         var initialCancelledAt = booking.ApprovalAutoCancelledAt;
 

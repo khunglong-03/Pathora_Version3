@@ -52,14 +52,14 @@ public sealed class SubscribeNewsletterCommandHandler(
         {
             var missingCount = 3 - tours.Count;
             var latestTours = await _tourRepository.FindLatestTours(10, cancellationToken) ?? [];
-            
+
             foreach (var latestTour in latestTours)
             {
                 if (tours.Count >= 3)
                 {
                     break;
                 }
-                
+
                 if (tours.All(t => t.Id != latestTour.Id))
                 {
                     tours.Add(latestTour);
@@ -75,13 +75,13 @@ public sealed class SubscribeNewsletterCommandHandler(
                 .OrderBy(c => c.BasePrice)
                 .FirstOrDefault();
 
-            var priceText = classification != null 
-                ? $"{classification.BasePrice:N0} VND" 
+            var priceText = classification != null
+                ? $"{classification.BasePrice:N0} VND"
                 : "Liên hệ";
 
             var deepLink = $"{frontendBaseUrl}/tours/{t.Id}";
             var imageUrl = t.Thumbnail?.PublicURL ?? "";
-            
+
             // Limit description to prevent overflow in email layout
             var description = t.ShortDescription ?? "";
             if (description.Length > 150)

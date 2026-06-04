@@ -78,7 +78,7 @@ public sealed class UpdateTourGuideTaskStatusCommandHandler(
             }
 
             // For Guides, they must be assigned to this tour instance
-            var isGuideAssigned = tourInstance.Managers.Any(m => 
+            var isGuideAssigned = tourInstance.Managers.Any(m =>
                 m.UserId == userGuid && m.Role == TourInstanceManagerRole.Guide);
 
             if (!isGuideAssigned)

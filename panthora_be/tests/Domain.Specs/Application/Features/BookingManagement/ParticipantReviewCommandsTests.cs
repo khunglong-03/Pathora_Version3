@@ -33,7 +33,7 @@ public class ParticipantReviewCommandsTests
     public ParticipantReviewCommandsTests()
     {
         _currentUserMock.Id.Returns(_operatorId.ToString());
-        
+
         // Setup mock transactions to run synchronous callback immediately
         _uowMock.ExecuteTransactionAsync(Arg.Any<IsolationLevel>(), Arg.Any<Func<Task>>())
             .Returns(async callInfo =>
@@ -48,29 +48,29 @@ public class ParticipantReviewCommandsTests
         ReservationStatus participantStatus = ReservationStatus.Pending)
     {
         var tourInstance = TourInstanceEntity.Create(
-            Guid.NewGuid(), 
-            Guid.NewGuid(), 
-            "Test Tour", 
-            "Test Operator", 
-            "TEST-CODE", 
-            "Standard", 
-            TourType.Public, 
-            DateTimeOffset.UtcNow, 
-            DateTimeOffset.UtcNow.AddDays(5), 
-            20, 
-            1500m, 
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "Test Tour",
+            "Test Operator",
+            "TEST-CODE",
+            "Standard",
+            TourType.Public,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow.AddDays(5),
+            20,
+            1500m,
             "system"
         );
 
         var booking = BookingEntity.Create(
-            tourInstance.Id, 
-            "Customer Name", 
-            "0901234567", 
-            2, 
-            3000m, 
-            PaymentMethod.BankTransfer, 
-            false, 
-            "system", 
+            tourInstance.Id,
+            "Customer Name",
+            "0901234567",
+            2,
+            3000m,
+            PaymentMethod.BankTransfer,
+            false,
+            "system",
             Guid.NewGuid()
         );
         booking.Status = bookingStatus;
@@ -91,7 +91,7 @@ public class ParticipantReviewCommandsTests
         var (booking, participant) = SetupHappyPathEntities();
         _bookingRepoMock.GetByIdAsync(_bookingId).Returns(booking);
         _participantRepoMock.GetByIdAsync(_participantId).Returns(participant);
-        
+
         // Set participant.BookingId to request.BookingId to pass oracle check
         participant.BookingId = _bookingId;
 
@@ -126,7 +126,7 @@ public class ParticipantReviewCommandsTests
         participant.InfoReviewStatus.Should().Be(ParticipantInfoReviewStatus.Approved);
         participant.InfoRejectionReason.Should().BeNull();
         participant.InfoReviewedBy.Should().Be(_operatorId);
-        
+
         _participantRepoMock.Received(1).Update(participant);
         await _uowMock.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
     }
@@ -179,9 +179,9 @@ public class ParticipantReviewCommandsTests
         var (booking, participant) = SetupHappyPathEntities();
         _bookingRepoMock.GetByIdAsync(_bookingId).Returns(booking);
         _participantRepoMock.GetByIdAsync(_participantId).Returns(participant);
-        
+
         // Introduce mismatch
-        participant.BookingId = Guid.NewGuid(); 
+        participant.BookingId = Guid.NewGuid();
 
         var handler = new ReviewParticipantInfoCommandHandler(
             _bookingRepoMock,
@@ -354,7 +354,7 @@ public class ParticipantReviewCommandsTests
     {
         // Arrange
         var tourInstance = TourInstanceEntity.Create(
-            Guid.NewGuid(), Guid.NewGuid(), "Test Tour", "Test Operator", "TEST-CODE", "Standard", 
+            Guid.NewGuid(), Guid.NewGuid(), "Test Tour", "Test Operator", "TEST-CODE", "Standard",
             TourType.Public, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 20, 1500m, "system"
         );
         var booking = BookingEntity.Create(tourInstance.Id, "Customer Name", "0901234567", 2, 3000m, PaymentMethod.BankTransfer, false, "system", Guid.NewGuid());
@@ -417,7 +417,7 @@ public class ParticipantReviewCommandsTests
 
         // Mock TourInstance and operator assigned as manager of TourInstance
         var tourInstance = TourInstanceEntity.Create(
-            Guid.NewGuid(), Guid.NewGuid(), "Test Tour", "Test Operator", "TEST-CODE", "Standard", 
+            Guid.NewGuid(), Guid.NewGuid(), "Test Tour", "Test Operator", "TEST-CODE", "Standard",
             TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 20, 1500m, "system"
         );
         var managerAssignment = TourInstanceManagerEntity.Create(tourInstance.Id, _operatorId, TourInstanceManagerRole.Manager, "system");
@@ -461,7 +461,7 @@ public class ParticipantReviewCommandsTests
 
         // Mock TourInstance and operator assigned as manager of Parent Tour
         var tourInstance = TourInstanceEntity.Create(
-            Guid.NewGuid(), Guid.NewGuid(), "Test Tour", "Test Operator", "TEST-CODE", "Standard", 
+            Guid.NewGuid(), Guid.NewGuid(), "Test Tour", "Test Operator", "TEST-CODE", "Standard",
             TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 20, 1500m, "system"
         );
         var tour = TourEntity.Create("Test Tour", "Short", "Long", "system", TourStatus.Pending, TourScope.Domestic, CustomerSegment.Group, tourOperatorId: _operatorId);

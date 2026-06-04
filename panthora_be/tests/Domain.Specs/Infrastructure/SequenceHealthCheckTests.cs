@@ -132,7 +132,7 @@ public sealed class SequenceHealthCheckTests
         await using var db = new AppDbContext(options);
         var vehicles = await db.Vehicles.ToListAsync();
         var suppliers = await db.Suppliers.ToListAsync();
-        
+
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("DUMP START:");
         var transportSuppliers = suppliers.Where(s => s.SupplierType == global::Domain.Enums.SupplierType.Transport).ToList();
@@ -145,7 +145,7 @@ public sealed class SequenceHealthCheckTests
                 sb.AppendLine($"  VEHICLE: Id={v.Id}, Type={v.VehicleType}, Qty={v.Quantity}, IsActive={v.IsActive}, IsDeleted={v.IsDeleted}, SupplierId={v.SupplierId}, OwnerId={v.OwnerId}");
             }
         }
-        
+
         throw new Exception(sb.ToString());
     }
 

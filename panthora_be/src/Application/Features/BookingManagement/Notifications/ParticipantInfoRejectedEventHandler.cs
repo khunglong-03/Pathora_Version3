@@ -48,7 +48,7 @@ public sealed class ParticipantInfoRejectedEventHandler(
             );
 
             var mailEntity = mailDto.ToMail(notification.CustomerEmail);
-            
+
             // Replace placeholder in subject
             mailEntity.Subject = mailEntity.Subject.Replace("{booking_code}", notification.BookingCode);
 

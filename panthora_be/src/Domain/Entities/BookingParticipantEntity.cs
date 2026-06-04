@@ -99,9 +99,9 @@ public class BookingParticipantEntity : Aggregate<Guid>
     /// Đánh dấu participant đã được review bởi TourOperator.
     /// </summary>
     public void MarkInfoReviewed(
-        bool approved, 
-        string? reason, 
-        Guid reviewerId, 
+        bool approved,
+        string? reason,
+        Guid reviewerId,
         string performedBy,
         string? customerEmail = null,
         string? customerName = null,

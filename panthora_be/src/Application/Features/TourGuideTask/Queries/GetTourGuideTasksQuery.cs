@@ -53,7 +53,7 @@ public sealed class GetTourGuideTasksQueryHandler(
             }
 
             // For Guides, they must be assigned to this tour instance
-            var isGuideAssigned = tourInstance.Managers.Any(m => 
+            var isGuideAssigned = tourInstance.Managers.Any(m =>
                 m.UserId == userGuid && m.Role == TourInstanceManagerRole.Guide);
 
             if (!isGuideAssigned)
@@ -74,7 +74,7 @@ public sealed class GetTourGuideTasksQueryHandler(
             .Distinct()
             .ToList();
 
-        var users = guideIds.Count > 0 
+        var users = guideIds.Count > 0
             ? await _userRepository.FindByIds(guideIds, cancellationToken)
             : new List<UserEntity>();
 

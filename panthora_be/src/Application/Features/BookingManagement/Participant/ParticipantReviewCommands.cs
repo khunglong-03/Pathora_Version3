@@ -22,7 +22,7 @@ public sealed record ReviewParticipantInfoCommand(
     [property: JsonPropertyName("rejectionReason")] string? RejectionReason
 ) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => 
+    public IReadOnlyList<string> CacheKeysToInvalidate =>
         [$"{CacheKey.Booking}:participants:{BookingId}", CacheKey.Booking];
 }
 
@@ -33,7 +33,7 @@ public sealed class ReviewParticipantInfoCommandValidator : AbstractValidator<Re
     {
         RuleFor(x => x.BookingId).NotEmpty();
         RuleFor(x => x.ParticipantId).NotEmpty();
-        
+
         RuleFor(x => x.RejectionReason)
             .NotEmpty()
             .WithMessage(ErrorConstants.ParticipantInfoReview.RejectionReasonRequiredDescription.Vi)
@@ -58,7 +58,7 @@ public sealed class ReviewParticipantInfoCommandHandler(
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         var performedBy = currentUser.Id ?? "system";
-        
+
         if (!Guid.TryParse(currentUser.Id, out var currentUserId))
         {
             return Error.Unauthorized(
@@ -126,9 +126,9 @@ public sealed class ReviewParticipantInfoCommandHandler(
 
                 // Task 4.3 IDOR: Resolve team TourOperator
                 var assignments = await bookingTourGuideRepository.GetByBookingIdAsync(request.BookingId, cancellationToken);
-                var isTourOperatorAssigned = assignments.Any(a => 
-                    a.AssignedRole == AssignedRole.TourOperator && 
-                    a.Status == AssignmentStatus.Confirmed && 
+                var isTourOperatorAssigned = assignments.Any(a =>
+                    a.AssignedRole == AssignedRole.TourOperator &&
+                    a.Status == AssignmentStatus.Confirmed &&
                     a.UserId == currentUserId);
 
                 if (!isTourOperatorAssigned)
@@ -162,9 +162,9 @@ public sealed class ReviewParticipantInfoCommandHandler(
 
                 var bookingCode = "PATH-" + booking.CreatedOnUtc.ToString("yyyy-MMdd-HHmm");
                 participant.MarkInfoReviewed(
-                    request.IsApproved, 
-                    request.RejectionReason, 
-                    currentUserId, 
+                    request.IsApproved,
+                    request.RejectionReason,
+                    currentUserId,
                     performedBy,
                     booking.CustomerEmail,
                     booking.CustomerName,
@@ -172,7 +172,7 @@ public sealed class ReviewParticipantInfoCommandHandler(
 
                 bookingParticipantRepository.Update(participant);
                 await unitOfWork.SaveChangeAsync(cancellationToken);
-                
+
                 result = Result.Success;
             });
         }
@@ -185,7 +185,7 @@ public sealed class ReviewParticipantInfoCommandHandler(
                 var expectedStatus = request.IsApproved ? ParticipantInfoReviewStatus.Approved : ParticipantInfoReviewStatus.Rejected;
                 var expectedReason = request.IsApproved ? null : request.RejectionReason;
 
-                if (reloadParticipant.InfoReviewStatus == expectedStatus && 
+                if (reloadParticipant.InfoReviewStatus == expectedStatus &&
                     reloadParticipant.InfoRejectionReason == expectedReason)
                 {
                     return Result.Success; // Idempotent success
@@ -199,7 +199,7 @@ public sealed class ReviewParticipantInfoCommandHandler(
                         await unitOfWork.ExecuteTransactionAsync(System.Data.IsolationLevel.RepeatableRead, async () =>
                         {
                             var participant = await bookingParticipantRepository.GetByIdAsync(request.ParticipantId);
-                            if (participant is not null && participant.BookingId == request.BookingId && 
+                            if (participant is not null && participant.BookingId == request.BookingId &&
                                 participant.InfoReviewStatus == ParticipantInfoReviewStatus.NotReviewed &&
                                 participant.Status != ReservationStatus.Cancelled)
                             {
@@ -238,7 +238,7 @@ public sealed record BulkApproveParticipantInfoCommand(
     [property: JsonPropertyName("participantIds")] Guid[] ParticipantIds
 ) : ICommand<ErrorOr<List<BulkReviewItemResult>>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => 
+    public IReadOnlyList<string> CacheKeysToInvalidate =>
         [$"{CacheKey.Booking}:participants:{BookingId}", CacheKey.Booking];
 }
 
@@ -273,7 +273,7 @@ public sealed class BulkApproveParticipantInfoCommandHandler(
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         var performedBy = currentUser.Id ?? "system";
-        
+
         if (!Guid.TryParse(currentUser.Id, out var currentUserId))
         {
             return Error.Unauthorized(
@@ -294,9 +294,9 @@ public sealed class BulkApproveParticipantInfoCommandHandler(
 
         // Verify TourOperator is assigned
         var assignments = await bookingTourGuideRepository.GetByBookingIdAsync(request.BookingId, cancellationToken);
-        var isTourOperatorAssigned = assignments.Any(a => 
-            a.AssignedRole == AssignedRole.TourOperator && 
-            a.Status == AssignmentStatus.Confirmed && 
+        var isTourOperatorAssigned = assignments.Any(a =>
+            a.AssignedRole == AssignedRole.TourOperator &&
+            a.Status == AssignmentStatus.Confirmed &&
             a.UserId == currentUserId);
 
         if (!isTourOperatorAssigned)

@@ -66,6 +66,100 @@ public sealed class AdminApiCompleteTests
             expectedData: overview);
     }
 
+    [Fact]
+    public async Task GetOverview_AdminUser_PassesNullManagerId()
+    {
+        var stats = new AdminDashboardStatsReport(
+            TotalRevenue: 50000m,
+            TotalBookings: 250,
+            ActiveTours: 10,
+            TotalCustomers: 100,
+            CancellationRate: 5.0m,
+            VisaApprovalRate: 95.0m
+        );
+        var paymentStats = new AdminPaymentStatsReport(
+            TotalRevenue: 50000m,
+            PendingAmount: 0m,
+            CompletedCount: 250,
+            PendingCount: 0,
+            RefundedCount: 0
+        );
+        var overview = new AdminOverviewReport(
+            Stats: stats,
+            Customers: [],
+            Payments: [],
+            PaymentStats: paymentStats,
+            Insurances: [],
+            VisaApplications: []
+        );
+
+        var (controller, probe) = ApiControllerTestHelper
+            .BuildController<ManagerController, GetAdminOverviewQuery, AdminOverviewReport>(
+                overview,
+                "/" + ManagerEndpoint.Overview);
+
+        controller.HttpContext.User = new System.Security.Claims.ClaimsPrincipal(
+            new System.Security.Claims.ClaimsIdentity(
+            [
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "Admin"),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "Manager")
+            ],
+            "TestAuth"));
+
+        var actionResult = await controller.GetOverview();
+
+        var captured = Assert.IsType<GetAdminOverviewQuery>(probe.CapturedRequest);
+        Assert.Null(captured.ManagerId);
+    }
+
+    [Fact]
+    public async Task GetOverview_ManagerUser_PassesCurrentUserId()
+    {
+        var stats = new AdminDashboardStatsReport(
+            TotalRevenue: 50000m,
+            TotalBookings: 250,
+            ActiveTours: 10,
+            TotalCustomers: 100,
+            CancellationRate: 5.0m,
+            VisaApprovalRate: 95.0m
+        );
+        var paymentStats = new AdminPaymentStatsReport(
+            TotalRevenue: 50000m,
+            PendingAmount: 0m,
+            CompletedCount: 250,
+            PendingCount: 0,
+            RefundedCount: 0
+        );
+        var overview = new AdminOverviewReport(
+            Stats: stats,
+            Customers: [],
+            Payments: [],
+            PaymentStats: paymentStats,
+            Insurances: [],
+            VisaApplications: []
+        );
+
+        var (controller, probe) = ApiControllerTestHelper
+            .BuildController<ManagerController, GetAdminOverviewQuery, AdminOverviewReport>(
+                overview,
+                "/" + ManagerEndpoint.Overview);
+
+        var managerId = Guid.NewGuid();
+        controller.HttpContext.User = new System.Security.Claims.ClaimsPrincipal(
+            new System.Security.Claims.ClaimsIdentity(
+            [
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, managerId.ToString()),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "Manager")
+            ],
+            "TestAuth"));
+
+        var actionResult = await controller.GetOverview();
+
+        var captured = Assert.IsType<GetAdminOverviewQuery>(probe.CapturedRequest);
+        Assert.Equal(managerId, captured.ManagerId);
+    }
+
     #endregion
 
     #region GetDashboard

@@ -38,7 +38,7 @@ public sealed class ParticipantApprovalDeadlineWorkerService(
         {
             using var scope = serviceProvider.CreateScope();
             var processor = scope.ServiceProvider.GetRequiredService<ParticipantApprovalDeadlineProcessor>();
-            
+
             var warningsCount = await processor.SendWarningsAsync(DateTimeOffset.UtcNow, stoppingToken);
             if (warningsCount > 0)
                 logger.LogInformation("Participant approval deadline warning sweep: sent {Count} email(s).", warningsCount);

@@ -44,7 +44,7 @@ public sealed class DatabaseStartupInitializer(
                     using var scope = scopeFactory.CreateScope();
                     var db = scope.ServiceProvider.GetRequiredService<global::Infrastructure.Data.AppDbContext>();
                     var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<DatabaseStartupInitializer>>();
-                    
+
                     Log.Information("Checking and syncing database identity sequences...");
                     await global::Infrastructure.Data.HealthChecks.SequenceHealthCheck.SyncOwnedImageSequencesAsync(db, logger, ct);
                     Log.Information("Database identity sequences check completed.");

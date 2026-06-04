@@ -17,7 +17,7 @@ public record ParticipantApprovalWarningMail(
     {
         var localZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
         var departureTimeLocal = TimeZoneInfo.ConvertTime(booking.TourInstance.StartDate, localZone);
-        
+
         var deadline = booking.TourInstance.StartDate.AddDays(-1);
         var deadlineTimeLocal = TimeZoneInfo.ConvertTime(deadline, localZone);
 
@@ -29,8 +29,8 @@ public record ParticipantApprovalWarningMail(
 
             if (infoUnapproved || visaPendingOrRejected)
             {
-                string reason = infoUnapproved 
-                    ? "Thông tin chưa duyệt" 
+                string reason = infoUnapproved
+                    ? "Thông tin chưa duyệt"
                     : (p.VisaApplications.Any(v => v.Status == VisaStatus.Rejected) ? "Visa bị từ chối" : "Visa đang chờ");
 
                 unapprovedList.Add(new UnapprovedParticipantInfo(p.FullName, reason));

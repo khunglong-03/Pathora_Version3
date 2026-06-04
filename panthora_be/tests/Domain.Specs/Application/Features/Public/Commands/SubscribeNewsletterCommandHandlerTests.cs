@@ -47,9 +47,9 @@ public sealed class SubscribeNewsletterCommandHandlerTests
 
         // Assert
         Assert.False(result.IsError);
-        await _mailRepository.Received(1).Add(Arg.Is<MailEntity>(m => 
-            m.To == email && 
-            m.Template == "newsletter-welcome" && 
+        await _mailRepository.Received(1).Add(Arg.Is<MailEntity>(m =>
+            m.To == email &&
+            m.Template == "newsletter-welcome" &&
             m.Body.Contains("Featured Tour 1") &&
             m.Body.Contains("Featured Tour 2") &&
             m.Body.Contains("Featured Tour 3")
@@ -84,9 +84,9 @@ public sealed class SubscribeNewsletterCommandHandlerTests
 
         // Assert
         Assert.False(result.IsError);
-        await _mailRepository.Received(1).Add(Arg.Is<MailEntity>(m => 
-            m.To == email && 
-            m.Template == "newsletter-welcome" && 
+        await _mailRepository.Received(1).Add(Arg.Is<MailEntity>(m =>
+            m.To == email &&
+            m.Template == "newsletter-welcome" &&
             m.Body.Contains("Featured Tour 1") &&
             m.Body.Contains("Latest Tour 2") &&
             m.Body.Contains("Latest Tour 3")

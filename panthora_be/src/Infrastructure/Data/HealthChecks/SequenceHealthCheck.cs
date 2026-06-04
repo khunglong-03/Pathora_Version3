@@ -55,9 +55,9 @@ public static class SequenceHealthCheck
                     logger.LogWarning("Sequence drift detected for table {Table}. Sequence {Sequence} last_value is {LastValue}, while MAX(Id) is {MaxId}. Bumping sequence.",
                         item.Table, item.Sequence, lastValue, maxId);
 
-                     using (var cmd = connection.CreateCommand())
-                     {
-                         cmd.CommandText = $@"
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = $@"
                              SELECT setval(
                                  '""{item.Sequence}""',
                                  GREATEST(
@@ -65,8 +65,8 @@ public static class SequenceHealthCheck
                                      (SELECT last_value FROM pg_sequences WHERE sequencename = '{item.Sequence}')
                                  )
                              );";
-                         await cmd.ExecuteScalarAsync(ct);
-                     }
+                        await cmd.ExecuteScalarAsync(ct);
+                    }
 
                     // Query the new sequence value to log it
                     long newLastValue = 0;

@@ -98,7 +98,7 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
                 CustomerEmail: b.CustomerEmail,
                 Subtotal: breakdown.Subtotal,
                 TaxAmount: breakdown.TaxAmount,
-                TotalAmount: breakdown.TotalAmount, 
+                TotalAmount: breakdown.TotalAmount,
                 RemainingBalance: breakdown.RemainingBalance,
                 TotalParticipants: totalParticipants,
                 ApprovedParticipants: approvedParticipants,

@@ -14,7 +14,7 @@ public class TourGuideTaskEntity : Aggregate<Guid>
     public string? Description { get; set; }
     public bool IsMandatory { get; set; }
     public TourGuideTaskStatus Status { get; set; } = TourGuideTaskStatus.Pending;
-    
+
     public DateTimeOffset? CompletedAt { get; set; }
     public string? CompletedBy { get; set; }
 
