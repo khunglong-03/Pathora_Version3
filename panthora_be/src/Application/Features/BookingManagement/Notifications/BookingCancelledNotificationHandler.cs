@@ -2,7 +2,6 @@ using Domain.Common.Repositories;
 using Domain.Enums;
 using Domain.Events;
 using Domain.Mails;
-using Domain.UnitOfWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +14,6 @@ namespace Application.Features.BookingManagement.Notifications;
 public sealed class BookingCancelledNotificationHandler(
     IMailRepository mailRepository,
     IBookingRepository bookingRepository,
-    IUnitOfWork unitOfWork,
     ILogger<BookingCancelledNotificationHandler> logger)
     : INotificationHandler<BookingStatusChangedEvent>
 {
@@ -25,7 +23,7 @@ public sealed class BookingCancelledNotificationHandler(
             return;
 
         // Skip customer-initiated cancellation flow (already has its own email handler)
-        if (notification.PerformedBy == "CUSTOMER" || notification.PerformedBy == "SYSTEM")
+        if (notification.PerformedBy == "CUSTOMER" || notification.PerformedBy == "SYSTEM" || notification.OldStatus == BookingStatus.PendingCancellation)
             return;
 
         var booking = await bookingRepository.GetByIdWithDetailsAsync(notification.BookingId, cancellationToken);
@@ -53,7 +51,6 @@ public sealed class BookingCancelledNotificationHandler(
 
             var mail = mailDto.ToMail(booking.CustomerEmail);
             await mailRepository.Add(mail, cancellationToken);
-            await unitOfWork.SaveChangeAsync(cancellationToken);
 
             logger.LogInformation("Scheduled tour cancelled email for booking {BookingId}", booking.Id);
         }

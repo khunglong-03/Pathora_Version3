@@ -11,7 +11,7 @@ import ExternalTicketAssignmentPanel from "@/features/dashboard/components/Exter
 import SupplierReassignmentModal from "@/features/dashboard/components/SupplierReassignmentModal";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 
-export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId: string; backUrl?: string }) {
+export function TourOperatorBookTransport({ instanceId, backUrl, scopedBookingId }: { instanceId: string; backUrl?: string; scopedBookingId?: string }) {
   const { t } = useTranslation();
   const [instance, setInstance] = useState<NormalizedTourInstanceDto | null>(null);
   const [bookings, setBookings] = useState<AdminBookingListResponse[]>([]);
@@ -32,8 +32,19 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
         
         if (isMounted) {
           setInstance(instanceData as any);
-          setBookings(bookingsData.filter(isQualifiedBooking));
+          const activeBookings = bookingsData.filter(isQualifiedBooking);
           setError(null);
+
+          if (scopedBookingId) {
+            const matched = activeBookings.filter((b) => b.id === scopedBookingId);
+            if (matched.length === 0) {
+              setError(t("tourOperator.bookingScope.bookingNotFound", "Booking không thuộc tour này."));
+            } else {
+              setBookings(matched);
+            }
+          } else {
+            setBookings(activeBookings);
+          }
         }
       } catch (err) {
         if (isMounted) setError(t("failed_load_transport", "Failed to load transportation details"));
@@ -43,10 +54,26 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
     };
     loadData();
     return () => { isMounted = false; };
-  }, [instanceId, refreshKey, t]);
+  }, [instanceId, refreshKey, t, scopedBookingId]);
 
   if (loading) return <div className="min-h-screen bg-[#f9fafb] p-8 max-w-[1200px] mx-auto"><SkeletonCard /></div>;
-  if (error || !instance) return <div className="min-h-screen bg-[#f9fafb] p-8 text-rose-500 font-medium center">{error || t("instance_not_found", "Tour instance not found")}</div>;
+
+  if (error || !instance) {
+    return (
+      <div className="min-h-screen bg-[#f9fafb] p-8 flex items-center justify-center">
+        <div className="bg-white rounded-[2rem] border border-slate-200/50 p-8 text-center max-w-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] w-full">
+          <p className="mb-6 text-rose-500 font-semibold">{error || t("instance_not_found", "Tour instance not found")}</p>
+          <Link
+            href={backUrl || `/tour-operator/tour-instances/${instanceId}`}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-all duration-200 w-full"
+          >
+            <ArrowLeft weight="bold" className="size-4" />
+            {t("back_to_tour_instance", "Back to Tour Details")}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const { transportActivities } = getFulfillmentActivities(instance);
   
@@ -78,6 +105,19 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
             <p className="text-slate-500 mt-3 font-medium">
               {t("tour_label", { name: instance.tourName })} &bull; {t("required_pax_label", { count: totalPax })}
             </p>
+            {scopedBookingId && bookings[0] && (
+              <div className="flex items-center gap-3 mt-4 flex-wrap">
+                <span className="inline-flex items-center px-3 py-1 rounded-lg bg-amber-50 text-amber-800 text-xs font-semibold border border-amber-200/50">
+                  {t("tourOperator.bookingScope.header", "Đang gán cho Booking #{{ref}}", { ref: bookings[0].bookingReference || bookings[0].id })}
+                </span>
+                <Link
+                  href={`/tour-operator/tour-instances/public/${instanceId}`}
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors"
+                >
+                  {t("tourOperator.bookingScope.viewAllLink", "Xem tất cả bookings của tour")}
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 

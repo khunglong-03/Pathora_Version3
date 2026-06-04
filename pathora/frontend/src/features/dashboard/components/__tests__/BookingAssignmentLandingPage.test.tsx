@@ -174,6 +174,34 @@ describe("BookingAssignmentLandingPage", () => {
     expect(screen.getByText("Flight from Hanoi to Danang")).toBeInTheDocument();
   });
 
+  it("renders hotel and transport assignment links with correct public booking-scoped URLs", async () => {
+    render(
+      <BookingAssignmentLandingPage
+        instanceId="instance-1"
+        bookingId="booking-1"
+        backUrl="/back-to-tour"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Minh Anh")).toBeInTheDocument();
+    });
+
+    const links = screen.getAllByRole("link");
+    const hotelLink = links.find((link) => link.getAttribute("href")?.includes("assign-accommodation"));
+    const transportLink = links.find((link) => link.getAttribute("href")?.includes("assign-flight-tickets"));
+
+    expect(hotelLink).toBeInTheDocument();
+    expect(hotelLink?.getAttribute("href")).toBe(
+      "/tour-operator/tour-instances/public/instance-1/bookings/booking-1/assign-accommodation?activityId=activity-hotel"
+    );
+
+    expect(transportLink).toBeInTheDocument();
+    expect(transportLink?.getAttribute("href")).toBe(
+      "/tour-operator/tour-instances/public/instance-1/bookings/booking-1/assign-flight-tickets?activityId=activity-flight"
+    );
+  });
+
   it("renders assigned details when activities have active assignments", async () => {
     vi.mocked(tourInstanceService.getBookingRoomAssignments).mockResolvedValue([
       { bookingId: "booking-1", roomType: "Deluxe Twin", roomCount: 2 } as any,

@@ -3370,6 +3370,11 @@
       "myTours": "My Tours",
       "createTour": "Create Tour",
       "editTour": "Edit Tour"
+    },
+    "bookingScope": {
+      "header": "Assigning for Booking #{{ref}}",
+      "viewAllLink": "View all bookings of tour",
+      "bookingNotFound": "Booking does not belong to this tour."
     }
   },
   "landing": {

@@ -16,14 +16,12 @@ public sealed class BookingCancelledNotificationHandlerTests
 {
     private readonly IMailRepository _mailRepository = Substitute.For<IMailRepository>();
     private readonly IBookingRepository _bookingRepository = Substitute.For<IBookingRepository>();
-    private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly ILogger<BookingCancelledNotificationHandler> _logger = Substitute.For<ILogger<BookingCancelledNotificationHandler>>();
     private readonly BookingCancelledNotificationHandler _handler;
 
     public BookingCancelledNotificationHandlerTests()
     {
-        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
-        _handler = new BookingCancelledNotificationHandler(_mailRepository, _bookingRepository, _unitOfWork, _logger);
+        _handler = new BookingCancelledNotificationHandler(_mailRepository, _bookingRepository, _logger);
     }
 
     [Fact]
@@ -41,7 +39,6 @@ public sealed class BookingCancelledNotificationHandlerTests
 
         // Assert
         await _mailRepository.Received().Add(Arg.Any<MailEntity>(), Arg.Any<CancellationToken>());
-        await _unitOfWork.Received().SaveChangeAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -142,6 +139,21 @@ public sealed class BookingCancelledNotificationHandlerTests
 
         // Assert
         await _bookingRepository.DidNotReceive().GetByIdWithDetailsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_OldStatusPendingCancellation_NoOp()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        var notification = new BookingStatusChangedEvent(bookingId, BookingStatus.PendingCancellation, BookingStatus.Cancelled, "MANAGER");
+
+        // Act
+        await _handler.Handle(notification, CancellationToken.None);
+
+        // Assert
+        await _bookingRepository.DidNotReceive().GetByIdWithDetailsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await _mailRepository.DidNotReceive().Add(Arg.Any<MailEntity>(), Arg.Any<CancellationToken>());
     }
 
     private static BookingEntity CreateCancelledBooking(Guid id, string? email, decimal refundAmount)

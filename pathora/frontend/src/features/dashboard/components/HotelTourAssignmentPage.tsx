@@ -14,10 +14,12 @@ import TextInput from "@/components/ui/TextInput";
 import Badge from "@/components/ui/Badge";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
 import Textarea from "@/components/ui/Textarea";
+import Link from "next/link";
 
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { hotelProviderService } from "@/api/services/hotelProviderService";
 import type { AccommodationItem, RoomAvailability } from "@/api/services/hotelProviderService";
+import { bookingService, type AdminBookingListResponse } from "@/api/services/bookingService";
 import { TourInstanceDto } from "@/types/tour";
 import { buildProviderRoomOptions } from "@/utils/providerRoomOptions";
 import { handleApiError } from "@/utils/apiResponse";
@@ -53,6 +55,7 @@ interface HotelTourAssignmentPageProps {
   instanceId?: string;
   backUrl?: string;
   filterBookingId?: string;
+  scopedBookingId?: string;
 }
 
 export default function HotelTourAssignmentPage(props: HotelTourAssignmentPageProps) {
@@ -61,8 +64,11 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
   const router = useRouter();
   const instanceId = props.instanceId || (params.id as string);
   const backUrl = props.backUrl || "/hotel/tour-approvals";
+  const scopedBookingId = props.scopedBookingId;
 
   const [instance, setInstance] = useState<TourInstanceDto | null>(null);
+  const [bookings, setBookings] = useState<AdminBookingListResponse[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [assignments, setAssignments] = useState<RoomAssignmentForm>({});
   const [inventory, setInventory] = useState<AccommodationItem[]>([]);
@@ -71,6 +77,13 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
   const [accommodationsBySupplier, setAccommodationsBySupplier] = useState<Record<string, any[]>>({});
   const [providerSupplierIds, setProviderSupplierIds] = useState<string[]>([]);
   const inFlightActivitiesRef = useRef<Set<string>>(new Set());
+
+  const displayBookings = useMemo(() => {
+    if (scopedBookingId) {
+      return bookings.filter((b) => b.id === scopedBookingId);
+    }
+    return bookings;
+  }, [bookings, scopedBookingId]);
 
   // Approval Modals
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
@@ -119,13 +132,28 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
             console.error("Failed to load inventory:", e);
           }
         } else {
-          // Tour Operator view: Fetch hotel suppliers matching continent
+          // Tour Operator view: Fetch hotel suppliers matching continent and bookings
           try {
             const { supplierService } = await import("@/api/services/supplierService");
-            const suppliers = await supplierService.getSuppliers("Accommodation", data.continent);
+            const [suppliers, bookingsData] = await Promise.all([
+              supplierService.getSuppliers("Accommodation", data.continent),
+              bookingService.getBookingsByTourInstance(instanceId).catch(() => [] as AdminBookingListResponse[])
+            ]);
             setHotelSuppliers(suppliers);
+
+            const activeBookings = (bookingsData || []).filter(
+              (booking) => booking.status !== "Cancelled"
+            );
+            setBookings(activeBookings);
+
+            if (scopedBookingId) {
+              const matched = activeBookings.filter((b) => b.id === scopedBookingId);
+              if (matched.length === 0) {
+                setError(t("tourOperator.bookingScope.bookingNotFound", "Booking không thuộc tour này."));
+              }
+            }
           } catch (e) {
-            console.error("Failed to load suppliers:", e);
+            console.error("Failed to load tour operator data:", e);
           }
         }
 
@@ -493,6 +521,22 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 min-h-screen">
+        <Card className="p-8 text-center max-w-md rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+            <X className="h-6 w-6 text-red-600" />
+          </div>
+          <p className="mb-6 text-slate-700 font-semibold">{error}</p>
+          <Button variant="outline" onClick={() => router.push(backUrl)} className="w-full justify-center">
+            <ArrowLeft className="mr-2" /> {t("back_to_list", "Back to list")}
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   if (!instance) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
@@ -522,6 +566,19 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
             <p className="text-sm md:text-base text-slate-500 font-medium leading-relaxed">
               {instance.tourInstanceCode} • {format(new Date(instance.startDate), "dd/MM/yyyy")} - {format(new Date(instance.endDate), "dd/MM/yyyy")}
             </p>
+            {scopedBookingId && displayBookings[0] && (
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                <span className="inline-flex items-center px-3 py-1 rounded-lg bg-amber-50 text-amber-800 text-xs font-semibold border border-amber-200/50">
+                  {t("tourOperator.bookingScope.header", "Đang gán cho Booking #{{ref}}", { ref: displayBookings[0].bookingReference || displayBookings[0].id })}
+                </span>
+                <Link
+                  href={`/tour-operator/tour-instances/public/${instanceId}`}
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors"
+                >
+                  {t("tourOperator.bookingScope.viewAllLink", "Xem tất cả bookings của tour")}
+                </Link>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2 pl-12 md:pl-0">

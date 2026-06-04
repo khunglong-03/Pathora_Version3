@@ -1,4 +1,3 @@
-using Domain.UnitOfWork;
 using Domain.Common.Repositories;
 using Domain.Events;
 using Domain.Mails;
@@ -11,7 +10,6 @@ public sealed class BookingCancellationEmailNotificationHandler(
     IMailRepository mailRepository,
     IBookingRepository bookingRepository,
     IBookingCancellationRequestRepository requestRepository,
-    IUnitOfWork unitOfWork,
     ILogger<BookingCancellationEmailNotificationHandler> logger)
     : INotificationHandler<BookingCancellationRejectedEvent>,
       INotificationHandler<BookingCancellationApprovedEvent>
@@ -40,7 +38,6 @@ public sealed class BookingCancellationEmailNotificationHandler(
         var mail = mailDto.ToMail(booking.CustomerEmail);
 
         await mailRepository.Add(mail, cancellationToken);
-        await unitOfWork.SaveChangeAsync(cancellationToken);
 
         logger.LogInformation("Scheduled cancellation rejected email for booking {BookingId}", booking.Id);
     }
@@ -66,7 +63,6 @@ public sealed class BookingCancellationEmailNotificationHandler(
         var mail = mailDto.ToMail(booking.CustomerEmail);
 
         await mailRepository.Add(mail, cancellationToken);
-        await unitOfWork.SaveChangeAsync(cancellationToken);
 
         logger.LogInformation("Scheduled cancellation approved email for booking {BookingId}", booking.Id);
     }

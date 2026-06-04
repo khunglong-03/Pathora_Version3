@@ -3421,6 +3421,11 @@
       "myTours": "Tour Của Tôi",
       "createTour": "Tạo Tour",
       "editTour": "Sửa Tour"
+    },
+    "bookingScope": {
+      "header": "Đang gán cho Booking #{{ref}}",
+      "viewAllLink": "Xem tất cả bookings của tour",
+      "bookingNotFound": "Booking không thuộc tour này."
     }
   },
   "landing": {
