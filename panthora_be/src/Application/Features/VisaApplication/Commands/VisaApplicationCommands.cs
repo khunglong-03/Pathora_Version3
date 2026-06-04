@@ -70,7 +70,7 @@ public sealed record UpdateVisaApplicationStatusCommand(
     [property: JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
     [property: JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin, CacheKey.TourInstance];
 }
 
 public sealed class UpdateVisaApplicationStatusCommandValidator : AbstractValidator<UpdateVisaApplicationStatusCommand>
@@ -120,9 +120,21 @@ public sealed class UpdateVisaApplicationStatusCommandHandler(
                 return Error.Forbidden("Visa.Forbidden", "Bạn không có quyền thao tác trên tour này.");
         }
 
-        if (request.Status == VisaStatus.Rejected && tourInstance.Status != TourInstanceStatus.PendingVisa)
+        if (request.Status == VisaStatus.Rejected)
         {
-            return Error.Conflict("Visa.CannotReject", "Không thể từ chối visa sau khi tour đã hoàn tất xác nhận visa (gate complete).");
+            // Chỉ chặn reject khi tour đã chạy/kết thúc/huỷ — các state trước đó (PendingVisa, Confirmed,
+            // Available, SoldOut, PendingApproval, Draft, PendingAdjustment, PendingManagerReview,
+            // PendingCustomerApproval) đều cho phép manager rollback visa decision.
+            var blockedStatuses = new[]
+            {
+                TourInstanceStatus.InProgress,
+                TourInstanceStatus.Completed,
+                TourInstanceStatus.Cancelled
+            };
+            if (blockedStatuses.Contains(tourInstance.Status))
+            {
+                return Error.Conflict("Visa.CannotReject", "Không thể từ chối visa khi tour đã bắt đầu, hoàn tất hoặc đã huỷ.");
+            }
         }
 
         if (request.Status == VisaStatus.Approved)
@@ -199,10 +211,25 @@ public sealed class UpdateVisaApplicationStatusCommandHandler(
             request.VisaFileUrl ?? entity.VisaFileUrl
         );
 
+        // Cascade: nếu reject visa sau khi tour đã CompleteVisaGate (Status=Confirmed),
+        // revert tour về PendingVisa để manager xử lý lại visa cho participant này.
+        if (request.Status == VisaStatus.Rejected
+            && tourInstance.Status == TourInstanceStatus.Confirmed
+            && tourInstance.InstanceType == TourType.Private)
+        {
+            try
+            {
+                tourInstance.RevertVisaGate(currentUserId.Value.ToString());
+            }
+            catch (InvalidOperationException)
+            {
+                // Không revert được (state không hợp lệ) → bỏ qua, không chặn reject.
+            }
+        }
+
         repository.Update(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
-        // 4.7: Sau khi save thành công, kiểm tra hoàn tất Visa Gate
         // 4.7: Sau khi save thành công, kiểm tra hoàn tất Visa Gate
         if (entity.BookingParticipant?.BookingId != null)
         {

@@ -104,9 +104,10 @@ public sealed class CustomerVisaCacheInvalidationTests
             Status: global::Domain.Enums.VisaStatus.Approved);
 
         command.Should().BeAssignableTo<ICacheInvalidator>();
-        command.CacheKeysToInvalidate.Should().HaveCount(2)
+        command.CacheKeysToInvalidate.Should().HaveCount(3)
             .And.Contain(CacheKey.Booking)
-            .And.Contain(CacheKey.Admin);
+            .And.Contain(CacheKey.Admin)
+            .And.Contain(CacheKey.TourInstance);
     }
 
     [Fact]

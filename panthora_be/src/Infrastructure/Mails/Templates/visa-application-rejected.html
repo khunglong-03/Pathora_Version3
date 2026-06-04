@@ -65,12 +65,12 @@
         <h2 style="margin: 0">Visa Application Update</h2>
       </div>
       <div class="body">
-        <p style="margin-top: 0">Hi {{ customername }},</p>
-        <p>There is an update regarding the visa application for passenger <strong>{{ participantname }}</strong> to <strong>{{ destinationcountry }}</strong>.</p>
+        <p style="margin-top: 0">Hi {{ customer_name }},</p>
+        <p>There is an update regarding the visa application for passenger <strong>{{ participant_name }}</strong> to <strong>{{ destination_country }}</strong>.</p>
         <p>Unfortunately, your visa application requires further updates or corrections and has been returned.</p>
-        <div class="note"><strong>Reason:</strong> {{ refusalreason }}</div>
+        <div class="note"><strong>Reason:</strong> {{ refusal_reason }}</div>
         <p style="margin-bottom: 0; margin-top: 16px">Please log in to your account, update your visa information based on the notes above, and submit again.</p>
-        <a class="cta" href="{{ resubmitlink }}">Update Visa Application</a>
+        <a class="cta" href="{{ resubmit_link }}">Update Visa Application</a>
       </div>
       <div class="foot">Pathora automated notification.</div>
     </div>

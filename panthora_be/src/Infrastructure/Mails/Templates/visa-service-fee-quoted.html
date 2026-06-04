@@ -75,15 +75,15 @@
         <h2 style="margin: 0">Visa Service Fee Details</h2>
       </div>
       <div class="body">
-        <p style="margin-top: 0">Hi {{ customername }},</p>
-        <p>The system has assessed your request for visa assistance for passenger <strong>{{ participantname }}</strong> to <strong>{{ destinationcountry }}</strong>.</p>
+        <p style="margin-top: 0">Hi {{ customer_name }},</p>
+        <p>The system has assessed your request for visa assistance for passenger <strong>{{ participant_name }}</strong> to <strong>{{ destination_country }}</strong>.</p>
         <p>Please review and pay the quoted service fee to proceed with the visa processing:</p>
         <div class="meta">
           <p>Service Fee: <span>{{ fee }} VND</span></p>
           <p class="total">Total to pay: <span>{{ fee }} VND</span></p>
         </div>
         <p>You can complete the payment in your booking details page.</p>
-        <a class="cta" href="{{ paymentlink }}">Pay Visa Fee</a>
+        <a class="cta" href="{{ payment_link }}">Pay Visa Fee</a>
       </div>
       <div class="foot">Pathora automated notification.</div>
     </div>

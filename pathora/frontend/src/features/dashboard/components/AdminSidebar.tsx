@@ -558,11 +558,13 @@ export function AdminSidebar({
                     ? "Transport Provider"
                     : providerPortal === "hotel"
                       ? "Hotel Provider"
-                      : providerPortal === "tour-operator"
+                      : variant === "tour-operator" || providerPortal === "tour-operator"
                         ? "Tour Operator"
-                        : providerPortal === "tour-guide"
+                        : variant === "tour-guide" || providerPortal === "tour-guide"
                           ? "Tour Guide"
-                          : "Admin"}
+                          : variant === "manager"
+                            ? "Manager"
+                            : "Admin"}
                 </span>
               </div>
             </Link>
@@ -967,11 +969,13 @@ export function AdminSidebar({
                         .map((w) => w[0] ?? "")
                         .join("")
                         .toUpperCase()
-                    : providerPortal === "tour-operator"
+                    : variant === "tour-operator" || providerPortal === "tour-operator"
                       ? "TD"
-                      : providerPortal === "tour-guide"
+                      : variant === "tour-guide" || providerPortal === "tour-guide"
                         ? "TG"
-                        : "AD"
+                        : variant === "manager"
+                          ? "MN"
+                          : "AD"
                 )}
                 {/* Online dot */}
                 <span
@@ -988,11 +992,13 @@ export function AdminSidebar({
                   style={{ color: "var(--sidebar-text)" }}>
                   {providerPortal === "transport" && companyName
                     ? companyName
-                    : providerPortal === "tour-operator"
+                    : variant === "tour-operator" || providerPortal === "tour-operator"
                       ? "TourOperator"
-                      : providerPortal === "tour-guide"
+                      : variant === "tour-guide" || providerPortal === "tour-guide"
                         ? "TourGuide"
-                        : "Admin"}
+                        : variant === "manager"
+                          ? "Manager"
+                          : "Admin"}
                 </p>
                 <p
                   className="text-xs truncate mt-0.5"
@@ -1001,11 +1007,13 @@ export function AdminSidebar({
                     ? "TransportProvider"
                     : providerPortal === "hotel"
                       ? "HotelServiceProvider"
-                      : providerPortal === "tour-operator"
+                      : variant === "tour-operator" || providerPortal === "tour-operator"
                         ? "TourOperator"
-                        : providerPortal === "tour-guide"
+                        : variant === "tour-guide" || providerPortal === "tour-guide"
                           ? "TourGuide"
-                          : "Administrator"}
+                          : variant === "manager"
+                            ? "Manager"
+                            : "Administrator"}
                 </p>
               </div>
             </div>

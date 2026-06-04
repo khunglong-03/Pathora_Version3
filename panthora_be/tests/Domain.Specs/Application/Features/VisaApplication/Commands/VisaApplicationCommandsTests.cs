@@ -45,7 +45,7 @@ public class VisaApplicationCommandsTests
 
         var tour = new TourEntity { Id = Guid.NewGuid(), TourName = "Tour", IsVisa = true };
         var tourInstance = TourInstanceEntity.Create(tour.Id, Guid.NewGuid(), "Title", "Name", "Code", "Class", TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 10, 1000m, "TEST");
-        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "TEST"); // Post Visa Gate
+        tourInstance.Status = TourInstanceStatus.InProgress; // Gate closed / Tour in progress
 
         var booking = BookingEntity.Create(tourInstance.Id, "Customer", "123", 1, 1000m, PaymentMethod.VnPay, true, "TEST", userId);
         booking.TourInstance = tourInstance;

@@ -148,42 +148,42 @@
         <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">Your custom tour has been designed and is ready for booking.</p>
       </div>
       <div class="body">
-        <p style="margin: 0 0 16px; font-size: 14px;">Hi {{ customername }}, great news! Your custom tour request has been reviewed and your personalized tour is now available.</p>
+        <p style="margin: 0 0 16px; font-size: 14px;">Hi {{ customer_name }}, great news! Your custom tour request has been reviewed and your personalized tour is now available.</p>
 
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 16px;">
-          <p class="tour-title" style="margin: 0 0 4px;">{{ tourtitle }}</p>
-          <p class="classification" style="margin: 0;">{{ classificationname }}</p>
+          <p class="tour-title" style="margin: 0 0 4px;">{{ tour_title }}</p>
+          <p class="classification" style="margin: 0;">{{ classification_name }}</p>
         </div>
 
         <div class="info-grid">
           <div class="info-box">
             <p class="info-label">Start Date</p>
-            <p class="info-value">{{ startdate }}</p>
+            <p class="info-value">{{ start_date }}</p>
           </div>
           <div class="info-box">
             <p class="info-label">End Date</p>
-            <p class="info-value">{{ enddate }}</p>
+            <p class="info-value">{{ end_date }}</p>
           </div>
         </div>
 
         <div class="price-box">
           <p class="price-label">Starting From</p>
-          <p class="price-value">{{ baseprice }} <span class="price-unit">VND / person</span></p>
+          <p class="price-value">{{ base_price }} <span class="price-unit">VND / person</span></p>
         </div>
 
         <div class="services">
           <p class="services-title">Included Services</p>
-          <p class="services-list">{{ includedservices }}</p>
+          <p class="services-list">{{ included_services }}</p>
         </div>
 
         {{ if adminnote }}
         <div class="note">
-          <strong>Admin note:</strong> {{ adminnote }}
+          <strong>Admin note:</strong> {{ admin_note }}
         </div>
         {{ end }}
 
         <p style="margin: 20px 0 0; font-size: 14px; color: #1f2937;">View your tour details, check availability, and proceed with booking below.</p>
-        <a class="cta" href="{{ tourinstancedetaillink }}">View Tour & Book Now</a>
+        <a class="cta" href="{{ tour_instance_detail_link }}">View Tour & Book Now</a>
       </div>
       <div class="foot">
         <p style="margin: 0;">Pathora automated notification. Please do not reply to this email.</p>

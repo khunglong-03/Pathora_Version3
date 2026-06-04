@@ -572,6 +572,32 @@ public class TourInstanceEntity : Aggregate<Guid>
     }
 
     /// <summary>
+    /// Khôi phục về <see cref="TourInstanceStatus.PendingVisa"/> sau khi visa bị reject hậu gate-complete.
+    /// Chỉ áp dụng khi tour đang Confirmed (gate đã complete trước đó).
+    /// Idempotent: nếu đã PendingVisa thì chỉ update audit.
+    /// </summary>
+    public void RevertVisaGate(string performedBy)
+    {
+        if (Status == TourInstanceStatus.PendingVisa)
+        {
+            LastModifiedBy = performedBy;
+            LastModifiedOnUtc = DateTimeOffset.UtcNow;
+            return;
+        }
+
+        // Chỉ revert được từ Confirmed (gate vừa complete xong)
+        if (Status != TourInstanceStatus.Confirmed)
+        {
+            throw new InvalidOperationException($"Không thể khôi phục visa gate từ trạng thái {Status}.");
+        }
+
+        EnsureValidTransition(Status, TourInstanceStatus.PendingVisa);
+        Status = TourInstanceStatus.PendingVisa;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
     /// Phát sự kiện khi nhà cung cấp từ chối duyệt các hoạt động trong TourInstance.
     /// </summary>
     public void RaiseProviderRejectedEvent(

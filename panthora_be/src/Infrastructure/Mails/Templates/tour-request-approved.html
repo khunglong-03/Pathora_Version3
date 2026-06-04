@@ -68,14 +68,14 @@
         <h2 style="margin: 0">Your Tour Request Is Approved</h2>
       </div>
       <div class="body">
-        <p style="margin-top: 0">Hi {{ customername }}, your custom tour request has been approved.</p>
+        <p style="margin-top: 0">Hi {{ customer_name }}, your custom tour request has been approved.</p>
         <div class="meta">
           <div class="row"><strong>Destination:</strong> {{ destination }}</div>
-          <div class="row"><strong>Dates:</strong> {{ startdate }} - {{ enddate }}</div>
+          <div class="row"><strong>Dates:</strong> {{ start_date }} - {{ end_date }}</div>
         </div>
-        <div class="note"><strong>Admin note:</strong> {{ adminnote }}</div>
+        <div class="note"><strong>Admin note:</strong> {{ admin_note }}</div>
         <p style="margin-bottom: 0">Next step: please review details and proceed with the deposit process.</p>
-        <a class="cta" href="{{ myrequestslink }}">View My Requests</a>
+        <a class="cta" href="{{ my_requests_link }}">View My Requests</a>
       </div>
       <div class="foot">Pathora automated notification.</div>
     </div>

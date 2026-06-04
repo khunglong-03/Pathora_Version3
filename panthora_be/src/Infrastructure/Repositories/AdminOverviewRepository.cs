@@ -358,6 +358,8 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
                                              && tourInstanceIds.Contains(x.BookingParticipant.Booking.TourInstanceId));
         }
 
+        visaQuery = visaQuery.Where(x => !x.IsSystemAssisted || x.ServiceFeePaidAt != null);
+
         var visaRows = await visaQuery
             .Include(x => x.BookingParticipant)
             .Include(x => x.Passport)
