@@ -312,4 +312,64 @@ describe("ParticipantReviewModal", () => {
     expect(screen.queryByRole("button", { name: "participantReview.modal.approve" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "participantReview.modal.reject" })).not.toBeInTheDocument();
   });
+
+  it("allows reviewing again for approved participants", async () => {
+    vi.mocked(bookingService.reviewParticipantInfo).mockResolvedValue({} as any);
+
+    render(
+      <ParticipantReviewModal
+        bookingId={bookingId}
+        isOpen={true}
+        onClose={mockClose}
+        onReviewed={mockReviewed}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Passenger Approved")).toBeInTheDocument();
+    });
+
+    // p1 is Approved, so it should initially show "Duyệt lại" button
+    const reviewAgainBtn = screen.getByRole("button", { name: "participantReview.modal.reviewAgain" });
+    expect(reviewAgainBtn).toBeInTheDocument();
+
+    // Click "Duyệt lại"
+    fireEvent.click(reviewAgainBtn);
+
+    // It should now show "Duyệt", "Từ chối", and "Hủy" buttons
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "common.cancel" })).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "participantReview.modal.approve" }).length).toBe(3); // p2, p3, plus p1 now
+    });
+
+    // Click "Hủy"
+    fireEvent.click(screen.getByRole("button", { name: "common.cancel" }));
+
+    // It should revert back to showing "Duyệt lại"
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "participantReview.modal.reviewAgain" })).toBeInTheDocument();
+    });
+
+    // Click "Duyệt lại" again
+    fireEvent.click(screen.getByRole("button", { name: "participantReview.modal.reviewAgain" }));
+
+    // Click "Từ chối"
+    const rejectBtns = screen.getAllByRole("button", { name: "participantReview.modal.reject" });
+    // Click the reject button for p1 (which will be index 2 in sorted order: p3, p2, p1)
+    fireEvent.click(rejectBtns[2]);
+
+    // Fill rejection reason and submit
+    const textarea = screen.getByPlaceholderText("participantReview.modal.reasonPlaceholder");
+    fireEvent.change(textarea, { target: { value: "Wrong spelling" } });
+    fireEvent.click(screen.getByRole("button", { name: "participantReview.modal.submitReject" }));
+
+    await waitFor(() => {
+      expect(bookingService.reviewParticipantInfo).toHaveBeenCalledWith(bookingId, "p1", {
+        isApproved: false,
+        rejectionReason: "Wrong spelling",
+      });
+      expect(toast.success).toHaveBeenCalledWith("participantReview.toast.success.rejected");
+    });
+  });
 });
+

@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 
 type TourRequestDetailRedirectPageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export default function TourRequestDetailRedirectPage({
+export default async function TourRequestDetailRedirectPage({
   params,
 }: TourRequestDetailRedirectPageProps) {
-  const { id } = params;
+  const { id } = await params;
   redirect(`/dashboard/tour-requests/${id}`);
 }

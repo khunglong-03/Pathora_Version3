@@ -4550,6 +4550,7 @@
     },
     "publicBookingLanding": {
       "button": "Review Booking Passengers",
+      "buttonViewDetails": "View Details",
       "badgeAriaLabel": "Approval Status: {{approved}} out of {{total}} passengers approved",
       "badgeAriaLabel_withRejected": "Approval Status: {{approved}} out of {{total}} passengers approved, {{rejected}} rejected",
       "badge": {
@@ -4570,5 +4571,30 @@
     "processing": "Processing...",
     "compressing": "Compressing image...",
     "fileTooLarge": "Image too large, please choose a file under 10MB"
-  }
+  },
+  "accommodation_assignment": "Accommodation Assignment",
+  "pending_approval": "Pending Approval",
+  "tour_summary": "Tour Summary",
+  "participants": "Participants",
+  "duration": "Duration",
+  "action_required": "Action Required",
+  "approve_assignment": "Approve All Activities",
+  "decline_tour": "Reject All Activities",
+  "assignment_progress": "Assignment Progress",
+  "assigned": "assigned",
+  "ready_to_approve": "All rooms are assigned. You can now approve the tour.",
+  "accommodation_requirements": "Accommodation Requirements",
+  "no_accommodation_requirements": "No accommodation requirements for this tour.",
+  "tour_not_found": "Tour not found",
+  "back_to_list": "Back to list",
+  "approved": "Approved",
+  "rejected": "Rejected",
+  "activities_awaiting_decision": "Activities awaiting decision",
+  "day_x": "Day {{day}}",
+  "day": "Day",
+  "room_type_label": "Room Type",
+  "room_count_label": "Rooms",
+  "supplier_label": "Hotel / Supplier (Optional)",
+  "save_requirements": "Save Room Requirements",
+  "saving": "Saving..."
 }

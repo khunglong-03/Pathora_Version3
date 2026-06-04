@@ -24,12 +24,13 @@ public sealed class ParticipantInfoRejectedEventHandler(
 
         try
         {
-            var baseUrl = configuration["App:BaseUrl"];
+            var baseUrl = configuration["AppConfig:FrontendBaseUrl"];
             if (string.IsNullOrEmpty(baseUrl))
             {
-                logger.LogWarning("App:BaseUrl config is missing or empty. Using empty string fallback.");
-                baseUrl = "";
+                logger.LogWarning("AppConfig:FrontendBaseUrl config is missing or empty. Using fallback http://localhost:3003.");
+                baseUrl = "http://localhost:3003";
             }
+            baseUrl = baseUrl.TrimEnd('/');
 
             var hotlinePhone = configuration["Pathora:HotlinePhone"] ?? "1900-XXXX";
             var updateLink = $"{baseUrl}/bookings/{notification.BookingId}/participants#participant-{notification.ParticipantId}";

@@ -4536,6 +4536,7 @@
     },
     "publicBookingLanding": {
       "button": "Duyệt hành khách của booking",
+      "buttonViewDetails": "Xem chi tiết",
       "badgeAriaLabel": "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt",
       "badgeAriaLabel_withRejected": "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt, {{rejected}} bị từ chối",
       "badge": {
@@ -4556,5 +4557,30 @@
     "processing": "Đang xử lý...",
     "compressing": "Đang nén ảnh...",
     "fileTooLarge": "Ảnh quá lớn, vui lòng chọn file dưới 10MB"
-  }
+  },
+  "accommodation_assignment": "Phân bổ lưu trú",
+  "pending_approval": "Chờ duyệt",
+  "tour_summary": "Tóm tắt tour",
+  "participants": "Hành khách",
+  "duration": "Thời lượng",
+  "action_required": "Yêu cầu xử lý",
+  "approve_assignment": "Phê duyệt tất cả hoạt động",
+  "decline_tour": "Từ chối tất cả hoạt động",
+  "assignment_progress": "Tiến độ phân bổ",
+  "assigned": "đã phân bổ",
+  "ready_to_approve": "Tất cả phòng đã được phân bổ. Bạn có thể duyệt tour ngay.",
+  "accommodation_requirements": "Yêu cầu lưu trú",
+  "no_accommodation_requirements": "Không có yêu cầu lưu trú nào cho tour này.",
+  "tour_not_found": "Không tìm thấy tour",
+  "back_to_list": "Quay lại danh sách",
+  "approved": "Đã duyệt",
+  "rejected": "Bị từ chối",
+  "activities_awaiting_decision": "Các hoạt động chờ duyệt",
+  "day_x": "Ngày {{day}}",
+  "day": "Ngày",
+  "room_type_label": "Loại phòng",
+  "room_count_label": "Số phòng",
+  "supplier_label": "Khách sạn / Nhà cung cấp (Tùy chọn)",
+  "save_requirements": "Lưu yêu cầu phòng",
+  "saving": "Đang lưu..."
 }

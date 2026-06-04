@@ -47,6 +47,8 @@ public sealed class ReviewParticipantInfoCommandHandler(
     IBookingRepository bookingRepository,
     IBookingParticipantRepository bookingParticipantRepository,
     IBookingTourGuideRepository bookingTourGuideRepository,
+    ITourInstanceRepository tourInstanceRepository,
+    ITourRepository tourRepository,
     IUnitOfWork unitOfWork,
     IUser currentUser,
     ILanguageContext? languageContext = null)
@@ -131,10 +133,31 @@ public sealed class ReviewParticipantInfoCommandHandler(
 
                 if (!isTourOperatorAssigned)
                 {
-                    result = Error.Forbidden(
-                        ErrorConstants.ParticipantInfoReview.NotAssignedTourOperatorCode,
-                        ErrorConstants.ParticipantInfoReview.NotAssignedTourOperatorDescription.Resolve(lang));
-                    return;
+                    var isAuthorizedForInstance = false;
+                    var tourInstance = await tourInstanceRepository.FindById(booking.TourInstanceId, asNoTracking: true, cancellationToken);
+                    if (tourInstance is not null)
+                    {
+                        if (tourInstance.Managers.Any(m => m.UserId == currentUserId))
+                        {
+                            isAuthorizedForInstance = true;
+                        }
+                        else
+                        {
+                            var tour = await tourRepository.FindById(tourInstance.TourId, asNoTracking: true, cancellationToken);
+                            if (tour is not null && tour.TourOperatorId == currentUserId)
+                            {
+                                isAuthorizedForInstance = true;
+                            }
+                        }
+                    }
+
+                    if (!isAuthorizedForInstance)
+                    {
+                        result = Error.Forbidden(
+                            ErrorConstants.ParticipantInfoReview.NotAssignedTourOperatorCode,
+                            ErrorConstants.ParticipantInfoReview.NotAssignedTourOperatorDescription.Resolve(lang));
+                        return;
+                    }
                 }
 
                 var bookingCode = "PATH-" + booking.CreatedOnUtc.ToString("yyyy-MMdd-HHmm");
@@ -239,6 +262,8 @@ public sealed class BulkApproveParticipantInfoCommandHandler(
     IBookingRepository bookingRepository,
     IBookingParticipantRepository bookingParticipantRepository,
     IBookingTourGuideRepository bookingTourGuideRepository,
+    ITourInstanceRepository tourInstanceRepository,
+    ITourRepository tourRepository,
     IUnitOfWork unitOfWork,
     IUser currentUser,
     ILanguageContext? languageContext = null)
@@ -276,9 +301,30 @@ public sealed class BulkApproveParticipantInfoCommandHandler(
 
         if (!isTourOperatorAssigned)
         {
-            return Error.Forbidden(
-                ErrorConstants.ParticipantInfoReview.NotAssignedTourOperatorCode,
-                ErrorConstants.ParticipantInfoReview.NotAssignedTourOperatorDescription.Resolve(lang));
+            var isAuthorizedForInstance = false;
+            var tourInstance = await tourInstanceRepository.FindById(booking.TourInstanceId, asNoTracking: true, cancellationToken);
+            if (tourInstance is not null)
+            {
+                if (tourInstance.Managers.Any(m => m.UserId == currentUserId))
+                {
+                    isAuthorizedForInstance = true;
+                }
+                else
+                {
+                    var tour = await tourRepository.FindById(tourInstance.TourId, asNoTracking: true, cancellationToken);
+                    if (tour is not null && tour.TourOperatorId == currentUserId)
+                    {
+                        isAuthorizedForInstance = true;
+                    }
+                }
+            }
+
+            if (!isAuthorizedForInstance)
+            {
+                return Error.Forbidden(
+                    ErrorConstants.ParticipantInfoReview.NotAssignedTourOperatorCode,
+                    ErrorConstants.ParticipantInfoReview.NotAssignedTourOperatorDescription.Resolve(lang));
+            }
         }
 
         // Check booking status

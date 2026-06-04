@@ -21,6 +21,8 @@ public class ParticipantReviewCommandsTests
     private readonly IBookingRepository _bookingRepoMock = Substitute.For<IBookingRepository>();
     private readonly IBookingParticipantRepository _participantRepoMock = Substitute.For<IBookingParticipantRepository>();
     private readonly IBookingTourGuideRepository _tourGuideRepoMock = Substitute.For<IBookingTourGuideRepository>();
+    private readonly ITourInstanceRepository _tourInstanceRepoMock = Substitute.For<ITourInstanceRepository>();
+    private readonly ITourRepository _tourRepoMock = Substitute.For<ITourRepository>();
     private readonly IUnitOfWork _uowMock = Substitute.For<IUnitOfWork>();
     private readonly IUser _currentUserMock = Substitute.For<IUser>();
 
@@ -108,6 +110,8 @@ public class ParticipantReviewCommandsTests
             _bookingRepoMock,
             _participantRepoMock,
             _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
             _uowMock,
             _currentUserMock
         );
@@ -150,6 +154,8 @@ public class ParticipantReviewCommandsTests
             _bookingRepoMock,
             _participantRepoMock,
             _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
             _uowMock,
             _currentUserMock
         );
@@ -181,6 +187,8 @@ public class ParticipantReviewCommandsTests
             _bookingRepoMock,
             _participantRepoMock,
             _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
             _uowMock,
             _currentUserMock
         );
@@ -209,6 +217,8 @@ public class ParticipantReviewCommandsTests
             _bookingRepoMock,
             _participantRepoMock,
             _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
             _uowMock,
             _currentUserMock
         );
@@ -236,6 +246,8 @@ public class ParticipantReviewCommandsTests
             _bookingRepoMock,
             _participantRepoMock,
             _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
             _uowMock,
             _currentUserMock
         );
@@ -267,6 +279,8 @@ public class ParticipantReviewCommandsTests
             _bookingRepoMock,
             _participantRepoMock,
             _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
             _uowMock,
             _currentUserMock
         );
@@ -304,6 +318,8 @@ public class ParticipantReviewCommandsTests
             _bookingRepoMock,
             _participantRepoMock,
             _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
             _uowMock,
             _currentUserMock
         );
@@ -367,6 +383,8 @@ public class ParticipantReviewCommandsTests
             _bookingRepoMock,
             _participantRepoMock,
             _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
             _uowMock,
             _currentUserMock
         );
@@ -382,5 +400,94 @@ public class ParticipantReviewCommandsTests
         result.Value.All(r => r.Success).Should().BeTrue();
         p1.InfoReviewStatus.Should().Be(ParticipantInfoReviewStatus.Approved);
         p2.InfoReviewStatus.Should().Be(ParticipantInfoReviewStatus.Approved);
+    }
+
+    [Fact]
+    public async Task ReviewParticipantInfo_OperatorAssignedToTourInstance_Succeeds()
+    {
+        // Arrange
+        var (booking, participant) = SetupHappyPathEntities();
+        _bookingRepoMock.GetByIdAsync(_bookingId).Returns(booking);
+        _participantRepoMock.GetByIdAsync(_participantId).Returns(participant);
+        participant.BookingId = _bookingId;
+
+        // No direct booking assignments
+        _tourGuideRepoMock.GetByBookingIdAsync(_bookingId, Arg.Any<CancellationToken>())
+            .Returns(new List<BookingTourGuideEntity>());
+
+        // Mock TourInstance and operator assigned as manager of TourInstance
+        var tourInstance = TourInstanceEntity.Create(
+            Guid.NewGuid(), Guid.NewGuid(), "Test Tour", "Test Operator", "TEST-CODE", "Standard", 
+            TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 20, 1500m, "system"
+        );
+        var managerAssignment = TourInstanceManagerEntity.Create(tourInstance.Id, _operatorId, TourInstanceManagerRole.Manager, "system");
+        tourInstance.Managers.Add(managerAssignment);
+
+        booking.TourInstanceId = tourInstance.Id;
+        _tourInstanceRepoMock.FindById(tourInstance.Id, true, Arg.Any<CancellationToken>()).Returns(tourInstance);
+
+        var handler = new ReviewParticipantInfoCommandHandler(
+            _bookingRepoMock,
+            _participantRepoMock,
+            _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
+            _uowMock,
+            _currentUserMock
+        );
+
+        var command = new ReviewParticipantInfoCommand(_bookingId, _participantId, true, null);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        participant.InfoReviewStatus.Should().Be(ParticipantInfoReviewStatus.Approved);
+    }
+
+    [Fact]
+    public async Task ReviewParticipantInfo_OperatorAssignedToTour_Succeeds()
+    {
+        // Arrange
+        var (booking, participant) = SetupHappyPathEntities();
+        _bookingRepoMock.GetByIdAsync(_bookingId).Returns(booking);
+        _participantRepoMock.GetByIdAsync(_participantId).Returns(participant);
+        participant.BookingId = _bookingId;
+
+        // No direct booking assignments
+        _tourGuideRepoMock.GetByBookingIdAsync(_bookingId, Arg.Any<CancellationToken>())
+            .Returns(new List<BookingTourGuideEntity>());
+
+        // Mock TourInstance and operator assigned as manager of Parent Tour
+        var tourInstance = TourInstanceEntity.Create(
+            Guid.NewGuid(), Guid.NewGuid(), "Test Tour", "Test Operator", "TEST-CODE", "Standard", 
+            TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 20, 1500m, "system"
+        );
+        var tour = TourEntity.Create("Test Tour", "Short", "Long", "system", TourStatus.Pending, TourScope.Domestic, CustomerSegment.Group, tourOperatorId: _operatorId);
+
+        tourInstance.TourId = tour.Id;
+        booking.TourInstanceId = tourInstance.Id;
+        _tourInstanceRepoMock.FindById(tourInstance.Id, true, Arg.Any<CancellationToken>()).Returns(tourInstance);
+        _tourRepoMock.FindById(tour.Id, true, Arg.Any<CancellationToken>()).Returns(tour);
+
+        var handler = new ReviewParticipantInfoCommandHandler(
+            _bookingRepoMock,
+            _participantRepoMock,
+            _tourGuideRepoMock,
+            _tourInstanceRepoMock,
+            _tourRepoMock,
+            _uowMock,
+            _currentUserMock
+        );
+
+        var command = new ReviewParticipantInfoCommand(_bookingId, _participantId, true, null);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        participant.InfoReviewStatus.Should().Be(ParticipantInfoReviewStatus.Approved);
     }
 }

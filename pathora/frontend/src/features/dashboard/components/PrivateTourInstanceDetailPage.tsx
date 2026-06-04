@@ -40,12 +40,8 @@ const containerVariants = {
 const inputCls = "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20";
 
 const ACTIVITY_TYPE_OPTIONS = [
-  { value: 0, label: "Tham quan" },
-  { value: 1, label: "Ẩm thực" },
   { value: 7, label: "Vận chuyển" },
   { value: 8, label: "Lưu trú" },
-  { value: 9, label: "Thời gian tự do" },
-  { value: 99, label: "Khác" },
 ];
 
 const isTransportationActivity = (activityType?: string | number | null) => {
@@ -174,7 +170,7 @@ export default function PrivateTourInstanceDetailPage() {
   const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const [actEditForm, setActEditForm] = useState({ note: "", startTime: "", endTime: "", isOptional: false, price: "" });
   const [addingActivityForDayId, setAddingActivityForDayId] = useState<string | null>(null);
-  const [newActForm, setNewActForm] = useState({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false, price: "" });
+  const [newActForm, setNewActForm] = useState({ title: "", activityType: 7, description: "", note: "", startTime: "", endTime: "", isOptional: false, price: "" });
   const [addingDay, setAddingDay] = useState(false);
   const [newDayForm, setNewDayForm] = useState({ title: "", actualDate: "", description: "" });
   const [saving, setSaving] = useState(false);
@@ -389,7 +385,7 @@ export default function PrivateTourInstanceDetailPage() {
           title={isButtonDisabled ? t("participantReview.publicBookingLanding.noActiveTooltip", "Không có hành khách để duyệt") : undefined}
         >
           <Icon icon="heroicons:clipboard-document-check" className="size-4" />
-          <span>{t("participantReview.publicBookingLanding.button", "Duyệt hành khách")}</span>
+          <span>{t("participantReview.publicBookingLanding.buttonViewDetails", "Xem chi tiết")}</span>
         </button>
       </div>
     );
@@ -485,7 +481,7 @@ export default function PrivateTourInstanceDetailPage() {
       });
       toast.success("Đã thêm hoạt động");
       setAddingActivityForDayId(null);
-      setNewActForm({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false, price: "" });
+      setNewActForm({ title: "", activityType: 7, description: "", note: "", startTime: "", endTime: "", isOptional: false, price: "" });
       setReloadToken((v) => v + 1);
     } catch (e: unknown) { toast.error(handleApiError(e).message); }
     finally { setSaving(false); }
@@ -789,7 +785,12 @@ export default function PrivateTourInstanceDetailPage() {
             )}
           </AnimatePresence>
 
-          {data.days.map((day, dayIdx) => (
+          {data.days.map((day, dayIdx) => {
+            const serviceActivities = (day.activities ?? []).filter(
+              (act) => isTransportationActivity(act.activityType) || isAccommodationActivity(act.activityType)
+            );
+
+            return (
             <motion.div
               key={day.id ?? dayIdx}
               variants={itemVariants}
@@ -827,9 +828,9 @@ export default function PrivateTourInstanceDetailPage() {
               </AnimatePresence>
 
               {/* Activities */}
-              {day.activities && day.activities.length > 0 && (
+              {serviceActivities && serviceActivities.length > 0 && (
                 <div className="divide-y divide-stone-100">
-                  {day.activities.map((act, aIdx) => {
+                  {serviceActivities.map((act, aIdx) => {
                     const isTransport = isTransportationActivity(act.activityType);
                     const isAccomm = isAccommodationActivity(act.activityType);
                     const hasApproval = isTransport || isAccomm;
@@ -977,7 +978,7 @@ export default function PrivateTourInstanceDetailPage() {
                 </div>
               )}
 
-              {(!day.activities || day.activities.length === 0) && (
+              {serviceActivities.length === 0 && (
                 <div className="px-5 py-6 text-center text-sm text-slate-400">
                   Chưa có hoạt động
                 </div>
@@ -1018,7 +1019,8 @@ export default function PrivateTourInstanceDetailPage() {
                 )}
               </AnimatePresence>
             </motion.div>
-          ))}
+            );
+          })}
         </motion.div>
       )}
 

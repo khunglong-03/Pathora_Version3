@@ -161,7 +161,7 @@ describe("PrivateTourInstanceDetailPage", () => {
     });
 
     expect(screen.queryByText("Thông tin Đặt chỗ & Hành khách")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Duyệt hành khách/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Xem chi tiết/i })).not.toBeInTheDocument();
   });
 
   it("gaters display: shows passenger review details and counts if user is a TourOperator", async () => {
@@ -174,17 +174,17 @@ describe("PrivateTourInstanceDetailPage", () => {
     expect(screen.getByText("Nguyen An")).toBeInTheDocument();
     expect(screen.getByText(/0909123456/)).toBeInTheDocument();
     expect(screen.getByText("0/2 đã duyệt")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Duyệt hành khách/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Xem chi tiết/i })).toBeInTheDocument();
   });
 
   it("allows opening and closing the review modal and triggers local state update on review", async () => {
     render(<PrivateTourInstanceDetailPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Duyệt hành khách/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Xem chi tiết/i })).toBeInTheDocument();
     });
 
-    const triggerBtn = screen.getByRole("button", { name: /Duyệt hành khách/i });
+    const triggerBtn = screen.getByRole("button", { name: /Xem chi tiết/i });
     
     // Focus and click trigger
     triggerBtn.focus();
@@ -211,5 +211,88 @@ describe("PrivateTourInstanceDetailPage", () => {
       expect(screen.queryByTestId("mock-participant-review-modal")).not.toBeInTheDocument();
     });
     expect(screen.getByText("2/2 đã duyệt")).toBeInTheDocument();
+  });
+
+  it("filters activities to show only transportation and accommodation, hiding others and showing empty state if none exist", async () => {
+    const mockDetailWithMixedActivities = {
+      ...mockInstanceDetail,
+      days: [
+        {
+          id: "day-1",
+          title: "Day 1 Title",
+          actualDate: "2026-06-01T00:00:00.000Z",
+          activities: [
+            {
+              id: "act-1",
+              title: "Sightseeing Activity",
+              activityType: 0,
+              startTime: "08:00",
+              endTime: "10:00"
+            },
+            {
+              id: "act-2",
+              title: "Transportation Activity",
+              activityType: 7,
+              startTime: "10:00",
+              endTime: "11:00",
+              transportSupplierName: "Mock Airlines",
+              transportationApprovalStatus: "Approved"
+            },
+            {
+              id: "act-3",
+              title: "Accommodation Activity",
+              activityType: 8,
+              startTime: "14:00",
+              endTime: "15:00",
+              accommodation: {
+                supplierName: "Mock Hotel",
+                supplierApprovalStatus: "Pending"
+              }
+            },
+            {
+              id: "act-4",
+              title: "Free Time Activity",
+              activityType: 9,
+              startTime: "16:00",
+              endTime: "18:00"
+            }
+          ]
+        },
+        {
+          id: "day-2",
+          title: "Day 2 Title",
+          actualDate: "2026-06-02T00:00:00.000Z",
+          activities: [
+            {
+              id: "act-5",
+              title: "Dining Activity",
+              activityType: 1,
+              startTime: "19:00",
+              endTime: "21:00"
+            }
+          ]
+        }
+      ]
+    };
+
+    vi.mocked(tourInstanceService.getInstanceDetail).mockResolvedValue(mockDetailWithMixedActivities as any);
+
+    render(<PrivateTourInstanceDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Day 1 Title")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Transportation Activity")).toBeInTheDocument();
+    expect(screen.getByText("Accommodation Activity")).toBeInTheDocument();
+    expect(screen.getByText("NCC: Mock Airlines")).toBeInTheDocument();
+    expect(screen.getByText("NCC: Mock Hotel")).toBeInTheDocument();
+
+    expect(screen.queryByText("Sightseeing Activity")).not.toBeInTheDocument();
+    expect(screen.queryByText("Free Time Activity")).not.toBeInTheDocument();
+
+    expect(screen.getByText("Day 2 Title")).toBeInTheDocument();
+    expect(screen.queryByText("Dining Activity")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Chưa có hoạt động").length).toBeGreaterThan(0);
   });
 });

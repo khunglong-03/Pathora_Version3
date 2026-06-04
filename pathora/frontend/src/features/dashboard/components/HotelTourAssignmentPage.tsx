@@ -21,12 +21,23 @@ import type { AccommodationItem, RoomAvailability } from "@/api/services/hotelPr
 import { TourInstanceDto } from "@/types/tour";
 import { buildProviderRoomOptions } from "@/utils/providerRoomOptions";
 import { handleApiError } from "@/utils/apiResponse";
+import { formatDate } from "@/utils/format";
 
 /** Backend maps enum with `.ToString()` → `"Accommodation"`; older clients/tests may send `"8"`. */
 const isAccommodationActivity = (activityType?: string | number | null) => {
   if (activityType == null) return false;
   const normalized = String(activityType).trim().toLowerCase();
   return normalized === "accommodation" || normalized === "8";
+};
+
+const getStatusLabel = (status?: string) => {
+  if (!status) return "Chưa gửi";
+  switch (status.toLowerCase()) {
+    case "approved": return "Đã duyệt";
+    case "rejected": return "Bị từ chối";
+    case "pending": return "Chờ duyệt";
+    default: return status;
+  }
 };
 
 interface RoomAssignmentForm {
@@ -483,9 +494,9 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
   if (!instance) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
-        <p className="mb-4 text-slate-500">{t("tour_not_found") || "Tour not found"}</p>
+        <p className="mb-4 text-slate-500">{t("tour_not_found", "Không tìm thấy tour")}</p>
         <Button variant="outline" onClick={() => router.push(backUrl)}>
-          <ArrowLeft className="mr-2" /> {t("back_to_list") || "Back to list"}
+          <ArrowLeft className="mr-2" /> {t("back_to_list", "Quay lại danh sách")}
         </Button>
       </div>
     );
@@ -501,25 +512,25 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
           <div className="min-w-0 flex flex-col gap-2">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-[11px] font-bold uppercase tracking-wider w-fit border border-indigo-100">
               <Bed size={14} weight="bold" />
-              {t("accommodation_assignment") || "Accommodation Assignment"}
+              {t("accommodation_assignment", "Phân bổ lưu trú")}
             </div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter text-slate-900 leading-none break-words">
               {instance.title}
             </h1>
             <p className="text-sm md:text-base text-slate-500 font-medium leading-relaxed">
-              {instance.tourInstanceCode} • {format(new Date(instance.startDate), "MMM dd, yyyy")} - {format(new Date(instance.endDate), "MMM dd, yyyy")}
+              {instance.tourInstanceCode} • {format(new Date(instance.startDate), "dd/MM/yyyy")} - {format(new Date(instance.endDate), "dd/MM/yyyy")}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 pl-12 md:pl-0">
           {aggregateHotelApproval === 1 && (
-            <Badge className="bg-warning-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("pending_approval") || "Pending Approval"}</Badge>
+            <Badge className="bg-warning-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("pending_approval", "Chờ duyệt")}</Badge>
           )}
           {aggregateHotelApproval === 2 && (
-            <Badge className="bg-success-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("approved") || "Approved"}</Badge>
+            <Badge className="bg-success-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("approved", "Đã duyệt")}</Badge>
           )}
           {aggregateHotelApproval === 3 && (
-            <Badge className="bg-danger-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("rejected") || "Rejected"}</Badge>
+            <Badge className="bg-danger-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("rejected", "Bị từ chối")}</Badge>
           )}
         </div>
       </div>
@@ -527,24 +538,24 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Info Column */}
         <div className="space-y-6 md:col-span-1">
-          <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
-            <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">{t("tour_summary") || "Tour Summary"}</h3>
+          <Card className="p-6 lg:p-8 rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+            <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">{t("tour_summary", "Tóm tắt tour")}</h3>
             <dl className="space-y-4 text-sm md:text-base text-slate-600">
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <dt>{t("participants") || "Participants"}</dt>
+                <dt>{t("participants", "Hành khách")}</dt>
                 <dd className="font-semibold text-slate-900">{instance.currentParticipation} / {instance.maxParticipation}</dd>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <dt>{t("duration") || "Duration"}</dt>
-                <dd className="font-semibold text-slate-900">{instance.durationDays} {t("days", { count: instance.durationDays })}</dd>
+                <dt>{t("duration", "Thời lượng")}</dt>
+                <dd className="font-semibold text-slate-900">{instance.durationDays} ngày</dd>
               </div>
             </dl>
           </Card>
 
           {/* Action Card */}
           {aggregateHotelApproval === 1 && !props.instanceId && (
-            <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
-              <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">{t("action_required") || "Action Required"}</h3>
+            <Card className="p-6 lg:p-8 rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+              <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">{t("action_required", "Yêu cầu xử lý")}</h3>
               <p className="mb-4 text-sm text-slate-600">
                 Vui lòng xem xét các yêu cầu đặt phòng dưới đây và phản hồi đồng ý hoặc từ chối. Hệ thống sẽ tự động cấu hình việc gán phòng.
               </p>
@@ -556,7 +567,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
               {pendingApprovalActivities.length > 0 && (
                 <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Activities awaiting decision
+                    Các hoạt động chờ duyệt
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {pendingApprovalActivities.map((activity) => (
@@ -564,7 +575,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                         key={activity.activityId}
                         className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200"
                       >
-                        Day {activity.dayNumber}: {activity.title}
+                        Ngày {activity.dayNumber}: {activity.title}
                       </span>
                     ))}
                   </div>
@@ -577,11 +588,11 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                   onClick={() => setIsApproveModalOpen(true)}
                 >
                   <Check className="mr-2" />{" "}
-                  {t("approve_assignment", { defaultValue: "Approve All Activities" })}
+                  {t("approve_assignment", "Phê duyệt tất cả")}
                 </Button>
                 <Button variant="outline" className="w-full justify-center text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setIsDeclineModalOpen(true)}>
                   <X className="mr-2" />{" "}
-                  {t("decline_tour", { defaultValue: "Reject All Activities" })}
+                  {t("decline_tour", "Từ chối tất cả")}
                 </Button>
               </div>
             </Card>
@@ -592,7 +603,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
         <div className="space-y-6 md:col-span-2">
           {/* Inventory Summary Table */}
           {inventory.length > 0 && (
-            <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+            <Card className="p-6 lg:p-8 rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
               <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">Tổng quan phòng của tôi</h3>
               <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <table className="w-full text-sm">
@@ -643,10 +654,10 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
 
           {/* Progress Bar */}
           {!!props.instanceId && (
-            <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+            <Card className="p-6 lg:p-8 rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
                <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
-                  <h3 className="text-xl font-semibold tracking-tight text-slate-800">{t("assignment_progress") || "Assignment Progress"}</h3>
-                  <span className="text-sm font-medium text-slate-600">{assignedAccoms} / {totalAccoms} {t("assigned") || "Assigned"}</span>
+                  <h3 className="text-xl font-semibold tracking-tight text-slate-800">{t("assignment_progress", "Tiến độ phân bổ")}</h3>
+                  <span className="text-sm font-medium text-slate-600">{assignedAccoms} / {totalAccoms} {t("assigned", "đã phân bổ")}</span>
                </div>
                <div className="w-full bg-slate-200 rounded-full h-2.5">
                   <div 
@@ -656,7 +667,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                </div>
                {progressPercent === 100 && aggregateHotelApproval === 1 && (
                   <p className="mt-3 text-sm text-success-600 flex items-center gap-1.5 font-medium">
-                    <Check size={16} weight="bold" /> {t("ready_to_approve") || "All rooms are assigned. You can now approve the tour."}
+                    <Check size={16} weight="bold" /> {t("ready_to_approve", "Tất cả phòng đã được gán. Bạn có thể duyệt tour ngay.")}
                   </p>
                )}
             </Card>
@@ -667,26 +678,26 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
               <div className="p-2.5 bg-indigo-100 rounded-xl">
                 <Bed size={24} weight="bold" className="text-indigo-600 shrink-0" />
               </div>
-              <span className="break-words leading-tight">{t("accommodation_requirements") || "Accommodation Requirements"}</span>
+              <span className="break-words leading-tight">{t("accommodation_requirements", "Yêu cầu lưu trú")}</span>
             </h2>
           </div>
           
           {groupedAccommodationDays.length === 0 ? (
-            <Card className="p-12 text-center text-slate-500 rounded-[1.5rem] border border-slate-200/50 border-dashed bg-slate-50">
+            <Card className="p-12 text-center text-slate-500 rounded-[2rem] border border-slate-200/50 border-dashed bg-slate-50">
               <Bed size={48} className="mx-auto mb-4 text-slate-300" weight="light" />
-              {t("no_accommodation_requirements") || "No accommodation requirements for this tour."}
+              {t("no_accommodation_requirements", "Không có yêu cầu lưu trú nào cho tour này.")}
             </Card>
           ) : (
             groupedAccommodationDays.map((dayGroup) => (
               <div key={dayGroup.dayId} className="flex flex-col gap-6 mb-8">
                 <div className="flex items-center gap-4">
                    <div className="flex flex-col justify-center items-center bg-indigo-50 border border-indigo-100 rounded-xl p-3 min-w-[80px]">
-                      <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Day</span>
+                      <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Ngày</span>
                       <span className="text-2xl font-black text-indigo-700">{dayGroup.dayNumber}</span>
                    </div>
                    <div>
-                     <h3 className="text-lg font-bold text-slate-800">{format(new Date(dayGroup.date), "EEEE, MMM d, yyyy")}</h3>
-                     <p className="text-sm text-slate-500">{dayGroup.activities.length} accommodation activities</p>
+                     <h3 className="text-lg font-bold text-slate-800">{formatDate(dayGroup.date, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h3>
+                     <p className="text-sm text-slate-500">{dayGroup.activities.length} hoạt động lưu trú</p>
                    </div>
                 </div>
                 
@@ -707,7 +718,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
               return (
                 <Card
                   key={act.activityId}
-                  className={`flex flex-col gap-4 p-6 lg:p-8 rounded-[1.5rem] border shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] sm:flex-row sm:items-start sm:justify-between transition-all duration-300 ${
+                  className={`flex flex-col gap-4 p-6 lg:p-8 rounded-[2rem] border shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] sm:flex-row sm:items-start sm:justify-between transition-all duration-300 ${
                     isFullyBlocked
                       ? "ring-1 ring-emerald-200 border-emerald-200 bg-emerald-50/20"
                       : "border-slate-200/50 bg-white hover:border-slate-300/80 hover:shadow-md"
@@ -717,7 +728,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                   <div className="flex-1 min-w-0">
                     <div className="mb-1 flex items-center gap-2 flex-wrap">
                       <Badge className="bg-slate-200 text-slate-700 px-2.5 py-0.5 text-xs">Ngày {act.dayNumber}</Badge>
-                      <span className="text-sm font-medium text-slate-500">{format(new Date(act.date), "EEE, dd/MM/yyyy")}</span>
+                      <span className="text-sm font-medium text-slate-500">{formatDate(act.date, { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" })}</span>
                       {/* Trạng thái block */}
                       {isFullyBlocked ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-500/20">
@@ -737,7 +748,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                     <h4 className="text-xl font-bold tracking-tight text-slate-800 leading-tight mt-1">{act.title}</h4>
                     <div className="mt-1 h-stack items-center gap-2">
                         <span className="text-sm font-bold text-indigo-600">{(act.price || 0).toLocaleString("vi-VN")} đ</span>
-                        <span className="text-xs text-slate-400 font-medium tracking-tight">doanh thu hoạt động</span>
+                        <span className="text-xs text-slate-400 font-medium tracking-tight">giá dịch vụ</span>
                     </div>
                     {act.description && (
                       <p className="mt-2 text-sm text-slate-500 leading-relaxed line-clamp-2">{act.description}</p>
@@ -770,7 +781,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                         {act.accommodation?.supplierApprovalStatus && (
                           <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
                             <span className="text-slate-500 font-medium">Duyệt:</span>
-                            <span className="font-bold text-slate-800">{act.accommodation?.supplierApprovalStatus}</span>
+                            <span className="font-bold text-slate-800">{getStatusLabel(act.accommodation?.supplierApprovalStatus)}</span>
                           </div>
                         )}
                       </div>
@@ -800,8 +811,9 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                                 <div>
                                   <Select
                                     label="Khách sạn / Nhà cung cấp (Tùy chọn)"
+                                    placeholder="Chọn khách sạn/nhà cung cấp..."
                                     options={[
-                                      { value: "", label: "Chưa chọn (Chỉ đặt phòng)..." },
+                                      { value: "", label: "Chưa chọn (Chỉ đặt phòng)" },
                                       ...hotelSuppliers.map((s) => ({ value: s.id, label: s.name }))
                                     ]}
                                     value={state.supplierId}
@@ -812,6 +824,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                                   <div className="flex-1">
                                     <Select
                                       label="Loại phòng"
+                                      placeholder="Chọn loại phòng..."
                                       options={state.supplierId ? [
                                         { value: "", label: "Chọn loại phòng..." },
                                         ...(accommodationsBySupplier[state.supplierId] || []).map((a: any) => ({
@@ -820,16 +833,16 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                                         }))
                                       ] : [
                                         { value: "", label: "Chọn loại phòng cơ bản..." },
-                                        { value: "Single", label: "Single" },
-                                        { value: "Double", label: "Double" },
-                                        { value: "Twin", label: "Twin" },
-                                        { value: "Triple", label: "Triple" },
-                                        { value: "Quad", label: "Quad" },
-                                        { value: "Family", label: "Family" },
-                                        { value: "Suite", label: "Suite" },
-                                        { value: "Dormitory", label: "Dormitory" },
-                                        { value: "Standard", label: "Standard" },
-                                        { value: "Deluxe", label: "Deluxe" }
+                                        { value: "Single", label: "Single (Phòng đơn)" },
+                                        { value: "Double", label: "Double (Phòng đôi 1 giường to)" },
+                                        { value: "Twin", label: "Twin (Phòng đôi 2 giường đơn)" },
+                                        { value: "Triple", label: "Triple (Phòng 3 giường)" },
+                                        { value: "Quad", label: "Quad (Phòng 4 giường)" },
+                                        { value: "Family", label: "Family (Phòng gia đình)" },
+                                        { value: "Suite", label: "Suite (Phòng cao cấp)" },
+                                        { value: "Dormitory", label: "Dormitory (Phòng tập thể)" },
+                                        { value: "Standard", label: "Standard (Phòng tiêu chuẩn)" },
+                                        { value: "Deluxe", label: "Deluxe (Phòng sang trọng)" }
                                       ]}
                                       value={state.roomType}
                                       onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
@@ -838,6 +851,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                                   <div className="w-24">
                                     <TextInput
                                       label="Số phòng"
+                                      placeholder="Số phòng..."
                                       type="number"
                                       min={1}
                                       value={state.roomCount.toString()}
@@ -846,12 +860,12 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                                   </div>
                                 </div>
                               </div>
-                                <Button
-                                  variant="primary"
-                                  className="w-full justify-center"
-                                  onClick={() => handleSetRequirements(act.activityId)}
-                                  disabled={state.isSubmitting || !state.roomType}
-                                >
+                              <Button
+                                variant="primary"
+                                className="w-full justify-center !bg-amber-500 hover:!bg-amber-600 !text-white rounded-xl active:scale-[0.98] transition-all duration-200 border-none shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] font-semibold mt-1"
+                                onClick={() => handleSetRequirements(act.activityId)}
+                                disabled={state.isSubmitting || !state.roomType}
+                              >
                                 {state.isSubmitting ? "Đang lưu..." : "Lưu yêu cầu phòng"}
                               </Button>
                             </>

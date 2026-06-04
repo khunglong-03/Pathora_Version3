@@ -41,13 +41,30 @@ public sealed class OwnershipValidator(
 
     public async Task<bool> CanAccessAsync(Guid resourceOwnerId, CancellationToken cancellationToken = default)
     {
-        // Admin can access everything
-        if (await IsAdminAsync(cancellationToken))
+        if (string.IsNullOrWhiteSpace(_user.Id) || !Guid.TryParse(_user.Id, out var currentUserId))
         {
-            return true;
+            return false;
         }
 
-        // Owner can access their own resources
-        return await IsOwnerAsync(resourceOwnerId, cancellationToken);
+        // Staff and service provider roles can access (authorized via controller policies)
+        var rolesResult = await _roleRepository.FindByUserId(currentUserId.ToString(), cancellationToken);
+        if (!rolesResult.IsError)
+        {
+            var hasAccessRole = rolesResult.Value.Any(role =>
+                string.Equals(role.Name, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role.Name, "Manager", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role.Name, "TourOperator", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role.Name, "TourGuide", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role.Name, "TransportProvider", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role.Name, "HotelServiceProvider", StringComparison.OrdinalIgnoreCase));
+
+            if (hasAccessRole)
+            {
+                return true;
+            }
+        }
+
+        // Owner (Customer) can access their own resources
+        return resourceOwnerId == currentUserId;
     }
 }

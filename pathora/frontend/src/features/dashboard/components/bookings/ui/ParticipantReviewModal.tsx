@@ -50,6 +50,9 @@ export default function ParticipantReviewModal({
   const [activeRejectId, setActiveRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   
+  // Re-review state for approved participants
+  const [reReviewIds, setReReviewIds] = useState<string[]>([]);
+  
   // Image enlargement state
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   
@@ -68,6 +71,7 @@ export default function ParticipantReviewModal({
     try {
       const data = await bookingService.getOperatorParticipants(bookingId);
       setParticipants(data || []);
+      setReReviewIds([]);
     } catch (err) {
       setError(true);
       toast.error(t("participantReview.state.error", "Không thể tải danh sách hành khách. Vui lòng thử lại."));
@@ -93,6 +97,7 @@ export default function ParticipantReviewModal({
       setBulkConfirm(false);
       setBulkProgress(0);
       setBulkApproving(false);
+      setReReviewIds([]);
     }
   }, [isOpen, bookingId]);
 
@@ -152,6 +157,7 @@ export default function ParticipantReviewModal({
         rejectionReason: null
       });
       toast.success(t("participantReview.toast.success.approved", "Đã duyệt thông tin hành khách."));
+      setReReviewIds(prev => prev.filter(id => id !== participantId));
       const latest = await bookingService.getOperatorParticipants(bookingId);
       setParticipants(latest || []);
       onReviewed?.(latest || []);
@@ -181,6 +187,7 @@ export default function ParticipantReviewModal({
       toast.success(t("participantReview.toast.success.rejected", "Đã từ chối duyệt thông tin hành khách."));
       setActiveRejectId(null);
       setRejectReason("");
+      setReReviewIds(prev => prev.filter(id => id !== participantId));
       const latest = await bookingService.getOperatorParticipants(bookingId);
       setParticipants(latest || []);
       onReviewed?.(latest || []);
@@ -557,11 +564,13 @@ export default function ParticipantReviewModal({
                             <Spinner className="size-3.5 animate-spin" />
                             {t("common.saving", "Đang lưu...")}
                           </div>
-                        ) : isApproved ? (
+                        ) : isApproved && !reReviewIds.includes(participant.participantId) ? (
                           // Task 8.9: Single "Duyệt lại" link for Approved participants
                           <button
                             type="button"
-                            onClick={() => handleApprove(participant.participantId)}
+                            onClick={() => {
+                              setReReviewIds(prev => [...prev, participant.participantId]);
+                            }}
                             className="text-xs font-bold text-slate-400 hover:text-slate-900 transition-colors py-1.5 px-3 underline underline-offset-4 cursor-pointer"
                           >
                             {t("participantReview.modal.reviewAgain", "Duyệt lại")}
@@ -569,7 +578,18 @@ export default function ParticipantReviewModal({
                         ) : (
                           <>
                             {activeRejectId !== participant.participantId ? (
-                              <>
+                              <div className="flex gap-2 items-center">
+                                {isApproved && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setReReviewIds(prev => prev.filter(id => id !== participant.participantId));
+                                    }}
+                                    className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
+                                  >
+                                    {t("common.cancel", "Hủy")}
+                                  </button>
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => handleApprove(participant.participantId)}
@@ -587,7 +607,7 @@ export default function ParticipantReviewModal({
                                 >
                                   {t("participantReview.modal.reject", "Từ chối")}
                                 </button>
-                              </>
+                              </div>
                             ) : (
                               // Task 8.2: Expanded Inline rejection form
                               <div className="w-full flex flex-col gap-2 pt-2 border-t border-slate-100">
@@ -610,6 +630,9 @@ export default function ParticipantReviewModal({
                                       onClick={() => {
                                         setActiveRejectId(null);
                                         setRejectReason("");
+                                        if (isApproved) {
+                                          setReReviewIds(prev => prev.filter(id => id !== participant.participantId));
+                                        }
                                       }}
                                       className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
                                     >
