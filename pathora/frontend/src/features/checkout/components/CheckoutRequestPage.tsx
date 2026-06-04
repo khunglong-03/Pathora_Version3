@@ -1037,6 +1037,8 @@ export function CheckoutRequestPage() {
                   depositAmount={depositAmount}
                   totalPrice={totalPrice}
                   remainingBalance={remainingBalance}
+                  payAmount={payAmount}
+                  isRemainingPayment={isRemainingPayment}
                   canConfirm={canConfirm}
                   loading={loading || loadingTopUpTransaction}
                   onConfirmBooking={handleConfirmBooking}

@@ -357,6 +357,10 @@ interface PaymentSidebarProps {
   depositAmount: number;
   totalPrice: number;
   remainingBalance: number;
+  /** The actual amount that will be charged in this transaction. */
+  payAmount?: number;
+  /** True when the deposit has already been paid and this is the remaining balance payment. */
+  isRemainingPayment?: boolean;
   canConfirm: boolean;
   loading: boolean;
   onConfirmBooking: () => void;
@@ -383,6 +387,8 @@ export function PaymentSidebar({
   depositAmount,
   totalPrice,
   remainingBalance,
+  payAmount,
+  isRemainingPayment = false,
   canConfirm,
   loading,
   onConfirmBooking,
@@ -487,9 +493,17 @@ export function PaymentSidebar({
                   </div>
                 </>
               ) : null}
+              {isRemainingPayment ? (
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                  <span className="text-xs text-slate-500">{t("landing.checkout.depositPaid", "Đã đặt cọc")}</span>
+                  <span className="text-xs text-slate-500">{fmtCurrency(totalPrice - remainingBalance)}</span>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between pt-1">
                 <span className="text-sm font-semibold tracking-tight text-slate-900">{t("landing.checkout.total")}</span>
-                <span className="text-2xl font-bold tracking-tight text-slate-900">{fmtCurrency(totalPrice)}</span>
+                <span className="text-2xl font-bold tracking-tight text-slate-900">
+                  {fmtCurrency(payAmount ?? totalPrice)}
+                </span>
               </div>
             </div>
 

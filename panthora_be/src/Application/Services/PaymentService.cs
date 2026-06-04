@@ -3,6 +3,7 @@ using Application.Common.Constant;
 using Application.Common.Pricing;
 using Application.Options;
 using Domain.Common.Repositories;
+using Domain.Mails;
 using Microsoft.Extensions.Options;
 using Domain.Entities;
 using Domain.Enums;
@@ -814,7 +815,7 @@ public class PaymentService : IPaymentService
                 return;
             }
 
-            var tourName = booking.TourInstance?.Tour?.Name
+            var tourName = booking.TourInstance?.Tour?.TourName
                 ?? booking.TourInstance?.Title
                 ?? "Tour của bạn";
 
