@@ -39,6 +39,10 @@ interface Participant {
   destinationCountry: string;
   minReturnDate: string;
   visaFileUrl: string;
+  visaNumber: string;
+  visaIssuedAt: string;
+  visaExpiresAt: string;
+  visaIssuingAuthority: string;
 
   // Assisted visa metadata (used when visaMode === "needs_support")
   isSystemAssisted?: boolean;
@@ -88,6 +92,10 @@ const blankVisaFields = (defaults?: { nationality?: string; minReturnDate?: stri
   | "destinationCountry"
   | "minReturnDate"
   | "visaFileUrl"
+  | "visaNumber"
+  | "visaIssuedAt"
+  | "visaExpiresAt"
+  | "visaIssuingAuthority"
   | "nationalityOverride"
 > => ({
   visaMode: "",
@@ -98,6 +106,10 @@ const blankVisaFields = (defaults?: { nationality?: string; minReturnDate?: stri
   passportFileUrl: "",
   destinationCountry: defaults?.destinationCountry ?? "",
   minReturnDate: defaults?.minReturnDate ?? "",
+  visaNumber: "",
+  visaIssuedAt: "",
+  visaExpiresAt: "",
+  visaIssuingAuthority: "",
   visaFileUrl: "",
   nationalityOverride: false,
 });
@@ -529,6 +541,14 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
           destinationCountry: latestApp?.destinationCountry ?? defaultDestCountry,
           minReturnDate: latestApp?.minReturnDate ? latestApp.minReturnDate.split("T")[0] : returnDateIso,
           visaFileUrl: latestApp?.visaFileUrl ?? "",
+          visaNumber: latestApp?.visa?.visaNumber ?? latestApp?.visaNumber ?? "",
+          visaIssuedAt: (latestApp?.visa?.issuedAt ?? latestApp?.issuedAt)
+            ? String(latestApp?.visa?.issuedAt ?? latestApp?.issuedAt).split("T")[0]
+            : "",
+          visaExpiresAt: (latestApp?.visa?.expiresAt ?? latestApp?.expiresAt)
+            ? String(latestApp?.visa?.expiresAt ?? latestApp?.expiresAt).split("T")[0]
+            : "",
+          visaIssuingAuthority: latestApp?.visa?.issuingAuthority ?? latestApp?.issuingAuthority ?? "",
           passportId: p.passport?.passportId ?? p.passport?.id ?? "",
           isSystemAssisted: !!latestApp?.isSystemAssisted,
           serviceFee: typeof latestApp?.serviceFee === "number" ? latestApp.serviceFee : null,
@@ -805,7 +825,11 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
       (oldP.visaMode !== "has_visa" ||
         oldP.destinationCountry !== newP.destinationCountry ||
         oldP.minReturnDate !== newP.minReturnDate ||
-        oldP.visaFileUrl !== newP.visaFileUrl);
+        oldP.visaFileUrl !== newP.visaFileUrl ||
+        oldP.visaNumber !== newP.visaNumber ||
+        oldP.visaIssuedAt !== newP.visaIssuedAt ||
+        oldP.visaExpiresAt !== newP.visaExpiresAt ||
+        oldP.visaIssuingAuthority !== newP.visaIssuingAuthority);
 
     const supportChanged =
       newP.visaMode === "needs_support" &&
@@ -955,16 +979,24 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
 
           if (p.visaMode) {
             if (p.visaMode === "has_visa" && diff.visaChanged) {
+              const visaDeclaredFields = {
+                visaNumber: p.visaNumber.trim() || undefined,
+                issuedAt: p.visaIssuedAt ? new Date(p.visaIssuedAt).toISOString() : undefined,
+                expiresAt: p.visaExpiresAt ? new Date(p.visaExpiresAt).toISOString() : undefined,
+                issuingAuthority: p.visaIssuingAuthority.trim() || undefined,
+              };
               if (p.hasVisaApp) {
                 const visaApps = (p as any).visaApplications || [];
                 const latestApp = visaApps[visaApps.length - 1];
                 const applicationId = latestApp?.visaApplicationId ?? latestApp?.id;
                 if (applicationId) {
                   await bookingService.updateVisaApplication(bookingId, applicationId, {
+                    passportId: passportId,
                     destinationCountry: p.destinationCountry,
                     minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
                     visaFileUrl: p.visaFileUrl || undefined,
-                    isResubmitting: p.infoReviewStatus === "Rejected"
+                    isResubmitting: p.infoReviewStatus === "Rejected",
+                    ...visaDeclaredFields,
                   });
                 } else {
                   await bookingService.submitVisaApplication(bookingId, {
@@ -973,6 +1005,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                     destinationCountry: p.destinationCountry,
                     minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
                     visaFileUrl: p.visaFileUrl || undefined,
+                    ...visaDeclaredFields,
                   });
                 }
               } else {
@@ -982,6 +1015,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                   destinationCountry: p.destinationCountry,
                   minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
                   visaFileUrl: p.visaFileUrl || undefined,
+                  ...visaDeclaredFields,
                 });
               }
             } else if (p.visaMode === "needs_support" && diff.supportChanged) {
@@ -1724,6 +1758,60 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                               <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 font-sans">
                                 {t("landing.bookings.addParticipantsPage.visaHeader", { index: index + 1 })}
                               </h4>
+
+                              {/* Customer-declared visa fields */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-1.5">
+                                  <label htmlFor={`visa-number-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.visaNumber", "Số Visa")}</label>
+                                  <input
+                                    id={`visa-number-${p.id}`}
+                                    name={`visa-number-${p.id}`}
+                                    type="text"
+                                    value={p.visaNumber}
+                                    onChange={(e) => updateParticipant(p.id, "visaNumber", e.target.value)}
+                                    placeholder={t("landing.bookings.addParticipantsPage.visaNumberPlaceholder", "VN1234567")}
+                                    disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
+                                  />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                  <label htmlFor={`visa-authority-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.visaIssuingAuthority", "Cơ quan cấp")}</label>
+                                  <input
+                                    id={`visa-authority-${p.id}`}
+                                    name={`visa-authority-${p.id}`}
+                                    type="text"
+                                    value={p.visaIssuingAuthority}
+                                    onChange={(e) => updateParticipant(p.id, "visaIssuingAuthority", e.target.value)}
+                                    placeholder={t("landing.bookings.addParticipantsPage.visaIssuingAuthorityPlaceholder", "Đại sứ quán...")}
+                                    disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
+                                  />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                  <label htmlFor={`visa-issued-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.visaIssuedAt", "Ngày cấp")}</label>
+                                  <input
+                                    id={`visa-issued-${p.id}`}
+                                    name={`visa-issued-${p.id}`}
+                                    type="date"
+                                    value={p.visaIssuedAt}
+                                    onChange={(e) => updateParticipant(p.id, "visaIssuedAt", e.target.value)}
+                                    disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
+                                  />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                  <label htmlFor={`visa-expires-${p.id}`} className="text-[11px] font-bold text-slate-500 font-sans">{t("landing.bookings.addParticipantsPage.visaExpiresAt", "Ngày hết hạn")}</label>
+                                  <input
+                                    id={`visa-expires-${p.id}`}
+                                    name={`visa-expires-${p.id}`}
+                                    type="date"
+                                    value={p.visaExpiresAt}
+                                    onChange={(e) => updateParticipant(p.id, "visaExpiresAt", e.target.value)}
+                                    disabled={isFieldsDisabled || rowStatus[p.id] === "saving"}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none font-semibold text-slate-900 text-sm font-sans disabled:bg-slate-100 disabled:text-slate-400"
+                                  />
+                                </div>
+                              </div>
 
                               <div className="w-full">
                                 <div>

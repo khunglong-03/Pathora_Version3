@@ -29,8 +29,9 @@ public sealed class CustomerVisaCacheInvalidationTests
             DestinationCountry: "VN");
 
         command.Should().BeAssignableTo<ICacheInvalidator>();
-        command.CacheKeysToInvalidate.Should().ContainSingle()
-            .Which.Should().Be(CacheKey.Booking);
+        command.CacheKeysToInvalidate.Should().HaveCount(2)
+            .And.Contain(CacheKey.Booking)
+            .And.Contain(CacheKey.Admin);
     }
 
     [Fact]
@@ -43,8 +44,9 @@ public sealed class CustomerVisaCacheInvalidationTests
             DestinationCountry: "VN");
 
         command.Should().BeAssignableTo<ICacheInvalidator>();
-        command.CacheKeysToInvalidate.Should().ContainSingle()
-            .Which.Should().Be(CacheKey.Booking);
+        command.CacheKeysToInvalidate.Should().HaveCount(2)
+            .And.Contain(CacheKey.Booking)
+            .And.Contain(CacheKey.Admin);
     }
 
     [Fact]
@@ -55,8 +57,9 @@ public sealed class CustomerVisaCacheInvalidationTests
             BookingParticipantId: Guid.NewGuid());
 
         command.Should().BeAssignableTo<ICacheInvalidator>();
-        command.CacheKeysToInvalidate.Should().ContainSingle()
-            .Which.Should().Be(CacheKey.Booking);
+        command.CacheKeysToInvalidate.Should().HaveCount(2)
+            .And.Contain(CacheKey.Booking)
+            .And.Contain(CacheKey.Admin);
     }
 
     [Fact]
@@ -72,8 +75,9 @@ public sealed class CustomerVisaCacheInvalidationTests
             FileUrl: null);
 
         command.Should().BeAssignableTo<ICacheInvalidator>();
-        command.CacheKeysToInvalidate.Should().ContainSingle()
-            .Which.Should().Be(CacheKey.Booking);
+        command.CacheKeysToInvalidate.Should().HaveCount(2)
+            .And.Contain(CacheKey.Booking)
+            .And.Contain(CacheKey.Admin);
     }
 
     // ── Admin-side commands (boil lake — same bug pattern) ────────────────
@@ -87,8 +91,9 @@ public sealed class CustomerVisaCacheInvalidationTests
             DestinationCountry: "VN");
 
         command.Should().BeAssignableTo<ICacheInvalidator>();
-        command.CacheKeysToInvalidate.Should().ContainSingle()
-            .Which.Should().Be(CacheKey.Booking);
+        command.CacheKeysToInvalidate.Should().HaveCount(2)
+            .And.Contain(CacheKey.Booking)
+            .And.Contain(CacheKey.Admin);
     }
 
     [Fact]
@@ -99,8 +104,9 @@ public sealed class CustomerVisaCacheInvalidationTests
             Status: global::Domain.Enums.VisaStatus.Approved);
 
         command.Should().BeAssignableTo<ICacheInvalidator>();
-        command.CacheKeysToInvalidate.Should().ContainSingle()
-            .Which.Should().Be(CacheKey.Booking);
+        command.CacheKeysToInvalidate.Should().HaveCount(2)
+            .And.Contain(CacheKey.Booking)
+            .And.Contain(CacheKey.Admin);
     }
 
     [Fact]
@@ -116,8 +122,22 @@ public sealed class CustomerVisaCacheInvalidationTests
             DestinationCountry: "VN");
 
         command.Should().BeAssignableTo<ICacheInvalidator>();
-        command.CacheKeysToInvalidate.Should().ContainSingle()
-            .Which.Should().Be(CacheKey.Booking);
+        command.CacheKeysToInvalidate.Should().HaveCount(2)
+            .And.Contain(CacheKey.Booking)
+            .And.Contain(CacheKey.Admin);
+    }
+
+    [Fact]
+    public void QuoteVisaSupportFeeCommand_ShouldImplementICacheInvalidator_WithBookingAndAdminTags()
+    {
+        var command = new QuoteVisaSupportFeeCommand(
+            VisaApplicationId: Guid.NewGuid(),
+            Fee: 100m);
+
+        command.Should().BeAssignableTo<ICacheInvalidator>();
+        command.CacheKeysToInvalidate.Should().HaveCount(2)
+            .And.Contain(CacheKey.Booking)
+            .And.Contain(CacheKey.Admin);
     }
 
     // ── Regression: existing participant commands still correct ───────────
@@ -168,12 +188,11 @@ public sealed class CustomerVisaCacheInvalidationTests
             new UpdateVisaApplicationStatusCommand(Guid.NewGuid(), global::Domain.Enums.VisaStatus.Approved),
             new RegisterVisaDetailsCommand(Guid.NewGuid(), "V1", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(1),
                 global::Domain.Enums.VisaCategory.Business, global::Domain.Enums.VisaFormat.Sticker, "VN"),
+            new QuoteVisaSupportFeeCommand(Guid.NewGuid(), 100m),
         };
 
         foreach (var cmd in commands)
         {
-            cmd.CacheKeysToInvalidate.Should().NotContain("Admin",
-                because: $"{cmd.GetType().Name} should not invalidate dead 'Admin' tag");
             cmd.CacheKeysToInvalidate.Should().NotContain("manager",
                 because: $"{cmd.GetType().Name} should not invalidate unrelated 'manager' tag");
         }

@@ -13,6 +13,7 @@ namespace Domain.Specs.Application.Features.VisaApplication.Commands;
 public class VisaApplicationCommandsTests
 {
     private readonly IVisaApplicationRepository _visaRepoMock = Substitute.For<IVisaApplicationRepository>();
+    private readonly IVisaRepository _visaEntityRepoMock = Substitute.For<IVisaRepository>();
     private readonly IBookingRepository _bookingRepoMock = Substitute.For<IBookingRepository>();
     private readonly IPaymentTransactionRepository _transactionRepoMock = Substitute.For<IPaymentTransactionRepository>();
     private readonly ICurrentUser _currentUserMock = Substitute.For<ICurrentUser>();
@@ -36,7 +37,7 @@ public class VisaApplicationCommandsTests
     [Fact]
     public async Task UpdateVisaStatus_WhenRejectingAfterGateClosed_ShouldReturnConflict()
     {
-        var handler = new UpdateVisaApplicationStatusCommandHandler(_visaRepoMock, _currentUserMock, _visaGateMock, _uowMock);
+        var handler = new UpdateVisaApplicationStatusCommandHandler(_visaRepoMock, _visaEntityRepoMock, _currentUserMock, _visaGateMock, _uowMock);
 
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);

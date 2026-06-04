@@ -36,6 +36,8 @@ vi.mock("@/api/services/managerService", () => ({
     getOverview: vi.fn(),
     quoteVisaFee: vi.fn(),
     updateVisaStatus: vi.fn(),
+    getVisaApplication: vi.fn(),
+    registerVisaDetails: vi.fn(),
   },
 }));
 
@@ -53,6 +55,7 @@ describe("VisaApplicationsPage", () => {
   const getOverviewMock = vi.mocked(managerService.getOverview);
   const quoteVisaFeeMock = vi.mocked(managerService.quoteVisaFee);
   const updateVisaStatusMock = vi.mocked(managerService.updateVisaStatus);
+  const getVisaApplicationMock = vi.mocked(managerService.getVisaApplication);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -87,10 +90,7 @@ describe("VisaApplicationsPage", () => {
       expect(screen.getByText("Japan Sakura Tour")).toBeInTheDocument();
     });
 
-    // Click Pending filter
-    const pendingFilters = screen.getAllByText("Pending");
-    fireEvent.click(pendingFilters[0]); // First one should be the filter button if we are careful, or we can use getByRole but we just click the first one that is clickable. Or better, we can find the button.
-    // Actually, let's just click the button with role:
+    // Click Pending filter button
     fireEvent.click(screen.getByRole("button", { name: /Pending/i }));
 
     await waitFor(() => {
@@ -99,10 +99,19 @@ describe("VisaApplicationsPage", () => {
     });
   });
 
-  it("handles quote fee action", async () => {
+  it("handles unified register details and fee action in sequential modal", async () => {
     getOverviewMock.mockResolvedValue({ visaApplications: mockVisaApplications } as any);
-    window.prompt = vi.fn().mockReturnValue("500000");
-    quoteVisaFeeMock.mockResolvedValue({});
+    getVisaApplicationMock.mockResolvedValue({
+      id: "VISA-002",
+      participantName: "Tran Thi B",
+      passportNumber: "P7654321",
+      destinationCountry: "Korea",
+      status: "pending",
+      isSystemAssisted: true,
+      serviceFee: 0,
+    } as any);
+    const registerVisaDetailsMock = vi.mocked(managerService.registerVisaDetails);
+    registerVisaDetailsMock.mockResolvedValue({});
 
     render(<VisaApplicationsPage />);
 
@@ -110,18 +119,64 @@ describe("VisaApplicationsPage", () => {
       expect(screen.getByText("Korea Autumn Adventure")).toBeInTheDocument();
     });
 
-    const quoteBtn = screen.getByText("Quote Fee");
-    fireEvent.click(quoteBtn);
+    // Click Review Visa button on the Korea Bento Card
+    const reviewBtns = screen.getAllByRole("button", { name: /Review Visa/i });
+    fireEvent.click(reviewBtns[1]);
 
     await waitFor(() => {
-      expect(window.prompt).toHaveBeenCalledWith("Enter fee amount in VND:");
-      expect(quoteVisaFeeMock).toHaveBeenCalledWith({ visaApplicationId: "VISA-002", fee: 500000 });
-      expect(toast.success).toHaveBeenCalledWith("Fee quoted successfully");
+      expect(getVisaApplicationMock).toHaveBeenCalledWith("VISA-002");
+    });
+
+    // Input the fee amount in Modal by placeholder
+    const feeInput = screen.getByPlaceholderText(/e.g. 1500000/i);
+    fireEvent.change(feeInput, { target: { value: "500000" } });
+
+    // Input visa details
+    const numberInput = screen.getByPlaceholderText(/Ex: V123456/i);
+    fireEvent.change(numberInput, { target: { value: "V-999" } });
+
+    const authorityInput = screen.getByPlaceholderText(/Ex: Đại sứ quán Nhật Bản/i);
+    fireEvent.change(authorityInput, { target: { value: "Embassy" } });
+
+    const issuedAtInput = screen.getByLabelText(/Ngày cấp/i);
+    fireEvent.change(issuedAtInput, { target: { value: "2026-06-01" } });
+
+    const expiresAtInput = screen.getByLabelText(/Ngày hết hạn/i);
+    fireEvent.change(expiresAtInput, { target: { value: "2026-09-01" } });
+
+    // Submit Unified Form
+    const submitBtn = screen.getByRole("button", { name: /Lưu & Duyệt Visa/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(registerVisaDetailsMock).toHaveBeenCalledWith({
+        visaApplicationId: "VISA-002",
+        visaNumber: "V-999",
+        issuingAuthority: "Embassy",
+        issuedAt: "2026-06-01T00:00:00.000Z",
+        expiresAt: "2026-09-01T00:00:00.000Z",
+        serviceFee: 500000,
+        category: undefined,
+        destinationCountry: "Korea",
+        entryType: undefined,
+        format: undefined,
+        maxStayDays: undefined,
+        visaFileUrl: undefined
+      });
     });
   });
 
-  it("handles approve action", async () => {
+  it("handles approve action in sequential modal", async () => {
     getOverviewMock.mockResolvedValue({ visaApplications: mockVisaApplications } as any);
+    getVisaApplicationMock.mockResolvedValue({
+      id: "VISA-003",
+      participantName: "Le Van C",
+      passportNumber: "P9876543",
+      destinationCountry: "Schengen",
+      status: "under_review",
+      isSystemAssisted: false,
+      visaFileUrl: "https://test-pdf.com/visa.pdf",
+    } as any);
     updateVisaStatusMock.mockResolvedValue({});
 
     render(<VisaApplicationsPage />);
@@ -130,20 +185,36 @@ describe("VisaApplicationsPage", () => {
       expect(screen.getByText("Europe Grand Tour")).toBeInTheDocument();
     });
 
-    const approveBtns = screen.getAllByText("Approve");
-    fireEvent.click(approveBtns[0]); // First under_review application's approve button
+    // Click Review Visa on Europe Bento Card
+    const reviewBtns = screen.getAllByRole("button", { name: /Review Visa/i });
+    fireEvent.click(reviewBtns[2]);
 
     await waitFor(() => {
-      expect(window.confirm).toHaveBeenCalledWith("Are you sure you want to approve this visa application?");
-      expect(updateVisaStatusMock).toHaveBeenCalledWith({ visaApplicationId: "VISA-003", status: 3 });
-      expect(toast.success).toHaveBeenCalledWith("Visa application approved");
+      expect(getVisaApplicationMock).toHaveBeenCalledWith("VISA-003");
+    });
+
+    // Click Approve button in Modal by class selector to avoid duplicate role match
+    const approveBtns = screen.getAllByRole("button", { name: /Approve/i });
+    const approveBtn = approveBtns.find(btn => btn.className.includes("bg-emerald-600")) || approveBtns[0];
+    fireEvent.click(approveBtn);
+
+    await waitFor(() => {
+      expect(updateVisaStatusMock).toHaveBeenCalledWith({ visaApplicationId: "VISA-003", status: 3, refusalReason: undefined, visaFileUrl: "https://test-pdf.com/visa.pdf" });
     });
   });
 
-  it("handles reject action", async () => {
+  it("handles reject action in sequential modal", async () => {
     getOverviewMock.mockResolvedValue({ visaApplications: mockVisaApplications } as any);
+    getVisaApplicationMock.mockResolvedValue({
+      id: "VISA-003",
+      participantName: "Le Van C",
+      passportNumber: "P9876543",
+      destinationCountry: "Schengen",
+      status: "under_review",
+      isSystemAssisted: false,
+      visaFileUrl: "https://test-pdf.com/visa.pdf",
+    } as any);
     updateVisaStatusMock.mockResolvedValue({});
-    window.prompt = vi.fn().mockReturnValue("Blurry photo");
 
     render(<VisaApplicationsPage />);
 
@@ -151,13 +222,25 @@ describe("VisaApplicationsPage", () => {
       expect(screen.getByText("Europe Grand Tour")).toBeInTheDocument();
     });
 
-    const rejectBtns = screen.getAllByText("Reject");
-    fireEvent.click(rejectBtns[0]); // First under_review application's reject button
+    // Click Review Visa on Europe Bento Card
+    const reviewBtns = screen.getAllByRole("button", { name: /Review Visa/i });
+    fireEvent.click(reviewBtns[2]);
 
     await waitFor(() => {
-      expect(window.prompt).toHaveBeenCalledWith("Enter reason for rejection:");
-      expect(updateVisaStatusMock).toHaveBeenCalledWith({ visaApplicationId: "VISA-003", status: 4, refusalReason: "Blurry photo" });
-      expect(toast.success).toHaveBeenCalledWith("Visa application rejected");
+      expect(getVisaApplicationMock).toHaveBeenCalledWith("VISA-003");
+    });
+
+    // Fill in rejection reason by placeholder
+    const reasonTextarea = screen.getByPlaceholderText(/Enter reason.../i);
+    fireEvent.change(reasonTextarea, { target: { value: "Blurry photo" } });
+
+    // Click Reject button in Modal
+    const rejectBtns = screen.getAllByRole("button", { name: /Reject/i });
+    const rejectBtn = rejectBtns.find(btn => btn.className.includes("bg-red-50")) || rejectBtns[0];
+    fireEvent.click(rejectBtn);
+
+    await waitFor(() => {
+      expect(updateVisaStatusMock).toHaveBeenCalledWith({ visaApplicationId: "VISA-003", status: 4, refusalReason: "Blurry photo", visaFileUrl: undefined });
     });
   });
 });

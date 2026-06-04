@@ -111,7 +111,20 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
 
   const handleSubmitVisaApp = async (participantId: string, passportId: string, applicationId: string | undefined, isResubmitting: boolean, payload: any) => {
     if (isResubmitting && applicationId) {
-      await bookingService.updateVisaApplication(bookingId, applicationId, payload);
+      await bookingService.updateVisaApplication(bookingId, applicationId, {
+        passportId: passportId,
+        destinationCountry: payload.destinationCountry,
+        minReturnDate: payload.minReturnDate,
+        visaFileUrl: payload.visaFileUrl,
+        category: payload.category,
+        format: payload.format,
+        maxStayDays: payload.maxStayDays,
+        issuingAuthority: payload.issuingAuthority,
+        visaNumber: payload.visaNumber,
+        entryType: payload.entryType,
+        issuedAt: payload.issuedAt,
+        expiresAt: payload.expiresAt,
+      });
     } else {
       await bookingService.submitVisaApplication(bookingId, {
         bookingParticipantId: participantId,

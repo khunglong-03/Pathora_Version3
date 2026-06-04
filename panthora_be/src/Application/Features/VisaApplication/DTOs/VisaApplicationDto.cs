@@ -32,4 +32,6 @@ public sealed record VisaApplicationDto(
     [property: JsonPropertyName("category")] VisaCategory? Category = null,
     [property: JsonPropertyName("format")] VisaFormat? Format = null,
     [property: JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
-    [property: JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null);
+    [property: JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null,
+    [property: JsonPropertyName("passportFileUrl")] string? PassportFileUrl = null);
+

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Bus, MapPin, Clock, Users, Star, Ticket, WarningCircle, ShieldCheck } from "@phosphor-icons/react";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { bookingService, AdminBookingListResponse } from "@/api/services/bookingService";
@@ -11,6 +12,7 @@ import SupplierReassignmentModal from "@/features/dashboard/components/SupplierR
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 
 export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId: string; backUrl?: string }) {
+  const { t } = useTranslation();
   const [instance, setInstance] = useState<NormalizedTourInstanceDto | null>(null);
   const [bookings, setBookings] = useState<AdminBookingListResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,17 +36,17 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
           setError(null);
         }
       } catch (err) {
-        if (isMounted) setError("Failed to load transport details");
+        if (isMounted) setError(t("failed_load_transport", "Failed to load transportation details"));
       } finally {
         if (isMounted) setLoading(false);
       }
     };
     loadData();
     return () => { isMounted = false; };
-  }, [instanceId, refreshKey]);
+  }, [instanceId, refreshKey, t]);
 
   if (loading) return <div className="min-h-screen bg-[#f9fafb] p-8 max-w-[1200px] mx-auto"><SkeletonCard /></div>;
-  if (error || !instance) return <div className="min-h-screen bg-[#f9fafb] p-8 text-rose-500 font-medium center">{error || "Instance not found"}</div>;
+  if (error || !instance) return <div className="min-h-screen bg-[#f9fafb] p-8 text-rose-500 font-medium center">{error || t("instance_not_found", "Tour instance not found")}</div>;
 
   const { transportActivities } = getFulfillmentActivities(instance);
   
@@ -61,35 +63,35 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
           className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors mb-8"
         >
           <ArrowLeft weight="bold" className="size-4" />
-          Back to Tour Instance
+          {t("back_to_tour_instance", "Back to Tour Details")}
         </Link>
 
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-widest mb-4 border border-blue-100">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/80 text-blue-600 text-xs font-bold uppercase tracking-wider mb-4 border border-blue-100/50 backdrop-blur-sm">
               <Bus weight="bold" className="size-4" />
-              Transportation
+              {t("transportation_label", "Transportation")}
             </div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tighter text-slate-900 leading-none">
-              Transport Fulfillment
+              {t("transport_fulfillment", "Transportation Fulfillment")}
             </h1>
-            <p className="text-slate-500 mt-2 font-medium">
-              Tour: {instance.tourName} &bull; Required Pax: {totalPax}
+            <p className="text-slate-500 mt-3 font-medium">
+              {t("tour_label", { name: instance.tourName })} &bull; {t("required_pax_label", { count: totalPax })}
             </p>
           </div>
         </div>
 
         {transportActivities.length === 0 ? (
-          <div className="bg-white rounded-[1.5rem] border border-slate-200/50 p-12 center text-slate-500 font-medium">
-            No transportation activities planned for this tour instance.
+          <div className="bg-white rounded-[2rem] border border-slate-200/50 p-16 center text-slate-500 font-semibold shadow-[0_20px_40px_-15px_rgba(0,0,0,0.03)] text-center">
+            {t("no_transportation_activities", "No transportation activities are planned for this tour.")}
           </div>
         ) : (
           <div className="space-y-12">
             {externalTransports.length > 0 && (
               <div className="space-y-6">
                 <h3 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                  <Ticket weight="bold" className="text-blue-500" />
-                  External Tickets (Flight, Train, Boat)
+                  <Ticket weight="bold" className="text-blue-500 size-5" />
+                  {t("external_tickets_section", "External Tickets (Flight, Train, Ferry)")}
                 </h3>
                 {externalTransports.map((act: any, idx: number) => (
                   <ExternalTicketAssignmentPanel
@@ -128,50 +130,58 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
             {groundTransports.length > 0 && (
               <div className="space-y-6">
                 <h3 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                  <Bus weight="bold" className="text-emerald-500" />
-                  Ground Transport (Bus, Taxi)
+                  <Bus weight="bold" className="text-emerald-500 size-5" />
+                  {t("ground_transport_section", "Ground Transport (Bus, Taxi)")}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {groundTransports.map((act: any, idx: number) => (
-                    <div key={(act as any).id || `gnd-${idx}`} className="bg-white rounded-[1.5rem] border border-slate-200 p-6 shadow-sm flex flex-col gap-4">
-                      <div className="flex items-start justify-between">
+                    <div key={(act as any).id || `gnd-${idx}`} className="bg-white rounded-[2rem] border border-slate-200/50 p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] hover:border-slate-300/80 hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-6">
+                      <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h4 className="font-bold text-slate-900">{act.title}</h4>
-                          <p className="text-sm text-slate-500">{act.transportationName}</p>
+                          <h4 className="font-bold text-lg text-slate-900 leading-snug">{act.title}</h4>
+                          <p className="text-sm font-medium text-slate-500 mt-1">{act.transportationName}</p>
                         </div>
-                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md ${act.transportationApprovalStatus === 'Approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                          {act.transportationApprovalStatus || 'Pending'}
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border shrink-0 ${
+                          act.transportationApprovalStatus === 'Approved' 
+                            ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200/50' 
+                            : 'bg-amber-50/80 text-amber-700 border-amber-200/50'
+                        }`}>
+                          {act.transportationApprovalStatus === 'Approved' ? t("transportation_approved", "Approved") : t("transport_pending", "Pending")}
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                      <div className="grid grid-cols-2 gap-6 py-5 border-y border-slate-100/80">
                         <div>
-                          <p className="text-xs text-slate-500 mb-1 uppercase tracking-widest font-bold">Supplier</p>
-                          <p className="text-sm font-medium text-slate-900">{act.transportSupplierName || 'Not Assigned'}</p>
+                          <p className="text-xs text-slate-400 mb-1.5 uppercase tracking-wider font-bold">{t("supplier_label_short", "Supplier")}</p>
+                          <p className="text-sm font-bold text-slate-800 leading-tight">{act.transportSupplierName || t("transport_not_assigned", "Not Assigned")}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500 mb-1 uppercase tracking-widest font-bold">Driver/Vehicle</p>
-                          <p className="text-sm font-medium text-slate-900">{act.assignedDriverName || 'Pending'} / {act.assignedVehicleName || 'Pending'}</p>
+                          <p className="text-xs text-slate-400 mb-1.5 uppercase tracking-wider font-bold">{t("driver_vehicle_label", "Driver/Vehicle")}</p>
+                          <p className="text-sm font-bold text-slate-800 leading-tight">
+                            {act.assignedDriverName || t("transport_pending", "Pending")} / {act.assignedVehicleName || t("transport_pending", "Pending")}
+                          </p>
                         </div>
                       </div>
 
-                      <div className="mt-2 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => setReassignActivity(act)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
-                        >
-                          <Bus weight="bold" className="size-4" />
-                          Assign Supplier
-                        </button>
-                      </div>
+                      <div className="flex flex-col gap-4">
+                        {!act.transportSupplierId && (
+                          <div className="bg-amber-50/60 backdrop-blur-sm text-amber-800 p-4 rounded-2xl flex items-start gap-3 text-sm font-semibold border border-amber-200/50 shadow-sm">
+                            <WarningCircle weight="fill" className="size-5 text-amber-600 shrink-0 mt-0.5" />
+                            <span>{t("pending_supplier_warning", "Ground transport is awaiting supplier assignment.")}</span>
+                          </div>
+                        )}
 
-                      {!act.transportSupplierId && (
-                        <div className="mt-2 bg-amber-50 text-amber-700 p-3 rounded-xl flex items-center gap-2 text-sm font-medium border border-amber-100">
-                          <WarningCircle weight="fill" className="size-5 shrink-0" />
-                          Ground transport is pending supplier assignment.
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setReassignActivity(act)}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 !bg-amber-500 hover:!bg-amber-600 text-white text-sm font-bold rounded-xl active:scale-[0.98] transition-all duration-200 border-none shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] shadow-md hover:shadow-lg"
+                          >
+                            <Bus weight="bold" className="size-4 text-white" />
+                            {t("assign_supplier_button", "Assign Supplier")}
+                          </button>
                         </div>
-                      )}
+                      </div>
                     </div>
                   ))}
                 </div>

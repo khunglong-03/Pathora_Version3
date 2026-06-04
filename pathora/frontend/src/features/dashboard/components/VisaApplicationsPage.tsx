@@ -47,6 +47,28 @@ const rowVariants = {
   }),
 };
 
+const getBookingVisaStats = (visas: AdminVisaApplication[]) => {
+  let approved = 0;
+  let pending = 0;
+  let rejected = 0;
+  let awaitingPayment = 0;
+
+  visas.forEach((v) => {
+    const s = v.status ? v.status.toLowerCase() : "";
+    if (s === "approved") {
+      approved++;
+    } else if (s === "rejected") {
+      rejected++;
+    } else if (s === "awaiting_payment") {
+      awaitingPayment++;
+    } else {
+      pending++;
+    }
+  });
+
+  return { approved, pending, rejected, awaitingPayment };
+};
+
 export function VisaApplicationsPage() {
   const { t } = useTranslation();
   const pathname = usePathname();
@@ -113,14 +135,32 @@ export function VisaApplicationsPage() {
   ).length;
   const approvalRate = decidedCount > 0 ? Math.round((approvedCount / decidedCount) * 100) : 0;
 
-  const groupedVisas = useMemo(() => {
-    return filteredVisas.reduce((acc, visa) => {
+  const groupedBookings = useMemo(() => {
+    const groups: Record<string, AdminVisaApplication[]> = {};
+    visaApplications.forEach((visa) => {
       const key = visa.booking || "No Order";
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(visa);
-      return acc;
-    }, {} as Record<string, typeof filteredVisas>);
-  }, [filteredVisas]);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(visa);
+    });
+
+    if (statusFilter === "all") return groups;
+
+    const filteredGroups: Record<string, AdminVisaApplication[]> = {};
+    Object.entries(groups).forEach(([bookingId, visas]) => {
+      const hasMatchingVisa = visas.some((v) => {
+        const s = v.status ? v.status.toLowerCase() : "";
+        if (statusFilter === "pending") {
+          return s === "pending" || s === "under_review";
+        }
+        return s === statusFilter;
+      });
+      if (hasMatchingVisa) {
+        filteredGroups[bookingId] = visas;
+      }
+    });
+
+    return filteredGroups;
+  }, [visaApplications, statusFilter]);
 
   const isLoading = dataState === "loading";
   const isError = dataState === "error";
@@ -131,11 +171,11 @@ export function VisaApplicationsPage() {
     setReloadToken((value) => value + 1);
   };
 
-  const [selectedVisaId, setSelectedVisaId] = useState<string | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const openDetailModal = (id: string) => {
-    setSelectedVisaId(id);
+    setSelectedBookingId(id);
     setIsDetailModalOpen(true);
   };
 
@@ -334,138 +374,115 @@ export function VisaApplicationsPage() {
               </motion.div>
             ) : (
               <motion.div
-                variants={itemVariants}
+                variants={containerVariants}
                 initial="hidden"
                 animate="show"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
-                <div className="rounded-[2.5rem] bg-white border border-stone-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
-                  {/* Section label */}
-                  <div className="px-6 pt-5 pb-3 border-b border-stone-100 flex items-center justify-between">
-                    <p className="text-xs font-medium text-stone-400 uppercase tracking-widest">
-                      {t("visa.applications", "Visa Applications")} &middot; {filteredVisas.length}
-                    </p>
-                    <span className="inline-flex items-center gap-1.5 text-xs text-stone-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      {t("visa.liveData", "Live data")}
-                    </span>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-stone-100">
-                          <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
-                            {t("common.visaApplications.column.applicationId", "ID")}
-                          </th>
-                          <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
-                            {t("common.visaApplications.column.applicant", "Applicant")}
-                          </th>
-                          <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
-                            {t("common.visaApplications.column.passport", "Passport")}
-                          </th>
-                          <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
-                            {t("common.visaApplications.column.destination", "Destination")}
-                          </th>
-                          <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
-                            {t("common.visaApplications.column.visaType", "Type")}
-                          </th>
-                          <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
-                            {t("common.visaApplications.column.status", "Status")}
-                          </th>
-                          <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
-                            {t("common.visaApplications.column.submitted", "Submitted")}
-                          </th>
-                          <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
-                            {t("common.visaApplications.column.decision", "Decision")}
-                          </th>
-                          {isManager && (
-                            <th className="text-right px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
-                              {t("common.actions", "Actions")}
-                            </th>
+                {Object.entries(groupedBookings).map(([bookingId, visas]) => {
+                  const stats = getBookingVisaStats(visas);
+                  const totalPax = visas.length;
+                  const tourType = visas[0]?.type || "Unknown";
+                  const displayBookingId = bookingId === "No Order" ? t("visa.noOrder", "Không có đơn hàng") : bookingId;
+
+                  return (
+                    <motion.div
+                      key={bookingId}
+                      variants={itemVariants}
+                      className="bg-white rounded-[2rem] border border-stone-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-6 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col justify-between"
+                    >
+                      <div>
+                        {/* Card Header */}
+                        <div className="flex justify-between items-start gap-4 mb-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+                              <Icon icon="heroicons:folder" className="size-4 text-stone-500" />
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-bold text-stone-900 tracking-tight font-mono">
+                                {displayBookingId}
+                              </h3>
+                              <p className="text-[10px] text-stone-400 font-semibold uppercase tracking-wider mt-0.5">
+                                {t("visa.bookingId", "Booking ID")}
+                              </p>
+                            </div>
+                          </div>
+                          {tourType && tourType !== "Unknown" && (
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                              tourType === "Private Tour"
+                                ? "bg-purple-50 text-purple-700 border border-purple-100"
+                                : "bg-blue-50 text-blue-700 border border-blue-100"
+                            }`}>
+                              {tourType}
+                            </span>
                           )}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-stone-50">
-                        {Object.entries(groupedVisas).map(([orderId, visas]) => (
-                          <React.Fragment key={orderId}>
-                            <tr className="bg-stone-50 border-y border-stone-100">
-                              <td colSpan={isManager ? 9 : 8} className="px-6 py-2.5">
-                                <span className="text-xs font-semibold text-stone-600 uppercase tracking-widest flex items-center gap-2">
-                                  <svg className="w-4 h-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                                  </svg>
-                                  {orderId}
-                                  {visas.length > 0 && visas[0].type && visas[0].type !== "Unknown" && (
-                                    <span className={`ml-2 px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                      visas[0].type === "Private Tour" 
-                                        ? "bg-purple-100 text-purple-700 border border-purple-200" 
-                                        : "bg-blue-100 text-blue-700 border border-blue-200"
-                                    }`}>
-                                      {visas[0].type}
-                                    </span>
-                                  )}
-                                </span>
-                              </td>
-                            </tr>
-                            {visas.map((visa) => {
-                              const globalIndex = filteredVisas.findIndex(v => v.id === visa.id);
-                              return (
-                                <motion.tr
-                                  key={visaRowKeys[globalIndex]}
-                                  custom={globalIndex}
-                                  variants={rowVariants}
-                                  initial="hidden"
-                                  animate="show"
-                                  className="group hover:bg-stone-50/50 transition-colors duration-150"
-                                >
-                                  <td className="px-6 py-4">
-                                    <span className="font-mono text-xs text-stone-500 tracking-tight" title={visa.id}>{visa.id.length > 8 ? visa.id.substring(0, 8) + '...' : visa.id}</span>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <p className="text-sm font-medium text-stone-800">{visa.applicant}</p>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className="font-mono text-xs text-stone-500 tracking-tight">{visa.passport}</span>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-sm text-stone-800">{visa.country}</span>
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className="text-sm text-stone-600">{visa.type}</span>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <VisaStatusBadge status={visa.status} />
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className="text-sm text-stone-500">{visa.submittedDate}</span>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className={`text-sm ${visa.decisionDate === "-" ? "text-stone-400" : "text-stone-600"}`}>
-                                      {visa.decisionDate}
-                                    </span>
-                                  </td>
-                                  {isManager && (
-                                    <td className="px-6 py-4 text-right">
-                                      <div className="flex items-center justify-end gap-2">
-                                        <button
-                                          onClick={() => openDetailModal(visa.id)}
-                                          className="px-3 py-1.5 text-xs font-medium bg-stone-100 text-stone-700 hover:bg-stone-200 rounded-lg transition-colors"
-                                        >
-                                          {t("visa.action.details", "Details & Process")}
-                                        </button>
-                                      </div>
-                                    </td>
-                                  )}
-                                </motion.tr>
-                              );
-                            })}
-                          </React.Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                        </div>
+
+                        {/* Card Body */}
+                        <div className="space-y-4 my-2">
+                          <div className="flex justify-between items-center text-xs font-semibold text-stone-500">
+                            <span>{t("visa.totalPax", "Tổng số hành khách")}:</span>
+                            <span className="text-sm font-bold text-stone-950">{totalPax}</span>
+                          </div>
+
+                          {/* Stats breakdown */}
+                          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-stone-100/70">
+                            <div className="flex items-center gap-2 bg-emerald-50/30 border border-emerald-100/50 p-2 rounded-xl">
+                              <div className="size-2 rounded-full bg-emerald-500 shrink-0" />
+                              <div className="v-stack">
+                                <span className="text-[10px] text-emerald-800 font-bold">{t("common.visaApplications.filterApproved", "Approved")}</span>
+                                <span className="text-xs font-extrabold text-emerald-950">{stats.approved}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 bg-amber-50/30 border border-amber-100/50 p-2 rounded-xl">
+                              <div className="size-2 rounded-full bg-amber-500 shrink-0" />
+                              <div className="v-stack">
+                                <span className="text-[10px] text-amber-800 font-bold">{t("common.visaApplications.filterPending", "Pending")}</span>
+                                <span className="text-xs font-extrabold text-amber-950">{stats.pending}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 bg-red-50/30 border border-red-100/50 p-2 rounded-xl">
+                              <div className="size-2 rounded-full bg-red-500 shrink-0" />
+                              <div className="v-stack">
+                                <span className="text-[10px] text-red-800 font-bold">{t("common.visaApplications.filterRejected", "Rejected")}</span>
+                                <span className="text-xs font-extrabold text-red-950">{stats.rejected}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 bg-purple-50/30 border border-purple-100/50 p-2 rounded-xl">
+                              <div className="size-2 rounded-full bg-purple-500 shrink-0" />
+                              <div className="v-stack">
+                                <span className="text-[10px] text-purple-800 font-bold">{t("visa.statusAwaitingPayment", "Awaiting Payment")}</span>
+                                <span className="text-xs font-extrabold text-purple-950">{stats.awaitingPayment}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card Footer Button */}
+                      {isManager ? (
+                        <button
+                          onClick={() => openDetailModal(bookingId)}
+                          className="w-full mt-5 py-2.5 bg-stone-950 hover:bg-stone-850 text-white font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 hover:shadow-md cursor-pointer"
+                        >
+                          <Icon icon="heroicons:pencil-square" className="size-4" />
+                          {t("visa.action.review", "Review Visa")}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => openDetailModal(bookingId)}
+                          className="w-full mt-5 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Icon icon="heroicons:eye" className="size-4" />
+                          {t("visa.action.view", "View Details")}
+                        </button>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </motion.div>
             )}
           </>
@@ -474,7 +491,8 @@ export function VisaApplicationsPage() {
         <VisaApplicationDetailModal
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
-          visaId={selectedVisaId}
+          bookingId={selectedBookingId}
+          visas={selectedBookingId ? (groupedBookings[selectedBookingId] || []) : []}
           onSuccess={retryLoading}
         />
       </main>

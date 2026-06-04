@@ -29,7 +29,7 @@ public sealed record SubmitCustomerVisaApplicationCommand(
     string? IssuingAuthority = null)
     : IRequest<ErrorOr<Guid>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
 }
 
 public sealed class SubmitCustomerVisaApplicationCommandValidator : AbstractValidator<SubmitCustomerVisaApplicationCommand>
@@ -56,6 +56,7 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
     IBookingRepository bookingRepository,
     IPassportRepository passportRepository,
     IVisaApplicationRepository visaApplicationRepository,
+    IVisaRepository visaRepository,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
     : IRequestHandler<SubmitCustomerVisaApplicationCommand, ErrorOr<Guid>>
@@ -133,6 +134,7 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
         application.Visa = visa;
 
         await visaApplicationRepository.AddAsync(application, cancellationToken);
+        await visaRepository.AddAsync(visa, cancellationToken);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
         return application.Id;
@@ -160,7 +162,7 @@ public sealed record UpdateCustomerVisaApplicationCommand(
     string? IssuingAuthority = null)
     : IRequest<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
 }
 
 public sealed class UpdateCustomerVisaApplicationCommandValidator : AbstractValidator<UpdateCustomerVisaApplicationCommand>
@@ -186,6 +188,7 @@ public sealed class UpdateCustomerVisaApplicationCommandValidator : AbstractVali
 public sealed class UpdateCustomerVisaApplicationCommandHandler(
     IBookingRepository bookingRepository,
     IVisaApplicationRepository visaApplicationRepository,
+    IVisaRepository visaRepository,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
     : IRequestHandler<UpdateCustomerVisaApplicationCommand, ErrorOr<Success>>
@@ -257,7 +260,7 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
         }
         else
         {
-            application.Visa = VisaEntity.Create(
+            var visa = VisaEntity.Create(
                 visaApplicationId: application.Id,
                 performedBy: currentUserId.Value.ToString(),
                 visaNumber: request.VisaNumber,
@@ -271,6 +274,8 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
                 issuingAuthority: request.IssuingAuthority,
                 fileUrl: request.VisaFileUrl,
                 status: newStatus ?? VisaStatus.Pending);
+            await visaRepository.AddAsync(visa, cancellationToken);
+            application.Visa = visa;
         }
 
         visaApplicationRepository.Update(application);
@@ -287,7 +292,7 @@ public sealed record RequestVisaSupportCommand(
     Guid BookingParticipantId)
     : IRequest<ErrorOr<Guid>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
 }
 
 public sealed class RequestVisaSupportCommandValidator : AbstractValidator<RequestVisaSupportCommand>
@@ -372,7 +377,7 @@ public sealed record UpdateCustomerPassportCommand(
     string? FileUrl)
     : IRequest<ErrorOr<Guid>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
 }
 
 public sealed class UpdateCustomerPassportCommandValidator : AbstractValidator<UpdateCustomerPassportCommand>

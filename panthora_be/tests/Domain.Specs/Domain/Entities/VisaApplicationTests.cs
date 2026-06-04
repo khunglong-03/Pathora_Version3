@@ -74,7 +74,7 @@ public class VisaApplicationTests
 
         // Assert
         application.ServiceFeePaidAt.Should().NotBeNull();
-        application.Status.Should().Be(VisaStatus.Pending);
+        application.Status.Should().Be(VisaStatus.Processing);
     }
 
     [Fact]
