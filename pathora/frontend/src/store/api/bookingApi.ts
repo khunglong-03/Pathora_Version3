@@ -7,7 +7,9 @@ export interface MyBookingDto {
   tourName: string;
   tourInstanceId: string;
   reference: string;
+  /** BookingStatus enum value từ backend, vd "Pending", "Confirmed", "Completed", "Cancelled", "Rejected" */
   status: string;
+  /** TourInstanceStatus string từ backend, vd "PendingCustomerApproval", "Active", "Completed" */
   tourStatus: string;
   paymentStatus: string;
   totalPrice: number;
@@ -20,7 +22,7 @@ export interface MyBookingDto {
   children: number;
   infants: number;
   createdAt: string;
-  // Breakdown fields (task 6.7)
+  // Breakdown fields
   adultUnitPrice?: number;
   childUnitPrice?: number;
   infantUnitPrice?: number;

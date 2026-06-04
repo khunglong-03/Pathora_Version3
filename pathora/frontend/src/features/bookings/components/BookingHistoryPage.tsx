@@ -52,29 +52,23 @@ export function BookingHistoryPage() {
     },
     { key: "approved", label: t("landing.bookings.statusApproved") },
     { key: "completed", label: t("landing.bookings.statusCompleted") },
+    { key: "cancelled", label: t("landing.bookings.statusCancelled") },
     { key: "rejected", label: t("landing.bookings.statusRejected") },
   ];
 
-  const { bookings, totalCount, isLoading, isError } = useBookings(activeFilter, 1, 50); // Fetch first 50 bookings for now
-
-  const nonCancelledBookings = useMemo(() => {
-    return bookings.filter((b) => b.status !== "cancelled");
-  }, [bookings]);
+  const { bookings, isLoading, isError } = useBookings(activeFilter, 1, 50);
 
   const filtered = useMemo(() => {
-    let list = nonCancelledBookings;
-    if (debouncedSearchQuery.trim()) {
-      const q = debouncedSearchQuery.toLowerCase();
-      list = list.filter(
-        (b) =>
-          b.tourName.toLowerCase().includes(q) ||
-          b.reference.toLowerCase().includes(q),
-      );
-    }
-    return list;
-  }, [nonCancelledBookings, debouncedSearchQuery]);
+    if (!debouncedSearchQuery.trim()) return bookings;
+    const q = debouncedSearchQuery.toLowerCase();
+    return bookings.filter(
+      (b) =>
+        b.tourName.toLowerCase().includes(q) ||
+        b.reference.toLowerCase().includes(q),
+    );
+  }, [bookings, debouncedSearchQuery]);
 
-  const displayedTotalCount = nonCancelledBookings.length;
+  const displayedTotalCount = filtered.length;
 
   const activeCount = getActiveBookingsCount(bookings);
 
