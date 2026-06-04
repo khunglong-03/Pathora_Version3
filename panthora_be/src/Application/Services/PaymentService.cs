@@ -61,6 +61,8 @@ public class PaymentService : IPaymentService
     private readonly IBookingPriceCalculator _priceCalculator;
     private readonly IPricingPolicyRepository _pricingPolicyRepository;
     private readonly ITaxConfigRepository _taxConfigRepository;
+    private readonly IMailRepository _mailRepository;
+    private readonly IConfiguration _configuration;
 
     public PaymentService(
         IPaymentTransactionRepository transactionRepository,
@@ -76,7 +78,8 @@ public class PaymentService : IPaymentService
         IPostPaymentVisaGateService postPaymentVisaGateService,
         IBookingPriceCalculator priceCalculator,
         IPricingPolicyRepository pricingPolicyRepository,
-        ITaxConfigRepository taxConfigRepository)
+        ITaxConfigRepository taxConfigRepository,
+        IMailRepository mailRepository)
     {
         _transactionRepository = transactionRepository;
         _bookingRepository = bookingRepository;
@@ -91,6 +94,8 @@ public class PaymentService : IPaymentService
         _priceCalculator = priceCalculator;
         _pricingPolicyRepository = pricingPolicyRepository;
         _taxConfigRepository = taxConfigRepository;
+        _mailRepository = mailRepository;
+        _configuration = configuration;
         _sepayAccountNumber = NormalizeConfigValue(configuration["Payment:Account"]);
         _sepayBankCode = NormalizeConfigValue(configuration["Payment:Bank"]);
         _sepayQrBaseUrl = NormalizeConfigValue(configuration["Payment:QrBaseUrl"]);
@@ -419,6 +424,12 @@ public class PaymentService : IPaymentService
             _logger.LogError(ex, "Failed to save payment transaction {TransactionCode} to database",
                 transaction.TransactionCode);
             throw;
+        }
+
+        // Queue payment confirmation email (fire-and-forget — never fail the payment flow)
+        if (isBookingSuccess && bookingForCredit != null)
+        {
+            await TryQueuePaymentConfirmedMailAsync(bookingForCredit, transaction);
         }
 
         if (updateResult.ShouldTriggerAssignments)
@@ -782,5 +793,81 @@ public class PaymentService : IPaymentService
         }
 
         return trimmed;
+    }
+
+    /// <summary>
+    /// Queue email xác nhận thanh toán cho khách hàng.
+    /// Fire-and-forget: lỗi chỉ được log, không fail luồng thanh toán.
+    /// </summary>
+    private async Task TryQueuePaymentConfirmedMailAsync(
+        BookingEntity booking,
+        PaymentTransactionEntity transaction)
+    {
+        try
+        {
+            var email = booking.CustomerEmail;
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                _logger.LogDebug(
+                    "Skip payment confirmation email for booking {BookingId}: no customer email.",
+                    booking.Id);
+                return;
+            }
+
+            var tourName = booking.TourInstance?.Tour?.Name
+                ?? booking.TourInstance?.Title
+                ?? "Tour của bạn";
+
+            var departureDate = booking.TourInstance?.StartDate
+                .ToOffset(TimeSpan.FromHours(7))
+                .ToString("dd/MM/yyyy HH:mm") ?? "—";
+
+            var paymentType = transaction.Type switch
+            {
+                TransactionType.Deposit => "Đặt cọc",
+                TransactionType.FullPayment => "Toàn phần",
+                _ => transaction.Type.ToString()
+            };
+
+            var paidAmount = (transaction.PaidAmount ?? transaction.Amount)
+                .ToString("N0") + " VNĐ";
+
+            var bookingCode = "PATH-" + booking.CreatedOnUtc.ToString("yyyy-MMdd-HHmm");
+            var frontendBase = _configuration["AppConfig:FrontendBaseUrl"] ?? _frontendBaseUrl;
+            var bookingDetailLink = $"{frontendBase}/bookings/{booking.Id}";
+            var hotline = _configuration["Pathora:HotlinePhone"] ?? "1900-XXXX";
+
+            var mailDto = new Domain.Mails.BookingPaymentConfirmedMail(
+                CustomerName: booking.CustomerName ?? "Quý khách",
+                BookingCode: bookingCode,
+                TourName: tourName,
+                DepartureDate: departureDate,
+                PaymentType: paymentType,
+                PaidAmount: paidAmount,
+                BookingDetailLink: bookingDetailLink,
+                HotlinePhone: hotline);
+
+            var mailEntity = mailDto.ToMail(email);
+            var result = await _mailRepository.Add(mailEntity, CancellationToken.None);
+
+            if (result.IsError)
+            {
+                _logger.LogWarning(
+                    "Failed to queue payment confirmation email for booking {BookingId}: {Error}",
+                    booking.Id, result.FirstError.Description);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Payment confirmation email queued for booking {BookingId} ({PaymentType}, {Amount}).",
+                    booking.Id, paymentType, paidAmount);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Exception while queueing payment confirmation email for booking {BookingId}. Payment flow unaffected.",
+                booking.Id);
+        }
     }
 }
