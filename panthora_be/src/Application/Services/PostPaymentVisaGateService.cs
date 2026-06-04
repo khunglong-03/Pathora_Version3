@@ -80,7 +80,10 @@ public class PostPaymentVisaGateService : IPostPaymentVisaGateService
         }
 
         // Fetch ALL bookings for the tour instance to check every participant
-        var allBookings = await bookingRepo.GetByTourInstanceIdAsync(tourInstance.Id, cancellationToken);
+        // Loại trừ bookings đã Cancelled để tránh kẹt gate vì participant đã cancel không có visa.
+        var allBookings = (await bookingRepo.GetByTourInstanceIdAsync(tourInstance.Id, cancellationToken))
+            .Where(b => b.Status != BookingStatus.Cancelled)
+            .ToList();
         var allParticipants = allBookings.SelectMany(b => b.BookingParticipants).ToList();
         var allParticipantIds = allParticipants.Select(p => p.Id).ToList();
         var allApps = await visaAppRepo.GetByBookingParticipantIdsAsync(allParticipantIds, cancellationToken);

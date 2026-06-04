@@ -373,7 +373,8 @@ public sealed class RegisterVisaDetailsCommandHandler(
     IVisaRepository visaEntityRepository,
     IPaymentTransactionRepository transactionRepository,
     ICurrentUser currentUser,
-    Domain.UnitOfWork.IUnitOfWork unitOfWork)
+    Domain.UnitOfWork.IUnitOfWork unitOfWork,
+    Application.Services.IPostPaymentVisaGateService visaGateService)
     : IRequestHandler<RegisterVisaDetailsCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(RegisterVisaDetailsCommand request, CancellationToken cancellationToken)
@@ -513,6 +514,14 @@ public sealed class RegisterVisaDetailsCommandHandler(
             visaFileUrl: request.VisaFileUrl ?? visaApp.VisaFileUrl);
 
         await unitOfWork.SaveChangeAsync(cancellationToken);
+
+        // Sau khi approve visa trực tiếp, kích hoạt kiểm tra hoàn tất Visa Gate
+        // (tương tự UpdateVisaApplicationStatusCommandHandler để tránh tour kẹt ở PendingVisa)
+        if (visaApp.BookingParticipant?.BookingId != null)
+        {
+            var bookingId = visaApp.BookingParticipant.BookingId;
+            _ = Task.Run(() => visaGateService.TryCompleteVisaGateAsync(bookingId, default));
+        }
 
         return visaApp.Visa!.Id;
     }
