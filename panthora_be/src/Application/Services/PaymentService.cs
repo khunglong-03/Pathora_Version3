@@ -148,8 +148,8 @@ public class PaymentService : IPaymentService
         string createdBy,
         int? expirationMinutes = null)
     {
-        // Fetch the booking to get tour instance
-        var booking = await _bookingRepository.GetByIdAsync(bookingId);
+        // Fetch the booking with payment transactions (needed for PayRemain/VisaServiceFee amount calc)
+        var booking = await _bookingRepository.GetByIdWithDetailsAsync(bookingId);
         if (booking == null)
         {
             return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
@@ -174,6 +174,32 @@ public class PaymentService : IPaymentService
         if (type == TransactionType.Deposit)
         {
             amount = booking.TotalPrice * 0.3m; // 30% deposit
+        }
+
+        if (type == TransactionType.PayRemain)
+        {
+            // Tính số tiền còn lại dựa trên tất cả giao dịch đã hoàn thành,
+            // trừ Refund (Refund không phải là tiền đã nhận được từ khách)
+            var paidAmount = booking.PaymentTransactions
+                .Where(t => t.Status == TransactionStatus.Completed
+                         && t.Type != TransactionType.Refund)
+                .Sum(t => t.PaidAmount ?? t.Amount);
+            amount = booking.TotalPrice - paidAmount;
+        }
+
+        if (type == TransactionType.VisaServiceFee)
+        {
+            // Tính phí visa chưa thanh toán: VisaServiceFeeTotal trừ các transaction VisaServiceFee đã hoàn thành
+            var paidVisaFee = booking.PaymentTransactions
+                .Where(t => t.Type == TransactionType.VisaServiceFee
+                         && t.Status == TransactionStatus.Completed)
+                .Sum(t => t.PaidAmount ?? t.Amount);
+            amount = booking.VisaServiceFeeTotal - paidVisaFee;
+        }
+
+        if (amount <= 0)
+        {
+            return Error.Failure(ErrorConstants.Payment.InvalidAmountCode, "Calculated payment amount must be greater than zero.");
         }
         // VND is a zero-decimal currency — ensure whole-number amount for QR, DB, and webhook matching
         var roundedAmount = Math.Round(amount, 0, MidpointRounding.ToEven);
@@ -623,6 +649,25 @@ public class PaymentService : IPaymentService
                     }
                     // Khi full pay cho Private tour đã Confirmed → check visa gate
                     else if (tourInstance.InstanceType == TourType.Private
+                        && tourInstance.Status == TourInstanceStatus.Confirmed)
+                    {
+                        shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
+                    }
+                }
+                break;
+
+            case TransactionType.PayRemain:
+                // Trả phần còn lại của public tour đã deposit → đánh dấu Paid
+                if (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Completed)
+                {
+                    var oldStatus = booking.Status;
+                    booking.MarkPaid("SYSTEM");
+                    _logger.LogInformation(
+                        "Booking {BookingId} status {Old} → {New} via PayRemain transaction {TransactionCode}",
+                        booking.Id, oldStatus, BookingStatus.Paid, transaction.TransactionCode);
+
+                    // Kiểm tra visa gate sau khi trả đủ
+                    if (tourInstance.InstanceType == TourType.Private
                         && tourInstance.Status == TourInstanceStatus.Confirmed)
                     {
                         shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
