@@ -154,12 +154,12 @@ export default function TourOperationDetailPage() {
   const isTourCompleted = instance.status === "completed";
   
   // Check if ALL activities in the entire tour are completed
-  const allActivitiesCompleted = instance.days?.every(day => 
-    day.activities?.every(act => {
-      const statusObj = activityStatuses.find(s => s.tourDayActivityId === act.id || s.tourDayId === (act as any).tourDayId);
-      return statusObj?.status === "Completed" || statusObj?.status === "Cancelled";
-    })
-  );
+  const allActivitiesCompleted = instance.days?.every(day => {
+    const parentTourDayId = (day as any).tourDayId as string | null | undefined;
+    if (!parentTourDayId) return true; // no status tracking → treat as done
+    const statusObj = activityStatuses.find(s => s.tourDayId === parentTourDayId);
+    return statusObj?.activityStatus === "Completed" || statusObj?.activityStatus === "Cancelled";
+  });
 
   const totalAdults = bookings.reduce((sum, b) => sum + (b.numberAdult || 0), 0);
   const totalChildren = bookings.reduce((sum, b) => sum + (b.numberChild || 0), 0);
@@ -343,17 +343,21 @@ export default function TourOperationDetailPage() {
                     </div>
                   ) : (
                     day.activities.map((act, actIndex) => {
-                      // Attempt to find status object
-                      const statusObj = activityStatuses.find(s => s.tourDayActivityId === act.id || s.tourDayId === (act as any).tourDayId);
+                      // Match the activity status by the parent day's tourDayId (template day ID).
+                      // TourDayActivityStatus.tourDayId is the FK to TourDays (template), which
+                      // is exposed on the parent TourInstanceDayDto as day.tourDayId.
+                      const parentTourDayId = (day as any).tourDayId as string | null | undefined;
+                      const statusObj = parentTourDayId
+                        ? activityStatuses.find(s => s.tourDayId === parentTourDayId)
+                        : undefined;
                       
-                      const actStatus = statusObj?.status || "Pending";
+                      const actStatus = statusObj?.activityStatus || "Pending";
                       const isPending = actStatus === "Pending";
                       const isStarted = actStatus === "Started";
                       const isCompleted = actStatus === "Completed";
                       
-                      // For check-in, the target ID is the original tourDayId (from classification)
-                      // The backend's booking service endpoints currently require that ID
-                      const targetId = statusObj?.tourDayId || (act as any).tourDayId;
+                      // targetId = template tourDayId used by the backend activity-status endpoints
+                      const targetId = statusObj?.tourDayId || parentTourDayId;
 
                       // Prevent check-in if the activity is in the future
                       const canCheckIn = !isFuture && !!targetId && isTourInProgress;

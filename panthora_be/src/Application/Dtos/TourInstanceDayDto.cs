@@ -11,7 +11,9 @@ public sealed record TourInstanceDayDto(
     [property: JsonPropertyName("startTime")] TimeOnly? StartTime,
     [property: JsonPropertyName("endTime")] TimeOnly? EndTime,
     [property: JsonPropertyName("note")] string? Note,
-    [property: JsonPropertyName("activities")] List<TourInstanceDayActivityDto> Activities);
+    [property: JsonPropertyName("activities")] List<TourInstanceDayActivityDto> Activities,
+    /// <summary>FK back to the template TourDay this instance day was created from. Used by the guide portal to correlate activity check-in statuses.</summary>
+    [property: JsonPropertyName("tourDayId")] Guid? TourDayId = null);
 
 /// <summary>One approved (or planned) vehicle row on a transportation activity.</summary>
 public sealed record TourInstanceTransportAssignmentDto(

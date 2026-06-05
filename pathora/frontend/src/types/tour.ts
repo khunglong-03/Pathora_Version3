@@ -494,6 +494,8 @@ export interface TourInstanceDayDto {
   endTime: string | null;
   note: string | null;
   activities: TourInstanceDayActivityDto[];
+  /** FK back to the template TourDay — used by guide portal to correlate activity check-in statuses. */
+  tourDayId?: string | null;
 }
 
 /** One concrete vehicle (and driver) row for a transportation activity; mirrors backend `TourInstanceTransportAssignmentDto`. */

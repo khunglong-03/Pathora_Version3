@@ -136,6 +136,7 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDayDto.StartTime), opt => opt.MapFrom(src => src.StartTime))
             .ForCtorParam(nameof(TourInstanceDayDto.EndTime), opt => opt.MapFrom(src => src.EndTime))
             .ForCtorParam(nameof(TourInstanceDayDto.Note), opt => opt.MapFrom(src => src.Note))
-            .ForCtorParam(nameof(TourInstanceDayDto.Activities), opt => opt.MapFrom(src => src.Activities.OrderBy(a => a.Order).ToList()));
+            .ForCtorParam(nameof(TourInstanceDayDto.Activities), opt => opt.MapFrom(src => src.Activities.OrderBy(a => a.Order).ToList()))
+            .ForCtorParam(nameof(TourInstanceDayDto.TourDayId), opt => opt.MapFrom(src => src.TourDayId));
     }
 }
