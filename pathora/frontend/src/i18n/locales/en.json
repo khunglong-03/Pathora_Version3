@@ -2127,6 +2127,8 @@
       "approved": "Approved",
       "rejected": "Rejected"
     },
+    "cancelConfirmTitle": "Confirm cancel tour",
+    "cancelConfirmWarning": "All active bookings will be cancelled. Customers lose 30% deposit. You must contact customers by phone for refund.",
     "title": "Tour Instances",
     "description": "Manage scheduled tour instances and track departures",
     "createInstance": "Create Instance",
@@ -4478,10 +4480,6 @@
       "markedContacted": "Marked as contacted",
       "markedRefunded": "Marked as refunded"
     }
-  },
-  "tourInstance": {
-    "cancelConfirmTitle": "Confirm cancel tour",
-    "cancelConfirmWarning": "All active bookings will be cancelled. Customers lose 30% deposit. You must contact customers by phone for refund."
   },
   "errors": {
     "TourInstance": {

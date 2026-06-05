@@ -2154,6 +2154,8 @@
       "approved": "Đã duyệt",
       "rejected": "Đã từ chối"
     },
+    "cancelConfirmTitle": "Xác nhận huỷ tour",
+    "cancelConfirmWarning": "Tất cả booking active sẽ bị huỷ. Khách mất 30% cọc. Bạn phải liên hệ khách qua điện thoại để hoàn tiền.",
     "title": "Lịch Khởi Hành",
     "description": "Quản lý lịch khởi hành tour và theo dõi các chuyến đi",
     "createInstance": "Tạo Lịch Khởi Hành",
@@ -4464,10 +4466,6 @@
       "markedContacted": "Đã đánh dấu đã liên hệ",
       "markedRefunded": "Đã đánh dấu hoàn tiền"
     }
-  },
-  "tourInstance": {
-    "cancelConfirmTitle": "Xác nhận huỷ tour",
-    "cancelConfirmWarning": "Tất cả booking active sẽ bị huỷ. Khách mất 30% cọc. Bạn phải liên hệ khách qua điện thoại để hoàn tiền."
   },
   "errors": {
     "TourInstance": {

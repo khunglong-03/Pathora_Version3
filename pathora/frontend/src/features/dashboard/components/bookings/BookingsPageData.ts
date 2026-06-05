@@ -45,12 +45,13 @@ export const rowVariants = {
 };
 
 /* ── Status Config ────────────────────────────────────────────── */
-export type BookingStatus = "confirmed" | "pending" | "cancelled";
+export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed";
 
 export const STATUS_BADGE: Record<BookingStatus, { bg: string; text: string; dot: string; border: string }> = {
   confirmed: { bg: CSS.successMuted, text: CSS.success, dot: CSS.success, border: "var(--success-border)" },
   pending:   { bg: CSS.warningMuted, text: CSS.warning, dot: CSS.warning, border: "var(--warning-border)" },
   cancelled: { bg: CSS.dangerMuted,  text: CSS.danger,  dot: CSS.danger,  border: "var(--danger-border)" },
+  completed: { bg: CSS.successMuted, text: CSS.success, dot: CSS.success, border: "var(--success-border)" },
 };
 
 /* ── Data State ────────────────────────────────────────────────── */

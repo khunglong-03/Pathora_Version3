@@ -96,8 +96,9 @@ const normalizeAdminBookingStatus = (status: string | undefined): AdminBooking["
     case "confirmed":
     case "deposited":
     case "paid":
-    case "completed":
       return "confirmed";
+    case "completed":
+      return "completed";
     case "cancelled":
       return "cancelled";
     default:
