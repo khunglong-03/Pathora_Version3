@@ -177,6 +177,7 @@ export function BookingDetailPage() {
     tourStatus: booking.tourStatus,
     bookingType: booking.bookingType,
     visaServiceFeeTotal: booking.visaServiceFeeTotal,
+    isVisaFeePending: booking.isVisaFeePending,
     cancellationRequest: booking.cancellationRequest,
     cancellationRequests: booking.cancellationRequests,
     tickets: booking.tickets ?? [],
@@ -185,7 +186,7 @@ export function BookingDetailPage() {
     ticketImages: booking.ticketImages ?? [],
   };
 
-  const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =
+  const { totalGuests, showPayRemaining, showPayVisa, showVisaSection, showCancelBooking } =
     getBookingDerivedState(mappedBooking);
 
   const labelFns = {
@@ -241,6 +242,7 @@ export function BookingDetailPage() {
                 booking={mappedBooking}
                 totalGuests={totalGuests}
                 showPayRemaining={showPayRemaining}
+                showPayVisa={showPayVisa}
                 showCancelBooking={showCancelBooking}
                 getPaymentStatusLabel={labelFns.getPaymentStatusLabel}
                 onCancellationChanged={fetchBookingWithoutLoading}

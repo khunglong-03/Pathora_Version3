@@ -127,6 +127,10 @@ public class GetBookingDetailQueryHandler(
             PaidAmount = paidAmount,
             RemainingBalance = remainingBalance,
             VisaServiceFeeTotal = booking.VisaServiceFeeTotal,
+            IsVisaFeePending = booking.VisaServiceFeeTotal > 0
+                && !(booking.PaymentTransactions?.Any(t =>
+                    t.Type == Domain.Enums.TransactionType.VisaServiceFee
+                    && t.Status == Domain.Enums.TransactionStatus.Completed) ?? false),
             BookingType = booking.BookingType.ToString(),
             Image = booking.TourInstance?.Thumbnail?.PublicURL ?? "/assets/images/tours/placeholder.png",
             Description = booking.TourInstance?.TourName ?? string.Empty,

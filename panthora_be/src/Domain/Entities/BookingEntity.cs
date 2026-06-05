@@ -245,6 +245,7 @@ public class BookingEntity : Aggregate<Guid>
     /// <summary>
     /// Cộng phí hỗ trợ visa vào booking. Không đổi BookingStatus.
     /// Guard: amount phải dương.
+    /// Tự động reset IsFullPay = false vì sau khi thêm phí, booking có remaining balance mới.
     /// </summary>
     public void AddVisaServiceFee(decimal amount, string performedBy)
     {
@@ -252,6 +253,8 @@ public class BookingEntity : Aggregate<Guid>
             throw new ArgumentOutOfRangeException(nameof(amount), "Phí visa phải lớn hơn 0.");
         VisaServiceFeeTotal += amount;
         TotalPrice += amount;
+        // Reset IsFullPay vì TotalPrice đã tăng → còn remaining balance cần thanh toán
+        IsFullPay = false;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }

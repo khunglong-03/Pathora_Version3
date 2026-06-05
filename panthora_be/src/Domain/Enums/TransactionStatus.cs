@@ -35,5 +35,7 @@ public enum TransactionType
     Refund = 3,
 
     [Description("Visa Service Fee - Phí hỗ trợ visa")]
-    VisaServiceFee = 4
+    VisaServiceFee = 4,
+
+    PayRemain = 5,
 }

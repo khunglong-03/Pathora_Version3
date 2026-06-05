@@ -98,6 +98,17 @@ public sealed class GetCheckoutPriceQueryHandler(
         var depositAmount = Math.Round(totalPrice * depositPercentage / 100m, 0, MidpointRounding.ToEven);
         var remainingBalance = overrideRemainingBalance ?? (totalPrice - depositAmount);
 
+        // ─── Visa fee state ───────────────────────────────────────────────────────
+        var visaServiceFeeTotal = booking.VisaServiceFeeTotal;
+        var isVisaFeePending = false;
+        if (visaServiceFeeTotal > 0 && booking.PaymentTransactions != null)
+        {
+            var visaFeePaid = booking.PaymentTransactions
+                .Any(t => t.Type == Domain.Enums.TransactionType.VisaServiceFee
+                       && t.Status == Domain.Enums.TransactionStatus.Completed);
+            isVisaFeePending = !visaFeePaid;
+        }
+
         return new CheckoutPriceResponse(
             booking.Id,
             tourInstance.Id,
@@ -123,7 +134,9 @@ public sealed class GetCheckoutPriceQueryHandler(
             totalPrice,
             depositPercentage,
             depositAmount,
-            remainingBalance);
+            remainingBalance,
+            visaServiceFeeTotal,
+            isVisaFeePending);
     }
 
     private static decimal ApplyPricingTier(decimal basePrice, List<Domain.ValueObjects.PricingPolicyTier> tiers, int age)

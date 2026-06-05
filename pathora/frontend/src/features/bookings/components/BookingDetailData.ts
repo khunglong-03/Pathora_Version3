@@ -56,6 +56,7 @@ export interface BookingDetail {
   tourStatus?: string;
   bookingType?: string;
   visaServiceFeeTotal?: number;
+  isVisaFeePending?: boolean;
   cancellationRequest?: any;
   cancellationRequests?: any[];
   tickets?: CustomerTicketDto[];
