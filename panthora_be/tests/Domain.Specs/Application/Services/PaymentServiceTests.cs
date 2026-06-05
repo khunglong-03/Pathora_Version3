@@ -406,6 +406,50 @@ public sealed class PaymentServiceTests
 
     #endregion
 
+    [Fact]
+    public async Task CreatePaymentTransactionAsync_VisaServiceFee_WhenFeeNotRecordedYet_UsesRequestedAmount()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        var booking = BookingEntity.Create(
+            tourInstanceId: Guid.NewGuid(),
+            customerName: "Customer",
+            customerPhone: "0123456789",
+            numberAdult: 1,
+            totalPrice: 100000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: true,
+            performedBy: "test@test.com");
+
+        _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
+        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
+            .Returns(OutboxMessage.Create("test", "{}"));
+        _configuration["VietQR:ApiUrl"].Returns("https://api.vietqr.io");
+        _configuration["VietQR:BankBin"].Returns("970405");
+        _configuration["VietQR:AccountNo"].Returns("123456789");
+        _configuration["VietQR:AccountName"].Returns("Test Account");
+        _configuration["VietQR:TemplateId"].Returns("compact2");
+        _configuration["Payment:MockMode"].Returns("true");
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.CreatePaymentTransactionAsync(
+            bookingId: bookingId,
+            type: TransactionType.VisaServiceFee,
+            amount: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            paymentNote: "Visa support fee",
+            createdBy: "manager@test.com");
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal(TransactionType.VisaServiceFee, result.Value.Type);
+        Assert.Equal(500000m, result.Value.Amount);
+    }
+
     #region TC03: ProcessPaymentCallbackAsync when booking update fails does not fail payment
 
     [Fact]
