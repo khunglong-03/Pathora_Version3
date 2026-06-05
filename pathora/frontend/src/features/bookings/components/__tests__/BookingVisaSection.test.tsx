@@ -15,6 +15,12 @@ vi.mock("react-toastify", () => ({
   },
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
+
 vi.mock("react-i18next", () => {
   const t = (_key: string, fallback?: string) => fallback ?? _key;
   return {
@@ -87,7 +93,7 @@ describe("BookingVisaSection", () => {
     render(<BookingVisaSection bookingId="bk-1" />);
 
     await waitFor(() => {
-      expect(screen.getByText("landing.visa.missingDob")).toBeInTheDocument();
+      expect(screen.getByText("landing.visa.notSubmitted")).toBeInTheDocument();
     });
     expect(screen.queryByText("landing.visa.provideDetails")).not.toBeInTheDocument();
   });
@@ -111,7 +117,7 @@ describe("BookingVisaSection", () => {
     render(<BookingVisaSection bookingId="bk-1" />);
 
     await waitFor(() => {
-      expect(screen.getByText("landing.visa.missingPassport")).toBeInTheDocument();
+      expect(screen.getByText("landing.visa.notSubmitted")).toBeInTheDocument();
       expect(screen.getByText("landing.visa.provideDetails")).toBeInTheDocument();
     });
   });

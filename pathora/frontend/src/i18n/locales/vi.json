@@ -4338,6 +4338,15 @@
       "reviewStatusApproved": "Đã duyệt",
       "reviewStatusRejected": "Cần sửa",
       "reviewStatusNotReviewed": "Chờ duyệt",
+      "passportStatus": {
+        "present": "Có hộ chiếu",
+        "missing": "Thiếu hộ chiếu"
+      },
+      "passengerCount": {
+        "adults": "{{count}} người lớn",
+        "children": "{{count}} trẻ em",
+        "infants": "{{count}} sơ sinh"
+      },
       "rejectedPassengerDetailsWarning": "Có thông tin hành khách bị từ chối duyệt. Vui lòng cập nhật lại thông tin.",
       "noRejectionReason": "Cần cập nhật lại thông tin"
     }

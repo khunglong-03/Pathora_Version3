@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { WarningCircle, CheckCircle, Clock, AirplaneTilt, IdentificationCard, XCircle, HandHeart, CurrencyCircleDollar } from "@phosphor-icons/react";
+import { WarningCircle, CheckCircle, Clock, AirplaneTilt, XCircle, HandHeart, CurrencyCircleDollar } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import { bookingService } from "@/api/services";
 import { handleApiError } from "@/utils/apiResponse";
@@ -181,20 +181,6 @@ export function BookingVisaSection({ bookingId, pendingTransactions = [] }: Book
         </span>
       );
     }
-    if (participant.missingDateOfBirth) {
-      return (
-        <span className="h-stack items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
-          <WarningCircle weight="fill" /> {t("landing.visa.missingDob")}
-        </span>
-      );
-    }
-    if (!participant.passport) {
-      return (
-        <span className="h-stack items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md">
-          <IdentificationCard weight="fill" /> {t("landing.visa.missingPassport")}
-        </span>
-      );
-    }
     const app = participant.latestVisaApplication;
     if (!app) {
       return (
@@ -280,7 +266,10 @@ export function BookingVisaSection({ bookingId, pendingTransactions = [] }: Book
           const app = participant.latestVisaApplication;
           const isFormOpen = activeFormParticipantId === participant.participantId;
           const destinationCountry = app?.destinationCountry || "VN"; // fallback for now if new
-          const canSubmit = participant.availableActions.includes("submit_visa") || participant.availableActions.includes("add_passport");
+          const canSubmit =
+            (participant.availableActions.includes("submit_visa") ||
+              participant.availableActions.includes("resubmit_visa")) &&
+            !participant.missingDateOfBirth;
           const canRequestSupport = participant.availableActions.includes("request_support");
           const canPayVisaFee = participant.availableActions.includes("pay_visa_fee");
           const isRejected = app?.status === "Rejected";
@@ -317,7 +306,7 @@ export function BookingVisaSection({ bookingId, pendingTransactions = [] }: Book
                       <HandHeart weight="bold" /> {t("landing.visa.requestSupport")}
                     </button>
                   )}
-                  {(canSubmit || isRejected) && !isFormOpen && !participant.missingDateOfBirth && (
+                  {canSubmit && !isFormOpen && (
                     <button
                       onClick={() => setActiveFormParticipantId(participant.participantId)}
                       className="text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 px-3 py-2 rounded-lg transition-colors"

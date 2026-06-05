@@ -4352,6 +4352,15 @@
       "reviewStatusApproved": "Approved",
       "reviewStatusRejected": "Requires Update",
       "reviewStatusNotReviewed": "Pending Review",
+      "passportStatus": {
+        "present": "Passport on file",
+        "missing": "Passport missing"
+      },
+      "passengerCount": {
+        "adults": "{{count}} adult{{count, plural, one {} other {s}}}",
+        "children": "{{count}} child{{count, plural, one {} other {ren}}}",
+        "infants": "{{count}} infant{{count, plural, one {} other {s}}}"
+      },
       "rejectedPassengerDetailsWarning": "Some passenger details were rejected. Please update them.",
       "noRejectionReason": "Requires update"
     }

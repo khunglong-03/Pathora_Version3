@@ -10,7 +10,8 @@ import type {
   UpdateVisaApplicationPayload, 
   RequestVisaSupportResponse,
   BookingDetailResponse,
-  RefundStatusString
+  RefundStatusString,
+  BookingParticipantSummary
 } from "@/types/booking";
 
 // Tour Day Activity Status (for guide portal)
@@ -206,11 +207,11 @@ export const bookingService = {
     return extractResult<RequestVisaSupportResponse>(response.data);
   },
 
-  getParticipants: async (bookingId: string) => {
-    const response = await api.get<ServiceResponse<any[]>>(
+  getParticipants: async (bookingId: string): Promise<BookingParticipantSummary[] | null> => {
+    const response = await api.get<ServiceResponse<BookingParticipantSummary[]>>(
       API_ENDPOINTS.PUBLIC_BOOKING.GET_PARTICIPANTS(bookingId)
     );
-    return extractResult<any[]>(response.data);
+    return extractResult<BookingParticipantSummary[]>(response.data);
   },
 
   getOperatorParticipants: async (bookingId: string) => {

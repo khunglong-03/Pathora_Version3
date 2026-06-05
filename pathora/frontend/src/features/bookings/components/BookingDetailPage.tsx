@@ -39,6 +39,7 @@ export function BookingDetailPage() {
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [tourInstance, setTourInstance] = useState<NormalizedTourInstanceDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [participantsRefreshKey, setParticipantsRefreshKey] = useState(0);
 
   const fetchBookingWithoutLoading = useCallback(async () => {
     try {
@@ -53,6 +54,7 @@ export function BookingDetailPage() {
     const matchingIds = [bookingId, booking?.id].filter(Boolean);
     if (matchingIds.includes(event.bookingId)) {
       void fetchBookingWithoutLoading();
+      setParticipantsRefreshKey(k => k + 1);
     }
   }, [bookingId, booking?.id, fetchBookingWithoutLoading]));
 
@@ -165,7 +167,12 @@ export function BookingDetailPage() {
                 getTierLabel={labelFns.getTierLabel}
                 getPaymentMethodLabel={labelFns.getPaymentMethodLabel}
               />
-              <GuestDetailsCard booking={mappedBooking} totalGuests={totalGuests} />
+              <GuestDetailsCard 
+                booking={mappedBooking} 
+                totalGuests={totalGuests} 
+                showPassportColumn={showVisaSection}
+                refreshKey={participantsRefreshKey}
+              />
               {showVisaSection && (
                 <div id="visa" className="scroll-mt-24">
                   <BookingVisaSection

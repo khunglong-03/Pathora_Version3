@@ -472,3 +472,28 @@ export interface BookingPendingTransaction {
   createdAt: string;
   expiresAt: string | null;
 }
+
+export type ParticipantInfoReviewStatus = "Approved" | "Rejected" | "NotReviewed";
+
+export interface BookingParticipantPassportSummary {
+  passportId: string;
+  fullName?: string;
+  passportNumber?: string;
+  countryCode?: string;
+  issuedDate?: string;
+  expiryDate?: string;
+}
+
+export interface BookingParticipantSummary {
+  participantId: string;
+  bookingId: string;
+  participantType: string;
+  fullName: string;
+  dateOfBirth?: string;
+  gender?: string | null;
+  nationality?: string | null;
+  status: string;
+  passport: BookingParticipantPassportSummary | null;
+  infoReviewStatus: ParticipantInfoReviewStatus;
+  infoRejectionReason: string | null;
+}
