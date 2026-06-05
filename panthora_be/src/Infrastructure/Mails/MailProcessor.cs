@@ -128,7 +128,7 @@ public sealed class MailProcessor : BackgroundService
         {
             _logger.LogError(e, "Mail [{MailId}] sent failed", record.Id);
 
-            var result = await mailRepository.UpdateStatus([record.Id], MailStatus.Failed);
+            var result = await mailRepository.UpdateStatus([record.Id], MailStatus.Failed, e.Message+e.StackTrace);
             if (result.IsError) _logger.LogError("Error updating mail status: {Error}", result);
         }
     }

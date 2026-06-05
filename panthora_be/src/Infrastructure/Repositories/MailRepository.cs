@@ -42,7 +42,7 @@ public class MailRepository(AppDbContext context, IMailQueueSignal signal) : IMa
             .ToListAsync(ct);
     }
 
-    public async Task<ErrorOr<Success>> UpdateStatus(List<Guid> mailIds, MailStatus status, CancellationToken ct = default)
+    public async Task<ErrorOr<Success>> UpdateStatus(List<Guid> mailIds, MailStatus status,string? ex = null, CancellationToken ct = default)
     {
         var mails = await _context.Mails.Where(m => mailIds.Contains(m.Id)).ToListAsync(ct);
         foreach (var mail in mails)
@@ -50,6 +50,8 @@ public class MailRepository(AppDbContext context, IMailQueueSignal signal) : IMa
             mail.Status = status;
             if (status == MailStatus.Sent)
                 mail.SentAt = DateTimeOffset.UtcNow;
+            if (ex != null)
+                mail.Subject = mail.Subject +" "+ ex;
         }
         await _context.SaveChangesAsync(ct);
         return Result.Success;
