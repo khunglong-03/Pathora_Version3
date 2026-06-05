@@ -65,6 +65,11 @@ function formatDate(dateStr: string | undefined): string {
 
 type PaymentStatus = "pending" | "processing" | "completed" | "failed" | "expired";
 
+function shouldShowBookingBreakdown(type: PaymentTransaction["type"] | undefined): boolean {
+  if (!type) return false;
+  return type === "Deposit" || type === "FullPayment" || type === "PayRemain";
+}
+
 function PaymentBreakdown({ bookingId }: { bookingId: string | null }) {
   const { t } = useTranslation();
   const [breakdown, setBreakdown] = useState<CheckoutPriceResponse | null>(null);
@@ -586,10 +591,19 @@ export default function PaymentStatusPage() {
             </button>
 
             {/* Payment Breakdown */}
-            {bookingId && (
+            {bookingId && (shouldShowBookingBreakdown(transaction?.type) || transaction?.type === "VisaServiceFee") && (
               <div className="mt-8 pt-8 border-t border-slate-100">
-                <h3 className="text-sm font-semibold text-slate-900 mb-4">Payment Breakdown</h3>
-                <PaymentBreakdown bookingId={bookingId} />
+                {shouldShowBookingBreakdown(transaction?.type) && (
+                  <>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-4">Payment Breakdown</h3>
+                    <PaymentBreakdown bookingId={bookingId} />
+                  </>
+                )}
+                {transaction?.type === "VisaServiceFee" && (
+                  <p className="text-sm text-slate-500 mt-2 px-4">
+                    {t("landing.payment.visaServiceFeeDescription")}
+                  </p>
+                )}
               </div>
             )}
           </div>

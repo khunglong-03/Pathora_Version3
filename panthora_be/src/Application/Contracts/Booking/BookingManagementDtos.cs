@@ -364,7 +364,8 @@ public sealed record CheckoutPriceResponse(
     [property: JsonPropertyName("totalPrice")] decimal TotalPrice,
     [property: JsonPropertyName("depositPercentage")] decimal DepositPercentage,
     [property: JsonPropertyName("depositAmount")] decimal DepositAmount,
-    [property: JsonPropertyName("remainingBalance")] decimal RemainingBalance
+    [property: JsonPropertyName("remainingBalance")] decimal RemainingBalance,
+    [property: JsonPropertyName("visaServiceFeeTotal")] decimal VisaServiceFeeTotal = 0
 );
 
 public sealed record AdminBookingListResponse(

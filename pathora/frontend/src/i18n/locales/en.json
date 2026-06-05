@@ -3621,7 +3621,8 @@
         "total": "Total"
       },
       "retryAfterMessage": "Retry after {{seconds}}s",
-      "refreshButton": "Refresh"
+      "refreshButton": "Refresh",
+      "visaServiceFeeDescription": "Visa service fee (quoted by manager, separate from base tour price)"
     },
     "nav": {
       "home": "Home",

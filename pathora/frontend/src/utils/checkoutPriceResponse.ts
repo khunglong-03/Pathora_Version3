@@ -37,6 +37,7 @@ export function normalizeCheckoutPriceResponse(raw: unknown): CheckoutPriceRespo
     depositPercentage: normalizeDepositFraction(Number(r.depositPercentage ?? 0)),
     depositAmount: Number(r.depositAmount ?? 0),
     remainingBalance: Number(r.remainingBalance ?? 0),
+    visaServiceFeeTotal: Number(r.visaServiceFeeTotal ?? 0),
   };
 }
 

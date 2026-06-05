@@ -49,10 +49,11 @@ public sealed class GetCheckoutPriceQueryHandler(
         var childSubtotal = childPrice * booking.NumberChild;
         var infantSubtotal = infantPrice * booking.NumberInfant;
         var subtotal = adultSubtotal + childSubtotal + infantSubtotal;
-
+        var visaServiceFeeTotal = booking.VisaServiceFeeTotal;
+ 
         var taxRate = activeTaxConfig?.TaxRate ?? 0;
         var taxAmount = Math.Round(subtotal * taxRate / 100m, 0, MidpointRounding.ToEven);
-        var totalPrice = subtotal + taxAmount;
+        var totalPrice = subtotal + taxAmount + visaServiceFeeTotal;
 
         var tour = await tourRepository.FindById(tourInstance.TourId, true, cancellationToken);
         var tourScope = tour?.TourScope ?? Domain.Enums.TourScope.Domestic;
@@ -83,14 +84,15 @@ public sealed class GetCheckoutPriceQueryHandler(
         decimal? overrideRemainingBalance = null;
         if (!booking.IsFullPay && booking.PaymentTransactions != null)
         {
-            var paidDepositAmount = booking.PaymentTransactions
-                .Where(t => t.Type == Domain.Enums.TransactionType.Deposit
+            var paidAmount = booking.PaymentTransactions
+                .Where(t => (t.Type == Domain.Enums.TransactionType.Deposit
+                             || t.Type == Domain.Enums.TransactionType.VisaServiceFee)
                          && t.Status == Domain.Enums.TransactionStatus.Completed)
                 .Sum(t => t.PaidAmount ?? t.Amount);
-
-            if (paidDepositAmount > 0)
+ 
+            if (paidAmount > 0)
             {
-                var remaining = totalPrice - paidDepositAmount;
+                var remaining = totalPrice - paidAmount;
                 overrideRemainingBalance = remaining > 0 ? remaining : 0m;
             }
         }
@@ -123,7 +125,8 @@ public sealed class GetCheckoutPriceQueryHandler(
             totalPrice,
             depositPercentage,
             depositAmount,
-            remainingBalance);
+            remainingBalance,
+            visaServiceFeeTotal);
     }
 
     private static decimal ApplyPricingTier(decimal basePrice, List<Domain.ValueObjects.PricingPolicyTier> tiers, int age)

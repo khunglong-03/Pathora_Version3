@@ -3608,7 +3608,8 @@
         "total": "Tổng cộng"
       },
       "retryAfterMessage": "Thử lại sau {{seconds}}s",
-      "refreshButton": "Làm mới"
+      "refreshButton": "Làm mới",
+      "visaServiceFeeDescription": "Phí dịch vụ visa (manager báo giá riêng, không thuộc giá tour gốc)"
     },
     "nav": {
       "home": "Trang chủ",

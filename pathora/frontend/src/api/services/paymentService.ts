@@ -130,6 +130,7 @@ export interface CheckoutPriceResponse {
   depositPercentage: number;
   depositAmount: number;
   remainingBalance: number;
+  visaServiceFeeTotal?: number;
 }
 
 export const paymentService = {
