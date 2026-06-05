@@ -117,7 +117,7 @@ public sealed class MailProcessor : BackgroundService
 
         try
         {
-            await pipeline.ExecuteAsync(async token => { await SendCoreAsync(mailClient, record, token); });
+            await pipeline.ExecuteAsync(token => new ValueTask(SendCoreAsync(mailClient, record, token)));
 
             _logger.LogInformation("Mail [{MailId}] sent successfully", record.Id);
 
