@@ -359,8 +359,26 @@ export default function TourOperationDetailPage() {
                       // targetId = template tourDayId used by the backend activity-status endpoints
                       const targetId = statusObj?.tourDayId || parentTourDayId;
 
-                      // Prevent check-in if the activity is in the future
-                      const canCheckIn = !isFuture && !!targetId && isTourInProgress;
+                      // Check-in rules (no longer depends on tour InProgress status):
+                      // - Past days: always allowed (guide can retroactively check in)
+                      // - Today: allowed if activity startTime has passed (or no startTime set)
+                      // - Future days: blocked
+                      let canCheckIn = false;
+                      if (!isFuture && !!targetId) {
+                        if (isPast) {
+                          canCheckIn = true;
+                        } else if (isToday) {
+                          if (!act.startTime) {
+                            canCheckIn = true;
+                          } else {
+                            const now = new Date();
+                            const [hh, mm] = act.startTime.substring(0, 5).split(":").map(Number);
+                            const actStart = new Date(dayDate);
+                            actStart.setHours(hh, mm, 0, 0);
+                            canCheckIn = now >= actStart;
+                          }
+                        }
+                      }
 
                       return (
                         <div key={act.id} className="relative flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
@@ -429,7 +447,7 @@ export default function TourOperationDetailPage() {
                                         ? "bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]" 
                                         : "bg-slate-100 text-slate-400 cursor-not-allowed"
                                     }`}
-                                    title={!canCheckIn ? (isFuture ? "Chưa đến ngày" : "Tour chưa bắt đầu") : ""}
+                                    title={!canCheckIn ? (isFuture ? "Chưa đến ngày" : isToday && act.startTime ? "Chưa đến giờ" : "Không thể check-in") : ""}
                                   >
                                     {actionLoading === `start-${targetId}` ? (
                                       <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
