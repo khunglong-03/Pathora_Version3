@@ -1,4 +1,4 @@
-import type { BookingPendingTransaction, BookingDetailResponse } from "@/types/booking";
+import type { BookingPendingTransaction, BookingDetailResponse, CustomerTicketDto, CustomerRoomAssignmentDto, CustomerDayStatusDto, CustomerTicketImageDto, RefundStatusString } from "@/types/booking";
 import type { BookingDetail, PaymentMethod, PaymentStatus } from "../components/BookingDetailData";
 
 function normalizePaymentMethod(raw: string | undefined): PaymentMethod {
@@ -73,5 +73,13 @@ export function mapBookingDetailResponse(raw: BookingDetailResponse | Record<str
     cancellationRequest: r.cancellationRequest,
     cancellationRequests: Array.isArray(r.cancellationRequests) ? r.cancellationRequests : [],
     pendingTransactions,
+    tickets: Array.isArray(r.tickets) ? (r.tickets as CustomerTicketDto[]) : [],
+    roomAssignments: Array.isArray(r.roomAssignments) ? (r.roomAssignments as CustomerRoomAssignmentDto[]) : [],
+    dayStatuses: Array.isArray(r.dayStatuses) ? (r.dayStatuses as CustomerDayStatusDto[]) : [],
+    ticketImages: Array.isArray(r.ticketImages) ? (r.ticketImages as CustomerTicketImageDto[]) : [],
+    refundStatus: r.refundStatus != null ? (r.refundStatus as RefundStatusString) : undefined,
+    refundOutstandingAmount: r.refundOutstandingAmount != null ? Number(r.refundOutstandingAmount) : undefined,
+    refundContactedAt: r.refundContactedAt != null ? String(r.refundContactedAt) : undefined,
+    refundCompletedAt: r.refundCompletedAt != null ? String(r.refundCompletedAt) : undefined,
   };
 }

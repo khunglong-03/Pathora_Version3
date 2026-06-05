@@ -126,62 +126,16 @@ export function BookingDetailPage() {
 
   if (!booking) return null;
 
-  const mappedBooking = booking;
-
   // Private tour chưa duyệt xong (chờ manager hoặc chờ khách duyệt lịch trình) → badge "Chờ phê duyệt".
   const tourPendingApprovalStates = ["Draft", "PendingManagerReview", "PendingAdjustment", "PendingCustomerApproval"];
-  const actualStatus = (mappedStatusStr === "pending" && tourPendingApprovalStates.includes(booking.tourStatus))
-    ? "pending_approval"
-    : mappedStatusStr;
-  const resolvedBookingId = booking.id ?? booking.bookingId ?? bookingId;
+  const derivedStatus = (
+    booking.status === "pending" &&
+    tourPendingApprovalStates.includes(booking.tourStatus ?? "")
+  ) ? "pending_approval" : booking.status;
 
-  // Bridge BookingDetailResponse → BookingDetail for existing child components
-  const mappedBooking: BookingDetail = {
-    id: resolvedBookingId,
-    tourName: booking.tourName ?? booking.description ?? "Unknown Tour",
-    reference: booking.reference ?? `PATH-${resolvedBookingId.slice(0, 8)}`,
-    tier: "standard",
-    status: actualStatus as any,
-    paymentStatus: (booking.paymentStatus as any) ?? "unpaid",
-    paymentMethod: (booking.paymentMethod as any) ?? "bank_transfer",
-    location: "",
-    duration: "",
-    bookingDate: booking.bookingDate ?? "",
-    departureDate: booking.departureDate ?? "",
-    returnDate: booking.returnDate ?? "",
-    adults: booking.adults ?? 0,
-    children: booking.children ?? 0,
-    infants: booking.infants ?? 0,
-    pricePerPerson: booking.adultPrice ?? 0,
-    adultPrice: booking.adultPrice,
-    childPrice: booking.childPrice,
-    infantPrice: booking.infantPrice,
-    adultSubtotal: booking.adultSubtotal,
-    childSubtotal: booking.childSubtotal,
-    infantSubtotal: booking.infantSubtotal,
-    subtotal: booking.subtotal,
-    taxRate: booking.taxRate,
-    taxAmount: booking.taxAmount,
-    totalAmount: booking.totalAmount,
-    paidAmount: booking.paidAmount,
-    remainingBalance: booking.remainingBalance,
-    image: booking.image || "/assets/images/tours/placeholder.png",
-    description: booking.description ?? "",
-    highlights: booking.highlights ?? [],
-    importantInfo: (booking.importantInfo as unknown as string[]) ?? [],
-    pendingTransactionCode: booking.pendingTransactionCode,
-    tourInstanceId: booking.tourInstanceId,
-    isVisaRequired: booking.isVisaRequired,
-    tourStatus: booking.tourStatus,
-    bookingType: booking.bookingType,
-    visaServiceFeeTotal: booking.visaServiceFeeTotal,
-    cancellationRequest: booking.cancellationRequest,
-    cancellationRequests: booking.cancellationRequests,
-    tickets: booking.tickets ?? [],
-    roomAssignments: booking.roomAssignments ?? [],
-    dayStatuses: booking.dayStatuses ?? [],
-    ticketImages: booking.ticketImages ?? [],
-  };
+  const mappedBooking = derivedStatus !== booking.status
+    ? { ...booking, status: derivedStatus }
+    : booking;
 
   const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =
     getBookingDerivedState(mappedBooking);
@@ -252,10 +206,10 @@ export function BookingDetailPage() {
               <BookingRefundSection
                 bookingId={mappedBooking.id}
                 bookingStatus={mappedBooking.status}
-                refundStatus={booking.refundStatus}
-                refundOutstandingAmount={booking.refundOutstandingAmount}
-                refundContactedAt={booking.refundContactedAt}
-                refundCompletedAt={booking.refundCompletedAt}
+                refundStatus={mappedBooking.refundStatus}
+                refundOutstandingAmount={mappedBooking.refundOutstandingAmount}
+                refundContactedAt={mappedBooking.refundContactedAt}
+                refundCompletedAt={mappedBooking.refundCompletedAt}
                 onChanged={fetchBookingWithoutLoading}
               />
               <BookingNeedHelp />
