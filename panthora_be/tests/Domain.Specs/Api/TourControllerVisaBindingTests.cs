@@ -1,5 +1,7 @@
 using System.Reflection;
+using global::Application.Features.Tour.Queries;
 using global::Api.Controllers;
+using Contracts.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Domain.Specs.Api;
@@ -22,5 +24,12 @@ public sealed class TourControllerVisaBindingTests
         Assert.Equal(typeof(bool), parameter.ParameterType);
         Assert.Equal(false, parameter.DefaultValue);
         Assert.NotNull(parameter.GetCustomAttribute<FromFormAttribute>());
+    }
+
+    [Fact]
+    public void TourOperatorTourQueries_ShouldNotCacheEditableTourViews()
+    {
+        Assert.False(typeof(ICacheable).IsAssignableFrom(typeof(GetTourDetailQuery)));
+        Assert.False(typeof(ICacheable).IsAssignableFrom(typeof(GetMyToursQuery)));
     }
 }

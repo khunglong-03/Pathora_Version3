@@ -1,8 +1,6 @@
-using Application.Common;
 using Application.Dtos;
 using Application.Services;
 using BuildingBlocks.CORS;
-using Contracts.Interfaces;
 using Contracts;
 using Domain.Enums;
 using ErrorOr;
@@ -18,11 +16,7 @@ public sealed record GetMyToursQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,
     [property: JsonIgnore] Guid? CurrentUserId = null)
-    : IQuery<ErrorOr<PaginatedList<TourVm>>>, ICacheable
-{
-    public string CacheKey => $"{Common.CacheKey.Tour}:my:{CurrentUserId}:{PageNumber}:{PageSize}:{SearchText}:{Status}:{TourScope}:{Continent}";
-    public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
-}
+    : IQuery<ErrorOr<PaginatedList<TourVm>>>;
 
 public sealed class GetMyToursQueryHandler(ITourService tourService)
     : IQueryHandler<GetMyToursQuery, ErrorOr<PaginatedList<TourVm>>>
