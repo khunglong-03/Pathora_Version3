@@ -170,7 +170,6 @@ export function BookingDetailPage() {
               <GuestDetailsCard 
                 booking={mappedBooking} 
                 totalGuests={totalGuests} 
-                showPassportColumn={showVisaSection}
                 refreshKey={participantsRefreshKey}
               />
               {showVisaSection && (

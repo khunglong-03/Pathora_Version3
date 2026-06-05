@@ -81,21 +81,20 @@ export function useBookings(statusFilter: FilterKey, page: number = 1, pageSize:
       reference: b.reference || "N/A",
       // Mapping from backend DTO to frontend types
       tier: "standard" as TourTier, // Backend doesn't explicitly send tier yet, default to standard
-      status: (b.tourStatus === "PendingCustomerApproval" ? "pending_approval" : (b.status?.toLowerCase() || "pending")) as BookingStatus,
-      paymentStatus: (b.paymentStatus?.toLowerCase() || "unpaid") as PaymentStatus,
+      status: mapStatus(b.status || "pending", b.tourStatus || ""),
+      tourStatus: b.tourStatus,
+      paymentStatus: mapPaymentStatus(b.paymentStatus || "unpaid"),
       paymentMethod: "bank_transfer" as PaymentMethod, // We can enhance this later if needed
       location: b.location || "Multiple locations",
-      duration: b.startDate && b.endDate 
-        ? `${Math.max(1, Math.ceil((new Date(b.endDate).getTime() - new Date(b.startDate).getTime()) / (1000 * 60 * 60 * 24)))} Days`
-        : "N/A",
-      departure: b.startDate ? format(new Date(b.startDate), "MMM d, yyyy") : "TBD",
+      duration: safeDuration(b.startDate || "", b.endDate || ""),
+      departure: safeDeparture(b.startDate || ""),
       guests: (b.adults || 0) + (b.children || 0) + (b.infants || 0),
-      totalAmount: b.totalPrice || 0,
+      totalAmount: b.totalAmount ?? b.totalPrice ?? 0,
       remainingAmount:
         b.remainingBalance != null && b.remainingBalance > 0
           ? b.remainingBalance
-          : (b.totalPrice || 0) - (b.paidAmount || 0) > 0
-            ? (b.totalPrice || 0) - (b.paidAmount || 0)
+          : (b.totalAmount ?? b.totalPrice ?? 0) - (b.paidAmount || 0) > 0
+            ? (b.totalAmount ?? b.totalPrice ?? 0) - (b.paidAmount || 0)
             : undefined,
       image: b.thumbnailUrl || "/assets/images/tours/bali.png", // fallback image
     }));

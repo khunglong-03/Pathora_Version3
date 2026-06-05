@@ -75,7 +75,7 @@ describe("GuestDetailsCard", () => {
     vi.clearAllMocks();
   });
 
-  it("renders header passenger count and list of passengers", async () => {
+  it("renders header passenger count and list of passengers without passport status", async () => {
     getParticipantsMock.mockResolvedValue([
       {
         participantId: "p-1",
@@ -113,7 +113,6 @@ describe("GuestDetailsCard", () => {
       <GuestDetailsCard
         booking={defaultBooking}
         totalGuests={3}
-        showPassportColumn={true}
       />
     );
 
@@ -124,42 +123,12 @@ describe("GuestDetailsCard", () => {
       expect(screen.getAllByText("Baby Doe").length).toBe(2);
     });
 
-    // Passport column is true: John Doe has passport, Jane/Baby do not
-    expect(screen.getByText("landing.bookingDetail.passportStatus.present")).toBeInTheDocument();
-    expect(screen.getAllByText("landing.bookingDetail.passportStatus.missing").length).toBe(2);
+    // Passport status should not be rendered
+    expect(screen.queryByText("landing.bookingDetail.passportStatus.present")).not.toBeInTheDocument();
+    expect(screen.queryByText("landing.bookingDetail.passportStatus.missing")).not.toBeInTheDocument();
 
     // Verify rejection warning details
     expect(screen.getByText("landing.bookingDetail.rejectedPassengerDetailsWarning")).toBeInTheDocument();
     expect(screen.getByText(/Incomplete details/)).toBeInTheDocument();
-  });
-
-  it("does not render passport status when showPassportColumn is false", async () => {
-    getParticipantsMock.mockResolvedValue([
-      {
-        participantId: "p-1",
-        bookingId: "booking-1",
-        participantType: "Adult",
-        fullName: "John Doe",
-        infoReviewStatus: "Approved",
-        infoRejectionReason: null,
-        passport: { passportId: "pass-1" },
-        status: "Active",
-      },
-    ]);
-
-    render(
-      <GuestDetailsCard
-        booking={defaultBooking}
-        totalGuests={1}
-        showPassportColumn={false}
-      />
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
-    });
-
-    expect(screen.queryByText("landing.bookingDetail.passportStatus.present")).not.toBeInTheDocument();
-    expect(screen.queryByText("landing.bookingDetail.passportStatus.missing")).not.toBeInTheDocument();
   });
 });

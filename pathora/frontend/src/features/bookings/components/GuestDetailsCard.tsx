@@ -12,14 +12,12 @@ import Button from "@/components/ui/Button";
 interface GuestDetailsCardProps {
   booking: BookingDetail;
   totalGuests: number;
-  showPassportColumn?: boolean;
   refreshKey?: number;
 }
 
 export function GuestDetailsCard({ 
   booking, 
   totalGuests, 
-  showPassportColumn = false, 
   refreshKey = 0 
 }: GuestDetailsCardProps) {
   const { t } = useTranslation();
@@ -182,19 +180,6 @@ export function GuestDetailsCard({
                               <Info weight="fill" className="size-3 text-slate-400" />
                               {t("landing.bookingDetail.reviewStatusNotReviewed", "Chờ duyệt")}
                             </span>
-                          )}
-                          {showPassportColumn && (
-                            p.passport ? (
-                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-100">
-                                <IdentificationCard weight="fill" className="size-3 text-emerald-600" />
-                                {t("landing.bookingDetail.passportStatus.present")}
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-red-50 text-red-700 text-[10px] font-bold rounded-full border border-red-100">
-                                <WarningCircle weight="fill" className="size-3 text-red-600" />
-                                {t("landing.bookingDetail.passportStatus.missing")}
-                              </span>
-                            )
                           )}
                         </div>
                       </div>
