@@ -70,6 +70,15 @@ export function BookingPaymentSummary({
       return;
     }
 
+    const pendingVisaServiceFeeTransaction = booking.pendingTransactions?.find(
+      (transaction) => transaction.type === "VisaServiceFee" && transaction.transactionCode,
+    );
+
+    if (pendingVisaServiceFeeTransaction?.transactionCode) {
+      router.push(`/payment/${pendingVisaServiceFeeTransaction.transactionCode}?bookingId=${booking.id}`);
+      return;
+    }
+
     setCreatingTransaction(true);
     try {
       const result = await paymentService.createTransaction({

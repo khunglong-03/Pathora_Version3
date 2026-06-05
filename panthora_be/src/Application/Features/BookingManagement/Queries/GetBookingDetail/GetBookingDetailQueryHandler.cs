@@ -39,14 +39,6 @@ public class GetBookingDetailQueryHandler(
             .Where(t => t.Status == Domain.Enums.TransactionStatus.Completed)
             .Sum(t => t.PaidAmount ?? t.Amount);
 
-        // Exclude unpaid visa service fees from tour remaining — those are paid via separate VisaServiceFee transactions.
-        var pendingVisaServiceFees = booking.PaymentTransactions
-            .Where(t => t.Type == TransactionType.VisaServiceFee && t.Status == Domain.Enums.TransactionStatus.Pending)
-            .Sum(t => t.Amount);
-
-        // Include VisaServiceFeeTotal inside TotalPrice has been handled in booking.AddVisaServiceFee.
-        var remainingBalance = Math.Max(0, booking.TotalPrice - paidAmount - pendingVisaServiceFees);
-
         var pendingTransactions = booking.PaymentTransactions
             .Where(t => t.Status == Domain.Enums.TransactionStatus.Pending)
             .OrderByDescending(t => t.CreatedOnUtc)
@@ -92,14 +84,13 @@ public class GetBookingDetailQueryHandler(
         var taxRate = breakdown.TaxRate;
         var taxAmount = breakdown.TaxAmount;
         var totalAmount = breakdown.TotalAmount;
+        var remainingBalance = breakdown.RemainingBalance;
 
-        string paymentStatusStr = booking.Status switch
-        {
-            Domain.Enums.BookingStatus.Paid => "paid",
-            Domain.Enums.BookingStatus.Completed => "paid",
-            Domain.Enums.BookingStatus.Deposited => "partial",
-            _ => paidAmount > 0 ? (paidAmount >= totalAmount ? "paid" : "partial") : "unpaid"
-        };
+        string paymentStatusStr = paidAmount >= totalAmount
+            ? "paid"
+            : paidAmount > 0
+                ? "partial"
+                : "unpaid";
 
         var dto = new BookingDetailDto
         {

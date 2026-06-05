@@ -140,4 +140,108 @@ public sealed class GetBookingDetailQueryHandlerTests
         Assert.Single(dto.TicketImages);
         Assert.Equal("http://test.com/image.png", dto.TicketImages[0].PublicUrl);
     }
+
+    [Fact]
+    public async Task Handle_PaidBookingWithPendingVisaFee_ReturnsPartialPaymentAndVisaRemainingBalance()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var tourInstanceId = Guid.NewGuid();
+
+        var booking = BookingEntity.Create(
+            tourInstanceId,
+            "Test Customer",
+            "+84123456789",
+            2,
+            1_100_000m,
+            PaymentMethod.BankTransfer,
+            true,
+            "TEST");
+        booking.UserId = userId;
+        booking.Id = bookingId;
+        booking.Status = BookingStatus.Paid;
+        booking.AddVisaServiceFee(500_000m, "MANAGER");
+
+        var tourInstance = new TourInstanceEntity
+        {
+            Id = tourInstanceId,
+            TourName = "Visa Tour",
+            StartDate = DateTimeOffset.UtcNow.AddDays(10),
+            EndDate = DateTimeOffset.UtcNow.AddDays(15),
+            Status = TourInstanceStatus.Confirmed,
+            BasePrice = 500_000m,
+            Tour = new TourEntity { IsVisa = true }
+        };
+        booking.TourInstance = tourInstance;
+
+        var paidTourTransaction = PaymentTransactionEntity.Create(
+            bookingId,
+            "PAY-TOUR",
+            TransactionType.FullPayment,
+            1_100_000m,
+            PaymentMethod.BankTransfer,
+            "Tour payment",
+            "TEST");
+        paidTourTransaction.MarkAsPaid(1_100_000m, DateTimeOffset.UtcNow);
+
+        var pendingVisaTransaction = PaymentTransactionEntity.Create(
+            bookingId,
+            "PAY-VISA",
+            TransactionType.VisaServiceFee,
+            500_000m,
+            PaymentMethod.BankTransfer,
+            "Visa service fee",
+            "MANAGER");
+
+        booking.PaymentTransactions.Add(paidTourTransaction);
+        booking.PaymentTransactions.Add(pendingVisaTransaction);
+
+        _bookingRepository.GetByIdWithDetailsAsync(bookingId, Arg.Any<CancellationToken>())
+            .Returns(booking);
+        _currentUser.Id.Returns(userId);
+        _currentUser.IsInRole(Arg.Any<string>()).Returns(false);
+
+        _priceCalculator.Calculate(
+            booking,
+            tourInstance,
+            Arg.Any<IReadOnlyList<global::Domain.ValueObjects.PricingPolicyTier>>(),
+            Arg.Any<TaxConfigEntity>(),
+            1_100_000m)
+            .Returns(new BookingPriceBreakdown(
+                AdultUnitPrice: 500_000m,
+                ChildUnitPrice: 300_000m,
+                InfantUnitPrice: 0m,
+                AdultSubtotal: 1_000_000m,
+                ChildSubtotal: 0m,
+                InfantSubtotal: 0m,
+                Subtotal: 1_000_000m,
+                TaxRate: 10m,
+                TaxAmount: 100_000m,
+                VisaServiceFeeTotal: 500_000m,
+                TotalAmount: 1_600_000m,
+                PaidAmount: 1_100_000m,
+                RemainingBalance: 500_000m));
+
+        _cancellationRequestRepository.GetByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
+            .Returns(new List<BookingCancellationRequestEntity>());
+        _ticketRepository.GetByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
+            .Returns(new List<TourInstanceBookingTicketEntity>());
+        _roomAssignmentRepository.GetByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
+            .Returns(new List<TourInstanceBookingRoomAssignmentEntity>());
+        _dayActivityStatusRepository.GetByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
+            .Returns(new List<TourDayActivityStatusEntity>());
+        _ticketImageRepository.GetByBookingIdAsync(bookingId, tourInstanceId, Arg.Any<CancellationToken>())
+            .Returns(new List<TicketImageEntity>());
+
+        // Act
+        var result = await _handler.Handle(new GetBookingDetailQuery(bookingId), CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal("partial", result.Value.PaymentStatus);
+        Assert.Equal(500_000m, result.Value.RemainingBalance);
+        Assert.Equal(1_600_000m, result.Value.TotalAmount);
+        Assert.Contains(result.Value.PendingTransactions, t => t.Type == "VisaServiceFee" && t.TransactionCode == "PAY-VISA");
+    }
 }

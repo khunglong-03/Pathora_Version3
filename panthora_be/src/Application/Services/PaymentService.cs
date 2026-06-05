@@ -194,7 +194,8 @@ public class PaymentService : IPaymentService
                 .Where(t => t.Type == TransactionType.VisaServiceFee
                          && t.Status == TransactionStatus.Completed)
                 .Sum(t => t.PaidAmount ?? t.Amount);
-            amount = booking.VisaServiceFeeTotal - paidVisaFee;
+            var outstandingVisaFee = booking.VisaServiceFeeTotal - paidVisaFee;
+            amount = outstandingVisaFee > 0m ? outstandingVisaFee : amount;
         }
 
         if (amount <= 0)

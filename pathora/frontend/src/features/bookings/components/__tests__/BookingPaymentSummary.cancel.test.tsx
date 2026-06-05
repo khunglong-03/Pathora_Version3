@@ -5,10 +5,11 @@ import { paymentService } from "@/api/services/paymentService";
 import { BookingPaymentSummary } from "../BookingPaymentSummary";
 import type { BookingDetail } from "../BookingDetailData";
 
-const requestCancellationMock = vi.fn();
+const requestCancellationMock = vi.hoisted(() => vi.fn());
+const pushMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: pushMock }),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -149,5 +150,38 @@ describe("BookingPaymentSummary cancellation", () => {
         createdBy: "customer@test.com",
       });
     });
+  });
+
+  it("routes to the pending visa service fee transaction instead of creating PayRemain", async () => {
+    render(
+      <BookingPaymentSummary
+        booking={{
+          ...booking,
+          paymentStatus: "partial",
+          paidAmount: 2_000_000,
+          totalAmount: 2_500_000,
+          remainingBalance: 500_000,
+          pendingTransactions: [
+            {
+              transactionCode: "PAY-VISA-001",
+              amount: 500_000,
+              type: "VisaServiceFee",
+              purpose: "Visa Service Fee",
+              createdAt: "2026-06-01T00:00:00Z",
+              expiresAt: null,
+            },
+          ],
+        }}
+        totalGuests={2}
+        showPayRemaining={true}
+        showCancelBooking={false}
+        getPaymentStatusLabel={(status) => status}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /pay remaining balance/i }));
+
+    expect(pushMock).toHaveBeenCalledWith("/payment/PAY-VISA-001?bookingId=booking-1");
+    expect(paymentService.createTransaction).not.toHaveBeenCalled();
   });
 });
