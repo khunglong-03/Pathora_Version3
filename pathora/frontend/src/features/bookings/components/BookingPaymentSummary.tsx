@@ -344,11 +344,9 @@ export function BookingPaymentSummary({
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                 <AirplaneTilt weight="bold" className="size-5 relative z-10" />
                 <span className="relative z-10">
-                  {creatingTransaction
+                  {creatingVisaTransaction
                     ? t("landing.bookings.generatingQr", "Generating QR…")
-                    : booking.paymentStatus === "unpaid"
-                      ? t("landing.bookings.payNow", "Pay Now")
-                      : t("landing.bookings.payRemainingBalance", "Pay Remaining Balance")}
+                    : `${t("landing.bookings.payVisaFee", "Trả phí Visa")} (${formatCurrency(booking.visaServiceFeeTotal ?? 0)})`}
                 </span>
               </button>
             </motion.div>

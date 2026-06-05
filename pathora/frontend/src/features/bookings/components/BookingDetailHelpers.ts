@@ -80,9 +80,7 @@ export const getBookingDerivedState = (booking: BookingDerivedInput) => {
     totalGuests: booking.adults + booking.children + (booking.infants ?? 0),
     showPayRemaining:
       (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") &&
-      booking.status !== "cancelled" &&
-      booking.status !== "rejected" &&
-      booking.status !== "pending_cancellation" &&
+      isActive &&
       !isCustomTourPending,
     showPayVisa:
       (booking.visaServiceFeeTotal ?? 0) > 0 &&
