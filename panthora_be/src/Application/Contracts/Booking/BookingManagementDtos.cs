@@ -175,6 +175,12 @@ public sealed record VisaDto(
     [property: JsonPropertyName("fileUrl")] string? FileUrl
 );
 
+/// <summary>
+/// Visa application DTO dùng cho endpoint <c>GET /api/customer/bookings/{id}/participants</c>
+/// (<see cref="Application.Features.BookingManagement.Participant.GetBookingParticipantsQueryHandler"/>).
+/// Lưu ý: có một DTO khác cùng tên ở <c>Application/Features/VisaApplication/DTOs/VisaApplicationDto.cs</c>
+/// dùng cho luồng VisaApplication riêng — KHÔNG nhầm hai DTO này.
+/// </summary>
 public sealed record VisaApplicationDto(
     [property: JsonPropertyName("visaApplicationId")] Guid VisaApplicationId,
     [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
@@ -184,7 +190,10 @@ public sealed record VisaApplicationDto(
     [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate,
     [property: JsonPropertyName("refusalReason")] string? RefusalReason,
     [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl,
-    [property: JsonPropertyName("visa")] VisaDto? Visa
+    [property: JsonPropertyName("visa")] VisaDto? Visa,
+    [property: JsonPropertyName("isSystemAssisted")] bool IsSystemAssisted,
+    [property: JsonPropertyName("serviceFee")] decimal? ServiceFee,
+    [property: JsonPropertyName("serviceFeePaidAt")] DateTimeOffset? ServiceFeePaidAt
 );
 
 public sealed record ParticipantDto(
@@ -197,7 +206,12 @@ public sealed record ParticipantDto(
     [property: JsonPropertyName("nationality")] string? Nationality,
     [property: JsonPropertyName("status")] ReservationStatus Status,
     [property: JsonPropertyName("passport")] PassportDto? Passport,
-    [property: JsonPropertyName("visaApplications")] List<VisaApplicationDto> VisaApplications
+    [property: JsonPropertyName("visaApplications")] List<VisaApplicationDto> VisaApplications,
+    [property: JsonPropertyName("infoReviewStatus")] ParticipantInfoReviewStatus InfoReviewStatus,
+    [property: JsonPropertyName("infoRejectionReason")] string? InfoRejectionReason,
+    [property: JsonPropertyName("infoReviewedAt")] DateTimeOffset? InfoReviewedAt,
+    [property: JsonPropertyName("infoReviewedBy")] Guid? InfoReviewedBy,
+    [property: JsonPropertyName("infoReviewedByName")] string? InfoReviewedByName
 );
 
 public sealed record CreateParticipantDto(
@@ -370,11 +384,13 @@ public sealed record AdminBookingListResponse(
     [property: JsonPropertyName("customerPhone")] string? CustomerPhone = null,
     [property: JsonPropertyName("customerEmail")] string? CustomerEmail = null,
     [property: JsonPropertyName("cancelledAt")] DateTimeOffset? CancelledAt = null,
-    // Breakdown fields (task 3.3)
     [property: JsonPropertyName("subtotal")] decimal Subtotal = 0m,
     [property: JsonPropertyName("taxAmount")] decimal TaxAmount = 0m,
     [property: JsonPropertyName("totalAmount")] decimal TotalAmount = 0m,
-    [property: JsonPropertyName("remainingBalance")] decimal RemainingBalance = 0m
+    [property: JsonPropertyName("remainingBalance")] decimal RemainingBalance = 0m,
+    [property: JsonPropertyName("totalParticipants")] int TotalParticipants = 0,
+    [property: JsonPropertyName("approvedParticipants")] int ApprovedParticipants = 0,
+    [property: JsonPropertyName("hasRejectedParticipants")] bool HasRejectedParticipants = false
 );
 
 public sealed record AdminBookingListResult(

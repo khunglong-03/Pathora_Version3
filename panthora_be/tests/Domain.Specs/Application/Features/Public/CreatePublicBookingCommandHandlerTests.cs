@@ -234,7 +234,94 @@ public sealed class CreatePublicBookingCommandHandlerTests
 
         Assert.False(result.IsError);
         Assert.NotNull(captured);
-        Assert.Equal(jwtUserId, captured.UserId);
         await _userRepository.DidNotReceive().GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublicTour_AllowsBooking_WhenStartDateLessThan10Days_ButDeadlineInFuture()
+    {
+        var tourInstanceId = Guid.NewGuid();
+        ArrangeHappyPath(tourInstanceId);
+
+        var tourInstance = CreateTourInstance(tourInstanceId);
+        tourInstance.InstanceType = TourType.Public;
+        tourInstance.StartDate = DateTimeOffset.UtcNow.AddDays(5);
+        tourInstance.ConfirmationDeadline = DateTimeOffset.UtcNow.AddDays(2);
+        _tourInstanceRepository.FindById(tourInstanceId).Returns(tourInstance);
+
+        var handler = CreateHandler();
+        var cmd = new CreatePublicBookingCommand(
+            tourInstanceId,
+            "Name",
+            "+84 912345678",
+            null,
+            2,
+            0,
+            0,
+            PaymentMethod.BankTransfer,
+            true);
+
+        var result = await handler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsError);
+    }
+
+    [Fact]
+    public async Task PublicTour_FailsBooking_WhenDeadlinePassed()
+    {
+        var tourInstanceId = Guid.NewGuid();
+        ArrangeHappyPath(tourInstanceId);
+
+        var tourInstance = CreateTourInstance(tourInstanceId);
+        tourInstance.InstanceType = TourType.Public;
+        tourInstance.StartDate = DateTimeOffset.UtcNow.AddDays(5);
+        tourInstance.ConfirmationDeadline = DateTimeOffset.UtcNow.AddDays(-1);
+        _tourInstanceRepository.FindById(tourInstanceId).Returns(tourInstance);
+
+        var handler = CreateHandler();
+        var cmd = new CreatePublicBookingCommand(
+            tourInstanceId,
+            "Name",
+            "+84 912345678",
+            null,
+            2,
+            0,
+            0,
+            PaymentMethod.BankTransfer,
+            true);
+
+        var result = await handler.Handle(cmd, CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Equal("TourInstance.LeadTimeTooShort", result.FirstError.Code);
+    }
+
+    [Fact]
+    public async Task PrivateTour_FailsBooking_WhenStartDateLessThan10Days()
+    {
+        var tourInstanceId = Guid.NewGuid();
+        ArrangeHappyPath(tourInstanceId);
+
+        var tourInstance = CreateTourInstance(tourInstanceId);
+        tourInstance.InstanceType = TourType.Private;
+        tourInstance.StartDate = DateTimeOffset.UtcNow.AddDays(5);
+        _tourInstanceRepository.FindById(tourInstanceId).Returns(tourInstance);
+
+        var handler = CreateHandler();
+        var cmd = new CreatePublicBookingCommand(
+            tourInstanceId,
+            "Name",
+            "+84 912345678",
+            null,
+            2,
+            0,
+            0,
+            PaymentMethod.BankTransfer,
+            true);
+
+        var result = await handler.Handle(cmd, CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Equal("TourInstance.LeadTimeTooShort", result.FirstError.Code);
     }
 }

@@ -28,7 +28,10 @@ export default async function DashboardRouteGroupLayout({
     }
   }
 
-  const hasManagerRole = roles.some((role) => MANAGER_ROLE_NAMES.has(role));
+  const hasManagerRole = roles.some((role) => {
+    const r = role.toLowerCase().replace(/[^a-z0-9]/g, "");
+    return r === "manager" || r === "admin";
+  });
 
   if (!authenticated || !hasManagerRole) {
     redirect("/");

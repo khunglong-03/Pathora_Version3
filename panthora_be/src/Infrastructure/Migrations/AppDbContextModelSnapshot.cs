@@ -399,6 +399,12 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("ApprovalAutoCancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ApprovalWarningSentAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTimeOffset>("BookingDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -545,6 +551,23 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("InfoRejectionReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("InfoReviewStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("NotReviewed");
+
+                    b.Property<DateTimeOffset?>("InfoReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("InfoReviewedBy")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
@@ -574,6 +597,8 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId");
+
+                    b.HasIndex("InfoReviewStatus");
 
                     b.HasIndex("ParticipantType");
 
@@ -3038,6 +3063,74 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Status", "IsDeleted");
 
                     b.ToTable("Tours", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.TourGuideTaskEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AssignedGuideId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CompletedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("EvidenceImageUrls")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<bool>("IsMandatory")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<Guid>("TourInstanceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedGuideId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TourInstanceId");
+
+                    b.ToTable("TourGuideTasks", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.TourInstanceBookingRoomAssignmentEntity", b =>
@@ -5677,6 +5770,17 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("TourOperator");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TourGuideTaskEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.TourInstanceEntity", "TourInstance")
+                        .WithMany()
+                        .HasForeignKey("TourInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TourInstance");
                 });
 
             modelBuilder.Entity("Domain.Entities.TourInstanceBookingRoomAssignmentEntity", b =>

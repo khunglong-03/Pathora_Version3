@@ -62,4 +62,12 @@ public class CustomerBookingController : BaseApiController
         var result = await Sender.Send(command);
         return HandleResult(result);
     }
+
+    [HttpGet("rejected-participant-count")]
+    public async Task<IActionResult> GetRejectedParticipantCount()
+    {
+        var result = await Sender.Send(new GetCustomerRejectedParticipantCountQuery());
+        return HandleResult(result);
+    }
 }
+

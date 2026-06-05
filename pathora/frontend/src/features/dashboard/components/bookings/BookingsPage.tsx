@@ -176,6 +176,7 @@ export default function BookingsPage() {
                     totalPages={totalPages}
                     onPreviousPage={goToPreviousPage}
                     onNextPage={goToNextPage}
+                    onRefresh={retryLoading}
                   />
                 </CardShell>
               </Reveal>

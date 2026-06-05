@@ -15,6 +15,7 @@ public sealed record MyBookingDto(
     PaymentStatus PaymentStatus,
     decimal TotalPrice,
     decimal PaidAmount,
+    decimal RemainingBalance,
     DateTimeOffset StartDate,
     DateTimeOffset EndDate,
     string Location,
@@ -29,8 +30,7 @@ public sealed record MyBookingDto(
     decimal InfantUnitPrice = 0m,
     decimal Subtotal = 0m,
     decimal TaxAmount = 0m,
-    decimal TotalAmount = 0m,
-    decimal RemainingBalance = 0m
+    decimal TotalAmount = 0m
 );
 
 public sealed record MyBookingListResult(

@@ -661,7 +661,7 @@ public sealed class CreateVisaCommandHandler(
 
 public sealed record GetBookingParticipantsQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<ParticipantDto>>>, ICacheable
 {
-    public string CacheKey => $"{Application.Common.CacheKey.Booking}:participants:{BookingId}";
+    public string CacheKey => $"{Application.Common.CacheKey.Booking}:participants:v2:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
 }
 
@@ -671,7 +671,8 @@ public sealed class GetBookingParticipantsQueryHandler(
     IVisaApplicationRepository visaApplicationRepository,
     IVisaRepository visaRepository,
     IBookingRepository bookingRepository,
-    IOwnershipValidator ownershipValidator)
+    IOwnershipValidator ownershipValidator,
+    IUserRepository userRepository)
     : IQueryHandler<GetBookingParticipantsQuery, ErrorOr<List<ParticipantDto>>>
 {
     public async Task<ErrorOr<List<ParticipantDto>>> Handle(GetBookingParticipantsQuery request, CancellationToken cancellationToken)
@@ -698,6 +699,17 @@ public sealed class GetBookingParticipantsQueryHandler(
 
         var visaAppsByParticipant = allVisaApps.GroupBy(v => v.BookingParticipantId).ToDictionary(g => g.Key, g => g.ToList());
 
+        var reviewerIds = participants
+            .Select(p => p.InfoReviewedBy)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToList();
+
+        var reviewers = reviewerIds.Any()
+            ? (await userRepository.FindByIds(reviewerIds, cancellationToken)).ToDictionary(u => u.Id, u => u.FullName)
+            : [];
+
         var result = new List<ParticipantDto>();
 
         foreach (var participant in participants)
@@ -712,6 +724,12 @@ public sealed class GetBookingParticipantsQueryHandler(
                 visaApplicationDtos.Add(ToVisaApplicationDto(application, visa));
             }
 
+            string? infoReviewedByName = null;
+            if (participant.InfoReviewedBy.HasValue && reviewers.TryGetValue(participant.InfoReviewedBy.Value, out var name))
+            {
+                infoReviewedByName = name;
+            }
+
             result.Add(new ParticipantDto(
                 participant.Id,
                 participant.BookingId,
@@ -722,7 +740,12 @@ public sealed class GetBookingParticipantsQueryHandler(
                 participant.Nationality,
                 participant.Status,
                 passport is null ? null : ToPassportDto(passport),
-                visaApplicationDtos));
+                visaApplicationDtos,
+                participant.InfoReviewStatus,
+                participant.InfoRejectionReason,
+                participant.InfoReviewedAt,
+                participant.InfoReviewedBy,
+                infoReviewedByName));
         }
 
         return result;
@@ -762,7 +785,10 @@ public sealed class GetBookingParticipantsQueryHandler(
                     visa.EntryType,
                     visa.IssuedAt,
                     visa.ExpiresAt,
-                    visa.FileUrl));
+                    visa.FileUrl),
+            application.IsSystemAssisted,
+            application.ServiceFee,
+            application.ServiceFeePaidAt);
     }
 }
 
@@ -841,7 +867,10 @@ public sealed class GetParticipantVisasQueryHandler(
                         visa.EntryType,
                         visa.IssuedAt,
                         visa.ExpiresAt,
-                        visa.FileUrl)));
+                        visa.FileUrl),
+                application.IsSystemAssisted,
+                application.ServiceFee,
+                application.ServiceFeePaidAt));
         }
 
         return result;

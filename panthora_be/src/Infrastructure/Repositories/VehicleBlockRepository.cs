@@ -55,6 +55,15 @@ public class VehicleBlockRepository(AppDbContext context)
         _dbSet.RemoveRange(blocks);
     }
 
+    public async Task DeleteByBookingAsync(Guid bookingId, CancellationToken cancellationToken = default)
+    {
+        var blocks = await _dbSet
+            .Where(x => x.BookingActivityReservation != null && x.BookingActivityReservation.BookingId == bookingId)
+            .ToListAsync(cancellationToken);
+
+        _dbSet.RemoveRange(blocks);
+    }
+
     public async Task<List<VehicleScheduleProjection>> GetByOwnerAndDateRangeAsync(
         IReadOnlyCollection<Guid> ownedSupplierIds,
         Guid ownerUserId,

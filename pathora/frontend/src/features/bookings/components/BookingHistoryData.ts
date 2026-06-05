@@ -6,7 +6,10 @@ export type BookingStatus =
   | "pending_approval"
   | "approved"
   | "cancelled"
-  | "rejected";
+  | "rejected"
+  | "paid"
+  | "deposited"
+  | "pending_cancellation";
 
 export type TourTier = "standard" | "luxury" | "premium";
 export type PaymentStatus = "paid" | "partial" | "unpaid";
@@ -18,6 +21,8 @@ export interface Booking {
   reference: string;
   tier: TourTier;
   status: BookingStatus;
+  /** Raw TourInstance status từ backend (vd "PendingManagerReview", "PendingCustomerApproval") — dùng để gate customer-action chính xác. */
+  tourStatus?: string;
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
   location: string;

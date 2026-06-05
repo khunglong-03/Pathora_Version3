@@ -1,5 +1,6 @@
 using global::Application.Common.Interfaces;
 using global::Application.Features.BookingCancellation.Commands;
+using global::Application.Services;
 using global::Domain.Common.Repositories;
 using global::Domain.Entities;
 using global::Domain.Enums;
@@ -8,6 +9,10 @@ using global::NSubstitute;
 using global::Xunit;
 using global::ErrorOr;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Domain.Specs.Application.Features.BookingCancellation.Commands;
 
@@ -21,6 +26,7 @@ public sealed class RequestBookingCancellationCommandHandlerTests
     private readonly ISupplierPayableRepository _supplierPayableRepository = Substitute.For<ISupplierPayableRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly ICurrentUser _currentUser = Substitute.For<ICurrentUser>();
+    private readonly IBookingPaidAmountResolver _paidAmountResolver = Substitute.For<IBookingPaidAmountResolver>();
     private readonly ILogger<RequestBookingCancellationCommandHandler> _logger = Substitute.For<ILogger<RequestBookingCancellationCommandHandler>>();
 
     private RequestBookingCancellationCommandHandler CreateHandler() => new(
@@ -32,6 +38,7 @@ public sealed class RequestBookingCancellationCommandHandlerTests
         _supplierPayableRepository,
         _unitOfWork,
         _currentUser,
+        _paidAmountResolver,
         _logger);
 
     [Fact]
@@ -80,6 +87,9 @@ public sealed class RequestBookingCancellationCommandHandlerTests
         _unitOfWork.ExecuteTransactionAsync(Arg.Any<System.Data.IsolationLevel>(), Arg.Any<Func<Task>>())
             .Returns(call => call.Arg<Func<Task>>()());
 
+        _paidAmountResolver.ResolveAsync(booking, Arg.Any<CancellationToken>())
+            .Returns(0m);
+
         var cmd = new RequestBookingCancellationCommand(bookingId, "Khong di duoc nua");
 
         // Act
@@ -93,6 +103,73 @@ public sealed class RequestBookingCancellationCommandHandlerTests
         Assert.Equal(1, tourInstance.CurrentParticipation); // 3 - 2 participants = 1
 
         await _tourInstanceRepository.Received(1).Update(tourInstance, Arg.Any<CancellationToken>());
+        await _bookingRepository.Received(1).UpdateWithoutSaveAsync(booking);
+        await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenBookingIsPaidAndNoTransactions_ResolvesPaidAmountViaFallbackAndCreatesRequest()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var bookingId = Guid.NewGuid();
+        var tourInstanceId = Guid.NewGuid();
+
+        _currentUser.Id.Returns(userId);
+
+        var tourInstance = new TourInstanceEntity
+        {
+            Id = tourInstanceId,
+            TourName = "Ha Long Bay",
+            StartDate = DateTimeOffset.UtcNow.AddDays(5),
+            MaxParticipation = 10,
+            CurrentParticipation = 3
+        };
+
+        var booking = BookingEntity.Create(
+            tourInstanceId: tourInstanceId,
+            customerName: "Nguyen A",
+            customerPhone: "+84912345678",
+            numberAdult: 2,
+            totalPrice: 7520m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: true,
+            performedBy: userId.ToString(),
+            userId: userId);
+
+        booking.Id = bookingId;
+        booking.Status = BookingStatus.Paid;
+        booking.TourInstance = tourInstance;
+
+        _bookingRepository.GetByIdWithDetailsAsync(bookingId, Arg.Any<CancellationToken>())
+            .Returns(booking);
+
+        _paidAmountResolver.ResolveAsync(booking, Arg.Any<CancellationToken>())
+            .Returns(7520m); // Fallback applied
+
+        _cancellationPolicyRepository.FindActiveByTourScopeAsync(Arg.Any<TourScope>(), cancellationToken: Arg.Any<CancellationToken>())
+            .Returns((CancellationPolicyEntity?)null); // 0% fee
+
+        _unitOfWork.ExecuteTransactionAsync(Arg.Any<System.Data.IsolationLevel>(), Arg.Any<Func<Task>>())
+            .Returns(call => call.Arg<Func<Task>>()());
+
+        var cmd = new RequestBookingCancellationCommand(bookingId, "Khong di duoc nua");
+
+        // Act
+        var result = await CreateHandler().Handle(cmd, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal("PendingManagerReview", result.Value.Type);
+        Assert.Equal(7520m, result.Value.RefundAmount);
+        Assert.Equal(BookingStatus.PendingCancellation, booking.Status);
+
+        await _cancellationRequestRepository.Received(1).Add(Arg.Is<BookingCancellationRequestEntity>(
+            r => r.BookingId == bookingId &&
+                 r.PaidAmountSnapshot == 7520m &&
+                 r.RefundAmount == 7520m &&
+                 r.PreviousBookingStatus == BookingStatus.Paid
+        ), Arg.Any<CancellationToken>());
         await _bookingRepository.Received(1).UpdateWithoutSaveAsync(booking);
         await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
     }

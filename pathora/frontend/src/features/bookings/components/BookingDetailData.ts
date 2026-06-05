@@ -1,4 +1,4 @@
-import { TourTier, CustomerTicketDto, CustomerRoomAssignmentDto, CustomerDayStatusDto, CustomerTicketImageDto } from "@/types/booking";
+import { TourTier, CustomerTicketDto, CustomerRoomAssignmentDto, CustomerDayStatusDto, CustomerTicketImageDto, RefundStatusString } from "@/types/booking";
 export type { TourTier };
 
 /* ── Types ─────────────────────────────────────────────────── */
@@ -58,10 +58,15 @@ export interface BookingDetail {
   visaServiceFeeTotal?: number;
   cancellationRequest?: any;
   cancellationRequests?: any[];
+  pendingTransactions?: import("@/types/booking").BookingPendingTransaction[];
   tickets?: CustomerTicketDto[];
   roomAssignments?: CustomerRoomAssignmentDto[];
   dayStatuses?: CustomerDayStatusDto[];
   ticketImages?: CustomerTicketImageDto[];
+  refundStatus?: RefundStatusString;
+  refundOutstandingAmount?: number | null;
+  refundContactedAt?: string | null;
+  refundCompletedAt?: string | null;
 }
 
 /* ── Status config ─────────────────────────────────────────── */

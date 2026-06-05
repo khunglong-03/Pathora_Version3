@@ -195,13 +195,14 @@ export const managerService = {
     visaNumber: string;
     issuedAt: string;
     expiresAt: string;
-    category: string;
-    format: string;
-    destinationCountry: string;
+    category?: string;
+    format?: string;
+    destinationCountry?: string;
     entryType?: string;
     maxStayDays?: number;
     issuingAuthority?: string;
     visaFileUrl?: string;
+    serviceFee?: number;
   }) => {
     const { visaApplicationId, ...body } = data;
     const response = await api.post<ServiceResponse<string>>(

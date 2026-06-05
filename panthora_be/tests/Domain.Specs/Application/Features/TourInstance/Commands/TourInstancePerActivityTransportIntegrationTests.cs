@@ -326,6 +326,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
             holdStatus: HoldStatus.Hard);
         instRepo.FindById(instance.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(instance);
         instRepo.FindByIdWithInstanceDays(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
+        instRepo.FindByIdWithInstanceDaysForUpdate(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
         instRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         roomBlockRepo.GetByTourInstanceDayActivityIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new[] { existingBlock });

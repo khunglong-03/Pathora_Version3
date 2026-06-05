@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddHostedService<OutboxWorkerService>();
         services.AddHostedService<SoftHoldCleanupWorkerService>();
         services.AddHostedService<PrivateTourTopUpDeadlineWorkerService>();
+        services.AddHostedService<Api.Services.ParticipantApprovalDeadlineWorkerService>();
         services.AddHostedService<global::Infrastructure.Mails.MailProcessor>();
 
         // Data Protection: persist keys to Redis so OAuth correlation cookies and
@@ -223,7 +224,11 @@ public static class DependencyInjection
                         {
                             var path = httpContext.Request.Path.Value ?? string.Empty;
                             if (path.StartsWith("/hubs/", StringComparison.OrdinalIgnoreCase)
-                                || path.StartsWith("/api/hubs/", StringComparison.OrdinalIgnoreCase))
+                                || path.StartsWith("/api/hubs/", StringComparison.OrdinalIgnoreCase)
+                                || path.StartsWith("/api/public/", StringComparison.OrdinalIgnoreCase)
+                                || path.StartsWith("/api/site-content", StringComparison.OrdinalIgnoreCase)
+                                || path.Equals("/health", StringComparison.OrdinalIgnoreCase)
+                                || path.StartsWith("/health/", StringComparison.OrdinalIgnoreCase))
                             {
                                 return true;
                             }
@@ -289,6 +294,10 @@ public static class DependencyInjection
             options.AddPolicy("ManagerOrTourGuideOnly", policy =>
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("Manager") || context.User.IsInRole("TourGuide")));
+
+            // TourOperatorBookingTeam: TourOperator only (check team members inside handler)
+            options.AddPolicy("TourOperatorBookingTeam", policy =>
+                policy.RequireRole("TourOperator"));
 
             // CanManageTour: Resource-based authorization for strict ownership validation
             options.AddPolicy("CanManageTour", policy =>

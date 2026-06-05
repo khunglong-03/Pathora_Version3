@@ -13,8 +13,9 @@ namespace Domain.Specs.Application.Features.VisaApplication.Commands;
 public class VisaApplicationCommandsTests
 {
     private readonly IVisaApplicationRepository _visaRepoMock = Substitute.For<IVisaApplicationRepository>();
+    private readonly IVisaRepository _visaEntityRepoMock = Substitute.For<IVisaRepository>();
     private readonly IBookingRepository _bookingRepoMock = Substitute.For<IBookingRepository>();
-    private readonly IPaymentTransactionRepository _transactionRepoMock = Substitute.For<IPaymentTransactionRepository>();
+    private readonly IPaymentService _paymentServiceMock = Substitute.For<IPaymentService>();
     private readonly ICurrentUser _currentUserMock = Substitute.For<ICurrentUser>();
     private readonly IPostPaymentVisaGateService _visaGateMock = Substitute.For<IPostPaymentVisaGateService>();
     private readonly global::Domain.UnitOfWork.IUnitOfWork _uowMock = Substitute.For<global::Domain.UnitOfWork.IUnitOfWork>();
@@ -36,7 +37,7 @@ public class VisaApplicationCommandsTests
     [Fact]
     public async Task UpdateVisaStatus_WhenRejectingAfterGateClosed_ShouldReturnConflict()
     {
-        var handler = new UpdateVisaApplicationStatusCommandHandler(_visaRepoMock, _currentUserMock, _visaGateMock, _uowMock);
+        var handler = new UpdateVisaApplicationStatusCommandHandler(_visaRepoMock, _visaEntityRepoMock, _currentUserMock, _visaGateMock, _uowMock);
 
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
@@ -44,7 +45,7 @@ public class VisaApplicationCommandsTests
 
         var tour = new TourEntity { Id = Guid.NewGuid(), TourName = "Tour", IsVisa = true };
         var tourInstance = TourInstanceEntity.Create(tour.Id, Guid.NewGuid(), "Title", "Name", "Code", "Class", TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(5), 10, 1000m, "TEST");
-        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "TEST"); // Post Visa Gate
+        tourInstance.Status = TourInstanceStatus.InProgress; // Gate closed / Tour in progress
 
         var booking = BookingEntity.Create(tourInstance.Id, "Customer", "123", 1, 1000m, PaymentMethod.VnPay, true, "TEST", userId);
         booking.TourInstance = tourInstance;
@@ -69,8 +70,8 @@ public class VisaApplicationCommandsTests
     [Fact]
     public async Task QuoteFee_WhenNotSystemAssisted_ShouldReturnValidation()
     {
-        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
-
+        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _paymentServiceMock, _currentUserMock, _uowMock);
+        
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
         _currentUserMock.IsInRole(global::Application.Common.Constant.RoleConstants.Admin).Returns(true);
@@ -101,8 +102,8 @@ public class VisaApplicationCommandsTests
     [Fact]
     public async Task QuoteFee_WhenAlreadyQuoted_ShouldReturnExistingTransactionId()
     {
-        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
-
+        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _paymentServiceMock, _currentUserMock, _uowMock);
+        
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
         _currentUserMock.IsInRole(global::Application.Common.Constant.RoleConstants.Admin).Returns(true);
@@ -132,6 +133,6 @@ public class VisaApplicationCommandsTests
         result.Value.Should().Be(transactionId);
 
         // Ensure no new transaction is created
-        await _transactionRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!);
+        await _paymentServiceMock.DidNotReceiveWithAnyArgs().CreatePaymentTransactionAsync(default, default, default, default, default!, default!, default);
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "ManagerOnly")]
+[Authorize(Policy = "TourManagerOnly")]
 [Route(BookingManagementEndpoint.Base)]
 public class BookingManagementController : BaseApiController
 {
@@ -22,6 +22,7 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpPost(BookingManagementEndpoint.Activities)]
     public async Task<IActionResult> CreateActivity(Guid id, [FromBody] CreateBookingActivityReservationRequest request)
     {
@@ -42,6 +43,7 @@ public class BookingManagementController : BaseApiController
         return HandleCreated(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpPut(BookingManagementEndpoint.ActivityDetail)]
     public async Task<IActionResult> UpdateActivity(
         Guid id,
@@ -220,6 +222,7 @@ public class BookingManagementController : BaseApiController
         return HandleUpdated(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpGet(BookingManagementEndpoint.Payables)]
     public async Task<IActionResult> GetPayables(Guid id)
     {
@@ -227,6 +230,7 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpPost(BookingManagementEndpoint.Payables)]
     public async Task<IActionResult> CreatePayable(Guid id, [FromBody] CreateSupplierPayableRequest request)
     {
@@ -248,6 +252,7 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpPost(BookingManagementEndpoint.Team)]
     public async Task<IActionResult> AssignTeamMember(Guid id, [FromBody] AssignTeamMemberDto request)
     {
@@ -263,6 +268,7 @@ public class BookingManagementController : BaseApiController
         return HandleCreated(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpPut(BookingManagementEndpoint.TeamMember)]
     public async Task<IActionResult> UpdateTeamMember(Guid id, Guid userId, [FromBody] UpdateTeamMemberRequest request)
     {
@@ -277,6 +283,7 @@ public class BookingManagementController : BaseApiController
         return HandleUpdated(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpDelete(BookingManagementEndpoint.TeamMember)]
     public async Task<IActionResult> DeleteTeamMember(Guid id, Guid userId)
     {
@@ -284,6 +291,7 @@ public class BookingManagementController : BaseApiController
         return HandleDeleted(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpPost(BookingManagementEndpoint.TeamMemberConfirm)]
     public async Task<IActionResult> ConfirmTeamMember(Guid id, Guid userId)
     {
@@ -312,6 +320,7 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpGet]
     public async Task<IActionResult> GetAllBookings([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Domain.Enums.RefundStatus? refundStatus = null)
     {

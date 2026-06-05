@@ -78,10 +78,20 @@ public sealed class SetAccommodationRequirementsCommandHandler(
             {
                 checkInTime = new DateTimeOffset(day.ActualDate.ToDateTime(activity.StartTime.Value), TimeSpan.Zero);
             }
+            else
+            {
+                checkInTime = activity.Accommodation.CheckInTime;
+            }
+
             if (activity.EndTime.HasValue)
             {
                 checkOutTime = new DateTimeOffset(day.ActualDate.ToDateTime(activity.EndTime.Value), TimeSpan.Zero);
             }
+            else
+            {
+                checkOutTime = activity.Accommodation.CheckOutTime;
+            }
+
             if (checkInTime.HasValue && checkOutTime.HasValue && checkOutTime.Value < checkInTime.Value)
             {
                 checkOutTime = checkOutTime.Value.AddDays(1);

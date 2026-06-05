@@ -1,23 +1,32 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { WarningCircle, CheckCircle, Clock, AirplaneTilt, IdentificationCard, XCircle, HandHeart } from "@phosphor-icons/react";
+import { WarningCircle, CheckCircle, Clock, AirplaneTilt, IdentificationCard, XCircle, HandHeart, CurrencyCircleDollar } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import { bookingService } from "@/api/services";
 import { handleApiError } from "@/utils/apiResponse";
 import {
   VisaRequirementResponse,
   VisaRequirementParticipant,
+  BookingPendingTransaction,
+  VisaApplicationSummaryDto,
 } from "@/types/booking";
 import { VisaUploadForm } from "./VisaUploadForm";
 
 interface BookingVisaSectionProps {
   bookingId: string;
+  pendingTransactions?: BookingPendingTransaction[];
 }
 
-export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
+function isServiceFeePaid(app: VisaApplicationSummaryDto): boolean {
+  return Boolean(app.serviceFeePaid ?? app.serviceFeePaidAt);
+}
+
+export function BookingVisaSection({ bookingId, pendingTransactions = [] }: BookingVisaSectionProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<VisaRequirementResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -72,29 +81,6 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
     return null;
   }
 
-  if (data.isVisaRequired && data.participants.length === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-amber-50 rounded-3xl p-6 md:p-8 shadow-sm border border-amber-200 v-stack gap-4"
-      >
-        <div className="h-stack items-center gap-2">
-          <AirplaneTilt size={24} weight="bold" className="text-amber-600" />
-          <h3 className="text-xl font-bold text-amber-900">{t("landing.visa.sectionTitle")}</h3>
-        </div>
-        <p className="text-sm text-amber-800">
-          {t("landing.visa.requiresParticipantsFirst", "Tour này cần visa. Vui lòng thêm thông tin từng hành khách trước khi nộp visa. Người chưa có visa có thể yêu cầu hệ thống hỗ trợ làm visa (có phí).")}
-        </p>
-        <a
-          href={`/bookings/${bookingId}/participants`}
-          className="self-start text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-lg transition-colors"
-        >
-          {t("landing.visa.goAddParticipants", "Thêm hành khách")}
-        </a>
-      </motion.div>
-    );
-  }
-
   if (data.participants.length === 0) {
     return null;
   }
@@ -134,7 +120,20 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
 
   const handleSubmitVisaApp = async (participantId: string, passportId: string, applicationId: string | undefined, isResubmitting: boolean, payload: any) => {
     if (isResubmitting && applicationId) {
-      await bookingService.updateVisaApplication(bookingId, applicationId, payload);
+      await bookingService.updateVisaApplication(bookingId, applicationId, {
+        passportId: passportId,
+        destinationCountry: payload.destinationCountry,
+        minReturnDate: payload.minReturnDate,
+        visaFileUrl: payload.visaFileUrl,
+        category: payload.category,
+        format: payload.format,
+        maxStayDays: payload.maxStayDays,
+        issuingAuthority: payload.issuingAuthority,
+        visaNumber: payload.visaNumber,
+        entryType: payload.entryType,
+        issuedAt: payload.issuedAt,
+        expiresAt: payload.expiresAt,
+      });
     } else {
       await bookingService.submitVisaApplication(bookingId, {
         bookingParticipantId: participantId,
@@ -155,6 +154,23 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
     toast.success(t("landing.visa.submitSuccess"));
     setActiveFormParticipantId(null);
     await fetchRequirements();
+  };
+
+  const handlePayVisaFee = (participant: VisaRequirementParticipant) => {
+    const app = participant.latestVisaApplication;
+    const feeAmount = app?.serviceFee ?? undefined;
+    const visaTx = pendingTransactions.find(
+      (tx) =>
+        tx.type === "VisaServiceFee" &&
+        (feeAmount == null || tx.amount === feeAmount),
+    );
+
+    if (!visaTx?.transactionCode) {
+      toast.error(t("landing.visa.noPendingFeeTransaction", "Không tìm thấy giao dịch phí visa. Vui lòng tải lại trang."));
+      return;
+    }
+
+    router.push(`/payment/${visaTx.transactionCode}?bookingId=${bookingId}`);
   };
 
   const renderStatusBadge = (participant: VisaRequirementParticipant) => {
@@ -187,8 +203,31 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
         </span>
       );
     }
+
+    if (app.isSystemAssisted && app.serviceFee != null && !isServiceFeePaid(app)) {
+      return (
+        <span className="h-stack items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md">
+          <WarningCircle weight="fill" /> {t("landing.visa.supportFeePending")}
+        </span>
+      );
+    }
+
+    if (app.isSystemAssisted && isServiceFeePaid(app) && (app.status === "Pending" || app.status === "Processing")) {
+      return (
+        <span className="h-stack items-center gap-1 text-xs font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded-md">
+          <CheckCircle weight="fill" /> {t("landing.visa.supportFeePaid")}
+        </span>
+      );
+    }
+
     switch (app.status) {
-      case "PendingReview":
+      case "Pending":
+        return (
+          <span className="h-stack items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+            <Clock weight="fill" /> {t("landing.visa.pendingReview")}
+          </span>
+        );
+      case "Processing":
         return (
           <span className="h-stack items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
             <Clock weight="fill" /> {t("landing.visa.pendingReview")}
@@ -204,18 +243,6 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
         return (
           <span className="h-stack items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md">
             <XCircle weight="fill" /> {t("landing.visa.rejected")}
-          </span>
-        );
-      case "SupportFeePending":
-        return (
-          <span className="h-stack items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md">
-            <WarningCircle weight="fill" /> {t("landing.visa.supportFeePending")}
-          </span>
-        );
-      case "SupportFeePaid":
-        return (
-          <span className="h-stack items-center gap-1 text-xs font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded-md">
-            <CheckCircle weight="fill" /> {t("landing.visa.supportFeePaid")}
           </span>
         );
       default:
@@ -255,6 +282,7 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
           const destinationCountry = app?.destinationCountry || "VN"; // fallback for now if new
           const canSubmit = participant.availableActions.includes("submit_visa") || participant.availableActions.includes("add_passport");
           const canRequestSupport = participant.availableActions.includes("request_support");
+          const canPayVisaFee = participant.availableActions.includes("pay_visa_fee");
           const isRejected = app?.status === "Rejected";
 
           return (
@@ -271,6 +299,15 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
                 </div>
                 
                 <div className="h-stack items-center gap-2">
+                  {canPayVisaFee && !isFormOpen && (
+                    <button
+                      type="button"
+                      onClick={() => handlePayVisaFee(participant)}
+                      className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded-lg transition-colors h-stack items-center gap-1"
+                    >
+                      <CurrencyCircleDollar weight="bold" /> {t("landing.visa.payServiceFee", "Thanh toán phí visa")}
+                    </button>
+                  )}
                   {canRequestSupport && !isFormOpen && (
                     <button
                       onClick={() => handleRequestSupport(participant.participantId)}

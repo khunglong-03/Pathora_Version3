@@ -18,9 +18,9 @@ import { canTourOperatorEditTour } from "./editableTourStatus";
 type DetailState = "loading" | "ready" | "error";
 
 const STATUS_BADGE: Record<string, { bg: string; text: string; label: string; dot: string }> = {
-  "1": { bg: "bg-emerald-50", text: "text-emerald-700", label: "Đã duyệt", dot: "bg-emerald-500" },
-  "3": { bg: "bg-amber-50", text: "text-amber-700", label: "Chờ duyệt", dot: "bg-amber-500" },
-  "4": { bg: "bg-rose-50", text: "text-rose-700", label: "Từ chối", dot: "bg-rose-500" },
+  "1": { bg: "bg-emerald-50 dark:bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-400", label: "Đã duyệt", dot: "bg-emerald-500" },
+  "3": { bg: "bg-amber-50 dark:bg-amber-500/10", text: "text-amber-700 dark:text-amber-400", label: "Chờ duyệt", dot: "bg-amber-500" },
+  "4": { bg: "bg-rose-50 dark:bg-rose-500/10", text: "text-rose-700 dark:text-rose-400", label: "Từ chối", dot: "bg-rose-500" },
 };
 
 const ACTIVITY_ICONS: Record<string, string> = {
@@ -93,7 +93,7 @@ const HoverIlluminationCard = ({ children, className = "" }: { children: React.R
     <motion.div
       variants={itemFadeIn}
       onMouseMove={onMouseMove}
-      className={`group relative bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden ${className}`}
+      className={`group relative bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200/50 dark:border-slate-800/60 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] overflow-hidden ${className}`}
     >
       <motion.div
         className="pointer-events-none absolute -inset-px rounded-[2.5rem] opacity-0 transition duration-300 group-hover:opacity-100"
@@ -101,7 +101,7 @@ const HoverIlluminationCard = ({ children, className = "" }: { children: React.R
           background: useMotionTemplate`
             radial-gradient(
               650px circle at ${mouseX}px ${mouseY}px,
-              rgba(16, 185, 129, 0.03),
+              rgba(249, 115, 22, 0.06),
               transparent 80%
             )
           `,
@@ -147,7 +147,7 @@ export function TourOperatorTourDetailPage() {
 
   if (dataState === "loading") {
     return (
-      <div className="max-w-[1400px] w-full mx-auto p-6 md:p-8 min-h-[100dvh] bg-[#f9fafb]">
+      <div className="max-w-[1400px] w-full mx-auto p-6 md:p-8 min-h-[100dvh] bg-slate-50 dark:bg-slate-950">
         <SkeletonTable rows={3} columns={3} />
       </div>
     );
@@ -155,81 +155,96 @@ export function TourOperatorTourDetailPage() {
 
   if (dataState === "error" || !tour) {
     return (
-      <div className="max-w-[1400px] w-full mx-auto p-6 md:p-8 min-h-[100dvh] bg-[#f9fafb]">
-        <div className="p-10 bg-white border border-rose-200 rounded-[2.5rem] text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-          <p className="text-rose-700 font-medium mb-6 text-lg">
+      <div className="max-w-[1400px] w-full mx-auto p-6 md:p-8 min-h-[100dvh] bg-slate-50 dark:bg-slate-950">
+        <div className="p-10 bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/30 rounded-[2.5rem] text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+          <p className="text-rose-700 dark:text-rose-400 font-medium mb-6 text-lg">
             {errorMessage ?? t("tourOperator.messages.errorLoading", "Failed to load tour")}
           </p>
-          <button
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            transition={springTransition}
             onClick={() => void fetchTour()}
-            className="px-8 py-4 text-sm font-black uppercase tracking-widest text-rose-700 border-2 border-rose-200 rounded-2xl hover:bg-rose-50 hover:border-rose-300 transition-all active:scale-95"
+            className="px-8 py-4 text-sm font-bold uppercase tracking-widest text-rose-700 dark:text-rose-400 border-2 border-rose-200 dark:border-rose-900/40 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:border-rose-300 dark:hover:border-rose-800 transition-colors"
           >
             {t("tourOperator.actions.retry", "Retry")}
-          </button>
+          </motion.button>
         </div>
       </div>
     );
   }
 
   const statusKey = String(tour.status ?? "");
-  const badge = STATUS_BADGE[statusKey] ?? { bg: "bg-slate-50", text: "text-slate-700", label: statusKey, dot: "bg-slate-400" };
+  const badge = STATUS_BADGE[statusKey] ?? { bg: "bg-slate-50 dark:bg-slate-800/40", text: "text-slate-700 dark:text-slate-300", label: statusKey, dot: "bg-slate-400" };
   const canEdit = canTourOperatorEditTour(statusKey);
   const hasIncludedServices = (tour.services && tour.services.length > 0) || (tour.includedServices && tour.includedServices.length > 0);
 
   return (
-    <div className="max-w-[1400px] w-full mx-auto p-4 md:p-8 lg:p-12 bg-[#f9fafb] min-h-[100dvh] font-sans">
+    <div className="max-w-[1400px] w-full mx-auto p-4 md:p-8 lg:p-12 bg-slate-50 dark:bg-slate-950 min-h-[100dvh] font-sans">
       <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-12">
         
         {/* Premium Header - Asymmetric Split */}
         <motion.div variants={itemFadeIn} className="flex flex-col xl:flex-row justify-between items-start gap-10">
           <div className="max-w-4xl">
-            <div className="flex items-center gap-4 text-[13px] font-bold text-slate-400 mb-8 uppercase tracking-widest">
-              <Link href="/tour-operator/tours" className="hover:text-slate-900 transition-colors">
+            <div className="flex items-center gap-4 text-[13px] font-bold text-slate-400 dark:text-slate-500 mb-8 uppercase tracking-widest">
+              <Link href="/tour-operator/tours" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
                 {t("tourOperator.breadcrumb.myTours", "My Tours")}
               </Link>
               <Icon icon="heroicons:chevron-right" className="size-4" />
-              <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
+              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-500/20">
                 <Icon icon="heroicons:finger-print" className="size-4" />
                 {tour.tourCode}
               </div>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-[1.05] mb-8">
+            <h1 className="text-5xl md:text-7xl font-extrabold text-slate-950 dark:text-slate-50 tracking-tighter leading-[1.05] mb-8">
               {tour.tourName}
             </h1>
             
-            <p className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-[65ch] font-medium">
+            <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 leading-relaxed max-w-[65ch] font-medium">
               {tour.shortDescription}
             </p>
             
             <div className="flex flex-wrap items-center gap-4 mt-10">
-              <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl text-[13px] font-black uppercase tracking-widest border border-slate-200/60 ${badge.bg} ${badge.text} shadow-sm`}>
+              <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl text-[13px] font-bold uppercase tracking-widest border border-slate-200/60 dark:border-slate-800/60 ${badge.bg} ${badge.text} shadow-sm`}>
                 <PulsingDot colorClass={badge.dot} />
                 {TourStatusMap[Number(tour.status)] ?? badge.label}
               </div>
-              <div className="px-5 py-3 rounded-2xl bg-white border border-slate-200/60 shadow-sm text-[13px] font-black uppercase tracking-widest text-slate-600 flex items-center gap-2">
-                <Icon icon="heroicons:globe-americas" className="size-4 text-slate-400" />
+              <div className="px-5 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 shadow-sm text-[13px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                <Icon icon="heroicons:globe-americas" className="size-4 text-slate-400 dark:text-slate-500" />
                 {tour.tourScope === 1 ? "Domestic" : "International"}
               </div>
             </div>
           </div>
           
           <div className="flex items-center gap-4 shrink-0">
-            <Link
-              href="/tour-operator/tours"
-              className="px-8 py-4 text-sm font-black uppercase tracking-widest text-slate-600 bg-white border border-slate-200/60 rounded-2xl hover:bg-slate-50 hover:shadow-md transition-all duration-300 active:scale-95"
+            <motion.div
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              transition={springTransition}
             >
-              {t("common.back", "Back")}
-            </Link>
-            {canEdit && (
               <Link
-                href={`/tour-operator/tours/${tourId}/edit`}
-                className="group relative flex items-center gap-3 px-8 py-4 text-sm font-black uppercase tracking-widest text-white bg-slate-900 rounded-2xl hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all duration-300 active:scale-95 overflow-hidden"
+                href="/tour-operator/tours"
+                className="inline-block px-8 py-4 text-sm font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md transition-colors"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                <PencilSimple size={18} weight="bold" />
-                {t("tourOperator.actions.edit", "Edit")}
+                {t("common.back", "Back")}
               </Link>
+            </motion.div>
+            {canEdit && (
+              <motion.div
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                transition={springTransition}
+              >
+                <Link
+                  href={`/tour-operator/tours/${tourId}/edit`}
+                  className="group relative flex items-center gap-3 px-8 py-4 text-sm font-bold uppercase tracking-widest text-white bg-slate-950 dark:bg-slate-50 dark:text-slate-950 rounded-2xl hover:bg-slate-800 dark:hover:bg-white shadow-lg shadow-slate-950/20 dark:shadow-slate-50/5 transition-colors overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  <PencilSimple size={18} weight="bold" />
+                  {t("tourOperator.actions.edit", "Edit")}
+                </Link>
+              </motion.div>
             )}
           </div>
         </motion.div>
@@ -242,8 +257,8 @@ export function TourOperatorTourDetailPage() {
             
             {/* Overview Card */}
             <HoverIlluminationCard className="p-8 md:p-12">
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-10 flex items-center gap-4">
-                <div className="p-3 bg-slate-50 rounded-2xl text-slate-700 border border-slate-100">
+              <h2 className="text-2xl font-extrabold text-slate-950 dark:text-slate-50 tracking-tight mb-10 flex items-center gap-4">
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-800/60">
                   <Icon icon="heroicons:information-circle" className="size-6" />
                 </div>
                 {t("tourOperator.tourDetail", "Tour Details")}
@@ -251,33 +266,33 @@ export function TourOperatorTourDetailPage() {
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
                 <div className="flex flex-col gap-3">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Tour Code</span>
-                  <span className="font-mono text-lg font-black text-slate-900">{tour.tourCode}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Tour Code</span>
+                  <span className="font-mono text-lg font-bold text-slate-950 dark:text-slate-50">{tour.tourCode}</span>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Scope</span>
-                  <span className="text-lg font-black text-slate-900">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Scope</span>
+                  <span className="text-lg font-bold text-slate-950 dark:text-slate-50">
                     {tour.tourScope === 1 ? "Domestic" : "International"}
                   </span>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Segment</span>
-                  <span className="text-lg font-black text-slate-900">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Segment</span>
+                  <span className="text-lg font-bold text-slate-950 dark:text-slate-50">
                     {tour.customerSegment === 2 ? "Group" : "Individual"}
                   </span>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Created</span>
-                  <span className="font-mono text-lg font-black text-slate-900">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Created</span>
+                  <span className="font-mono text-lg font-bold text-slate-950 dark:text-slate-50">
                     {tour.createdOnUtc ? new Date(tour.createdOnUtc).toLocaleDateString("vi-VN") : "-"}
                   </span>
                 </div>
               </div>
 
               {tour.longDescription && (
-                <div className="pt-10 border-t border-slate-100">
-                  <span className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6">Description</span>
-                  <p className="text-lg text-slate-600 leading-relaxed whitespace-pre-wrap max-w-[75ch] font-medium">{tour.longDescription}</p>
+                <div className="pt-10 border-t border-slate-100 dark:border-slate-800/80">
+                  <span className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-6">Description</span>
+                  <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap max-w-[75ch] font-medium">{tour.longDescription}</p>
                 </div>
               )}
             </HoverIlluminationCard>
@@ -286,10 +301,10 @@ export function TourOperatorTourDetailPage() {
             {tour.classifications && tour.classifications.length > 0 && (
               <motion.div variants={itemFadeIn} className="space-y-8">
                 <div className="flex items-center gap-4 px-2">
-                  <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 border border-emerald-100/50 shadow-sm">
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-500/20 shadow-sm">
                     <Icon icon="heroicons:map" className="size-6" />
                   </div>
-                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                  <h2 className="text-3xl font-extrabold text-slate-950 dark:text-slate-50 tracking-tight">
                     {t("tourOperator.packages", "Tour Packages")}
                   </h2>
                 </div>
@@ -299,22 +314,22 @@ export function TourOperatorTourDetailPage() {
                     <HoverIlluminationCard key={idx} className="p-8 md:p-12">
                       <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
                         <div className="max-w-2xl">
-                          <h3 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">{cls.name}</h3>
+                          <h3 className="text-4xl font-extrabold text-slate-950 dark:text-slate-50 tracking-tighter mb-4">{cls.name}</h3>
                           {cls.description && (
-                            <p className="text-lg text-slate-500 font-medium leading-relaxed">{cls.description}</p>
+                            <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{cls.description}</p>
                           )}
                         </div>
-                        <div className="flex flex-col items-start md:items-end shrink-0 bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">Base Price</span>
-                          <span className="font-mono text-4xl font-black text-emerald-600 tracking-tight">
-                            {cls.price?.toLocaleString("vi-VN") ?? "-"} <span className="text-xl text-emerald-500 font-bold">VND</span>
+                        <div className="flex flex-col items-start md:items-end shrink-0 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800/60">
+                          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Base Price</span>
+                          <span className="font-mono text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">
+                            {cls.price?.toLocaleString("vi-VN") ?? "-"} <span className="text-xl text-emerald-500 dark:text-emerald-400 font-bold">VND</span>
                           </span>
                         </div>
                       </div>
                       
                       {cls.durationDays && (
-                        <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-[13px] font-black uppercase tracking-widest text-slate-700 mb-12">
-                          <Icon icon="heroicons:calendar" className="size-5 text-slate-400" />
+                        <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/60 text-[13px] font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300 mb-12">
+                          <Icon icon="heroicons:calendar" className="size-5 text-slate-400 dark:text-slate-500" />
                           {cls.durationDays} {t("tourOperator.durationDays", "day(s)")}
                         </div>
                       )}
@@ -322,23 +337,23 @@ export function TourOperatorTourDetailPage() {
                       {/* Insurances (Fixed Bug) */}
                       {cls.insurances && cls.insurances.length > 0 && (
                         <div className="mb-12">
-                          <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 pl-2">
+                          <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-550 mb-6 pl-2">
                             {t("tourOperator.insurances", "Insurances")}
                           </h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {cls.insurances.map(ins => (
-                              <div key={ins.id} className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:border-emerald-200 transition-colors group/ins">
+                              <div key={ins.id} className="p-6 rounded-[2rem] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/60 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors group/ins">
                                 <div className="flex justify-between items-start gap-4 mb-4">
-                                  <span className="font-bold text-slate-900 text-lg leading-tight">{ins.insuranceName}</span>
-                                  <span className="text-emerald-600 font-mono font-black text-sm bg-emerald-50 px-3 py-1 rounded-xl shrink-0">
+                                  <span className="font-bold text-slate-900 dark:text-slate-100 text-lg leading-tight">{ins.insuranceName}</span>
+                                  <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-xl shrink-0 border border-emerald-100/50 dark:border-emerald-500/20">
                                     {ins.coverageFee.toLocaleString("vi-VN")} VND
                                   </span>
                                 </div>
-                                <p className="text-sm text-slate-500 font-medium mb-5">{ins.coverageDescription}</p>
-                                <div className="flex items-center gap-3 text-[11px] font-black uppercase text-slate-400 tracking-widest">
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-5">{ins.coverageDescription}</p>
+                                <div className="flex items-center gap-3 text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 tracking-widest">
                                   <span className="flex items-center gap-1.5"><Icon icon="heroicons:shield-check" className="size-4" />{ins.insuranceProvider}</span>
-                                  <span className="w-1 h-1 rounded-full bg-slate-300" />
-                                  <span className="text-emerald-700">Cover: {ins.coverageAmount.toLocaleString("vi-VN")}</span>
+                                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                  <span className="text-emerald-700 dark:text-emerald-400">Cover: {ins.coverageAmount.toLocaleString("vi-VN")}</span>
                                 </div>
                               </div>
                             ))}
@@ -348,7 +363,7 @@ export function TourOperatorTourDetailPage() {
 
                       {cls.plans && cls.plans.length > 0 && (
                         <div className="space-y-6">
-                          <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 pl-2">
+                          <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-6 pl-2">
                             {t("tourOperator.itinerary", "Itinerary")}
                           </h4>
                           <div className="space-y-4">
@@ -369,7 +384,7 @@ export function TourOperatorTourDetailPage() {
           <div className="xl:col-span-4 space-y-8">
             
             {/* Thumbnail */}
-            <motion.div variants={itemFadeIn} className="bg-white rounded-[2.5rem] border border-slate-200/50 p-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+            <motion.div variants={itemFadeIn} className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200/50 dark:border-slate-800/60 p-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] overflow-hidden">
               {tour.thumbnail?.publicURL ? (
                  <motion.div whileHover={{ scale: 1.02 }} transition={springTransition} className="w-full aspect-square xl:aspect-[4/5] rounded-[2rem] overflow-hidden">
                    <img
@@ -379,20 +394,20 @@ export function TourOperatorTourDetailPage() {
                     />
                  </motion.div>
               ) : (
-                 <div className="w-full aspect-square xl:aspect-[4/5] bg-slate-50 rounded-[2rem] border border-slate-100 flex items-center justify-center">
-                    <Icon icon="heroicons:photo" className="size-12 text-slate-300" />
+                 <div className="w-full aspect-square xl:aspect-[4/5] bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-100 dark:border-slate-800/60 flex items-center justify-center">
+                    <Icon icon="heroicons:photo" className="size-12 text-slate-300 dark:text-slate-700" />
                  </div>
               )}
               <div className="mt-4 px-4 pb-2 text-center">
-                 <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Primary Thumbnail</span>
+                 <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Primary Thumbnail</span>
               </div>
             </motion.div>
 
             {/* Included Services (Fixed Bug) */}
             {hasIncludedServices && (
               <HoverIlluminationCard className="p-8">
-                <h3 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-4">
-                  <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 border border-emerald-100/50">
+                <h3 className="text-2xl font-extrabold text-slate-950 dark:text-slate-50 mb-8 flex items-center gap-4">
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-500/20">
                     <Icon icon="heroicons:wrench-screwdriver" className="size-6" />
                   </div>
                   {t("tourOperator.services", "Included Services")}
@@ -404,33 +419,33 @@ export function TourOperatorTourDetailPage() {
                       key={svc.id ?? `svc-${idx}`}
                       whileHover={{ scale: 0.98, x: 4 }}
                       transition={springTransition}
-                      className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 relative group overflow-hidden"
+                      className="p-6 rounded-[2rem] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/60 relative group overflow-hidden"
                     >
                       <div className="absolute inset-y-0 left-0 w-1.5 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="flex justify-between items-start gap-4 mb-4">
-                        <h4 className="font-bold text-slate-900 text-lg leading-tight">{svc.serviceName}</h4>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 text-lg leading-tight">{svc.serviceName}</h4>
                         {svc.price != null && (
-                          <span className="font-mono text-sm font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl shrink-0 border border-emerald-100/50">
+                          <span className="font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-xl shrink-0 border border-emerald-100/50 dark:border-emerald-500/20">
                             {svc.price.toLocaleString("vi-VN")} <span className="text-[11px]">VND</span>
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-col gap-3 mt-4 text-[13px] font-medium text-slate-500">
+                      <div className="flex flex-col gap-3 mt-4 text-[13px] font-medium text-slate-500 dark:text-slate-400">
                          {svc.pricingType && (
                            <div className="flex items-center gap-3">
-                              <Icon icon="heroicons:tag" className="size-4 text-slate-400" />
+                              <Icon icon="heroicons:tag" className="size-4 text-slate-400 dark:text-slate-500" />
                               <span>{PRICING_TYPE_OPTIONS[svc.pricingType] || svc.pricingType}</span>
                            </div>
                          )}
                          {svc.email && (
                            <div className="flex items-center gap-3">
-                              <Icon icon="heroicons:envelope" className="size-4 text-slate-400" />
+                              <Icon icon="heroicons:envelope" className="size-4 text-slate-400 dark:text-slate-500" />
                               <span className="truncate">{svc.email}</span>
                            </div>
                          )}
                          {svc.contactNumber && (
                            <div className="flex items-center gap-3">
-                              <Icon icon="heroicons:phone" className="size-4 text-slate-400" />
+                              <Icon icon="heroicons:phone" className="size-4 text-slate-400 dark:text-slate-500" />
                               <span>{svc.contactNumber}</span>
                            </div>
                          )}
@@ -440,11 +455,11 @@ export function TourOperatorTourDetailPage() {
                   
                   {/* Simple includedServices array mapping if present */}
                   {tour.includedServices?.map((svcName: string, idx: number) => (
-                    <div key={`included-${idx}`} className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                      <div className="p-1.5 bg-emerald-100/50 rounded-full text-emerald-600">
+                    <div key={`included-${idx}`} className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/60">
+                      <div className="p-1.5 bg-emerald-100/50 dark:bg-emerald-500/20 rounded-full text-emerald-600 dark:text-emerald-400">
                         <Icon icon="heroicons:check" className="size-4" />
                       </div>
-                      <span className="font-bold text-slate-800">{svcName}</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{svcName}</span>
                     </div>
                   ))}
                 </div>
@@ -453,30 +468,30 @@ export function TourOperatorTourDetailPage() {
 
             {/* Quick Info */}
             <HoverIlluminationCard className="p-8">
-              <h3 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-4">
-                <div className="p-3 bg-slate-50 rounded-2xl text-slate-700 border border-slate-100">
+              <h3 className="text-2xl font-extrabold text-slate-950 dark:text-slate-50 mb-8 flex items-center gap-4">
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-800/60">
                   <Icon icon="heroicons:sparkles" className="size-6" />
                 </div>
                 {t("tourOperator.quickInfo", "Metadata")}
               </h3>
               <div className="space-y-6 text-sm">
-                <div className="flex justify-between items-center py-4 border-b border-slate-100">
-                  <span className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Status</span>
-                  <span className={`font-black uppercase tracking-widest text-[11px] px-3 py-1.5 rounded-xl border border-slate-200/50 ${badge.bg} ${badge.text}`}>
+                <div className="flex justify-between items-center py-4 border-b border-slate-100 dark:border-slate-800/60">
+                  <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[11px]">Status</span>
+                  <span className={`font-bold uppercase tracking-widest text-[11px] px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800/60 ${badge.bg} ${badge.text}`}>
                     {TourStatusMap[Number(tour.status)] ?? badge.label}
                   </span>
                 </div>
                 {tour.translations?.en && (
-                  <div className="flex flex-col gap-3 py-4 border-b border-slate-100">
-                    <span className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">English Name</span>
-                    <span className="font-bold text-slate-900 text-base">
+                  <div className="flex flex-col gap-3 py-4 border-b border-slate-100 dark:border-slate-800/60">
+                    <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[11px]">English Name</span>
+                    <span className="font-bold text-slate-900 dark:text-slate-100 text-base">
                       {tour.translations.en.tourName ?? "-"}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center py-4">
-                  <span className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Visa Required</span>
-                  <span className="font-bold text-slate-900 text-base">{tour.isVisa ? "Yes" : "No"}</span>
+                  <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[11px]">Visa Required</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100 text-base">{tour.isVisa ? "Yes" : "No"}</span>
                 </div>
               </div>
             </HoverIlluminationCard>
@@ -484,8 +499,8 @@ export function TourOperatorTourDetailPage() {
             {/* Images Gallery */}
             {tour.images && tour.images.length > 0 && (
               <HoverIlluminationCard className="p-8">
-                <h3 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-4">
-                  <div className="p-3 bg-slate-50 rounded-2xl text-slate-700 border border-slate-100">
+                <h3 className="text-2xl font-extrabold text-slate-950 dark:text-slate-50 mb-8 flex items-center gap-4">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-800/60">
                     <Icon icon="heroicons:photo" className="size-6" />
                   </div>
                   {t("tourOperator.images", "Gallery")}
@@ -496,7 +511,7 @@ export function TourOperatorTourDetailPage() {
                       key={idx} 
                       whileHover={{ scale: 1.05 }}
                       transition={springTransition}
-                      className="aspect-square rounded-[1.5rem] overflow-hidden bg-slate-50 border border-slate-100 relative group cursor-pointer"
+                      className="aspect-square rounded-[1.5rem] overflow-hidden bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/60 relative group cursor-pointer"
                     >
                       {img.publicURL ? (
                         <img
@@ -505,7 +520,7 @@ export function TourOperatorTourDetailPage() {
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                        <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-700">
                           <EyeIcon size={24} weight="bold" />
                         </div>
                       )}
@@ -529,25 +544,25 @@ function DayPlanAccordion({ day, t }: { day: any; t: any }) {
   return (
     <motion.div 
       layout
-      className="bg-white border border-slate-200/60 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] transition-all duration-300 group"
+      className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] dark:hover:shadow-[0_10px_30px_-15px_rgba(0,0,0,0.3)] transition-all duration-300 group"
     >
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-6 px-8 py-6 text-left bg-white hover:bg-slate-50 transition-colors duration-200 focus:outline-none"
+        className="w-full flex items-center gap-6 px-8 py-6 text-left bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/45 transition-colors duration-200 focus:outline-none"
       >
         <motion.div 
           layout
-          className="w-14 h-14 rounded-2xl bg-slate-50 shadow-sm text-slate-900 flex items-center justify-center font-mono text-xl font-black shrink-0 border border-slate-200/60 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300"
+          className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-950 shadow-sm text-slate-950 dark:text-slate-100 flex items-center justify-center font-mono text-xl font-bold shrink-0 border border-slate-200/60 dark:border-slate-800/60 group-hover:bg-slate-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-slate-950 transition-colors duration-300"
         >
           {day.dayNumber}
         </motion.div>
         <div className="flex-1 min-w-0">
-          <motion.h5 layout className="text-lg font-black text-slate-900 truncate tracking-tight">
+          <motion.h5 layout className="text-lg font-bold text-slate-950 dark:text-slate-50 truncate tracking-tight">
             {t("tourOperator.day", "Day")} {day.dayNumber}: {day.title}
           </motion.h5>
           {day.description && (
-            <motion.p layout className="text-sm text-slate-500 font-medium truncate mt-2">{day.description}</motion.p>
+            <motion.p layout className="text-sm text-slate-500 dark:text-slate-400 font-medium truncate mt-2">{day.description}</motion.p>
           )}
         </div>
         <div className="flex items-center gap-5 shrink-0">
@@ -557,7 +572,7 @@ function DayPlanAccordion({ day, t }: { day: any; t: any }) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="font-mono text-[11px] font-black uppercase tracking-widest text-slate-400 bg-white border border-slate-200/50 px-4 py-2 rounded-xl shadow-sm"
+                className="font-mono text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/60 px-4 py-2 rounded-xl shadow-sm"
               >
                 {sortedActivities.length} {t("tourOperator.activities", "ACTs")}
               </motion.span>
@@ -566,7 +581,7 @@ function DayPlanAccordion({ day, t }: { day: any; t: any }) {
           <motion.div 
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={springTransition}
-            className="p-3 rounded-full bg-slate-50 border border-slate-200/50 text-slate-400 shadow-sm group-hover:bg-white group-hover:text-slate-900 transition-colors"
+            className="p-3 rounded-full bg-slate-50 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-800/60 text-slate-400 dark:text-slate-500 shadow-sm group-hover:bg-white dark:group-hover:bg-slate-900 group-hover:text-slate-950 dark:group-hover:text-slate-200 transition-colors"
           >
             <Icon icon="heroicons:chevron-down" className="size-5" />
           </motion.div>
@@ -582,9 +597,9 @@ function DayPlanAccordion({ day, t }: { day: any; t: any }) {
             transition={springTransition}
             className="overflow-hidden"
           >
-            <div className="px-8 pb-8 pt-2 bg-white">
+            <div className="px-8 pb-8 pt-2 bg-white dark:bg-slate-900">
               {sortedActivities.length > 0 ? (
-                <div className="space-y-6 relative before:absolute before:inset-y-0 before:left-[19px] before:w-0.5 before:bg-slate-100 ml-2 mt-4">
+                <div className="space-y-6 relative before:absolute before:inset-y-0 before:left-[19px] before:w-0.5 before:bg-slate-100 dark:before:bg-slate-800/80 ml-2 mt-4">
                   {sortedActivities.map((act: any, actIdx: number) => (
                     <motion.div 
                       key={act.id} 
@@ -595,16 +610,16 @@ function DayPlanAccordion({ day, t }: { day: any; t: any }) {
                     >
                       {/* Timeline Node */}
                       <div className="w-10 flex flex-col items-center shrink-0 py-2">
-                        <div className="w-4 h-4 rounded-full bg-slate-900 ring-4 ring-white z-10 transition-transform duration-300 group-hover/act:scale-125" />
+                        <div className="w-4 h-4 rounded-full bg-slate-950 dark:bg-slate-50 ring-4 ring-white dark:ring-slate-900 z-10 transition-transform duration-300 group-hover/act:scale-125" />
                       </div>
                       
                       {/* Activity Content */}
-                      <div className="flex-1 bg-slate-50 rounded-[2rem] p-6 md:p-8 border border-slate-100 shadow-sm hover:shadow-[0_10px_30px_-15px_rgba(0,0,0,0.08)] hover:border-slate-200 transition-all duration-300 hover:-translate-y-1">
+                      <div className="flex-1 bg-slate-50 dark:bg-slate-800/40 rounded-[2rem] p-6 md:p-8 border border-slate-100 dark:border-slate-800/60 shadow-sm hover:shadow-[0_10px_30px_-15px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_10px_30px_-15px_rgba(0,0,0,0.4)] hover:border-slate-200 dark:hover:border-slate-700/60 transition-all duration-300 hover:-translate-y-1">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
-                          <p className="font-black text-slate-900 text-lg leading-tight tracking-tight">{act.title}</p>
+                          <p className="font-bold text-slate-950 dark:text-slate-50 text-lg leading-tight tracking-tight">{act.title}</p>
                           {(act.startTime || act.endTime) && (
-                            <span className="shrink-0 inline-flex items-center gap-2 text-[11px] font-black uppercase text-slate-500 bg-white px-4 py-2 rounded-xl border border-slate-200/50 shadow-sm">
-                              <Icon icon="heroicons:clock" className="size-4 text-slate-400" />
+                            <span className="shrink-0 inline-flex items-center gap-2 text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200/50 dark:border-slate-800/60 shadow-sm">
+                              <Icon icon="heroicons:clock" className="size-4 text-slate-400 dark:text-slate-500" />
                               <span className="font-mono">
                                 {act.startTime || "--:--"} {act.endTime ? `- ${act.endTime}` : ""}
                               </span>
@@ -614,39 +629,39 @@ function DayPlanAccordion({ day, t }: { day: any; t: any }) {
                         
                         {/* Meta Tags */}
                         <div className="flex flex-wrap gap-3 mt-6">
-                          <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-slate-600 bg-white px-4 py-2 rounded-xl border border-slate-200/50 shadow-sm">
-                            <Icon icon={ACTIVITY_ICONS[String(act.activityType)] || ACTIVITY_ICONS["99"]} className="size-4 text-slate-900" />
+                          <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-650 dark:text-slate-350 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200/50 dark:border-slate-800/60 shadow-sm">
+                            <Icon icon={ACTIVITY_ICONS[String(act.activityType)] || ACTIVITY_ICONS["99"]} className="size-4 text-slate-950 dark:text-slate-50" />
                             Activity
                           </span>
                           
                           {(act.activityType === "7" || act.activityType === "Transportation") && act.transportationName ? (
-                            <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200/50 shadow-sm">
-                              <Icon icon={TRANSPORT_ICONS[String(act.transportationType)] || TRANSPORT_ICONS["99"]} className="size-4 text-emerald-600" />
+                            <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-200/50 dark:border-emerald-500/20 shadow-sm">
+                              <Icon icon={TRANSPORT_ICONS[String(act.transportationType)] || TRANSPORT_ICONS["99"]} className="size-4 text-emerald-600 dark:text-emerald-400" />
                               {act.transportationName}
                             </span>
                           ) : null}
                           
                           {(act.activityType === "8" || act.activityType === "Accommodation") && (act.accommodation?.accommodationName || act.locationName) ? (
-                            <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-indigo-700 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-200/50 shadow-sm">
-                              <Icon icon="heroicons:building-office-2" className="size-4 text-indigo-600" />
+                            <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-200/50 dark:border-indigo-500/20 shadow-sm">
+                              <Icon icon="heroicons:building-office-2" className="size-4 text-indigo-600 dark:text-indigo-400" />
                               {act.accommodation?.accommodationName || act.locationName}
                             </span>
                           ) : null}
                         </div>
 
                         {act.description && (
-                          <p className="text-[15px] text-slate-500 font-medium mt-6 leading-relaxed">{act.description}</p>
+                          <p className="text-[15px] text-slate-500 dark:text-slate-400 font-medium mt-6 leading-relaxed">{act.description}</p>
                         )}
                       </div>
                     </motion.div>
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-16 px-6 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200 mt-4">
-                  <div className="w-16 h-16 rounded-3xl bg-white shadow-sm flex items-center justify-center mb-6 border border-slate-100">
-                    <Icon icon="heroicons:inbox" className="size-8 text-slate-300" />
+                <div className="flex flex-col items-center justify-center py-16 px-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border border-dashed border-slate-200 dark:border-slate-800/60 mt-4">
+                  <div className="w-16 h-16 rounded-3xl bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center mb-6 border border-slate-100 dark:border-slate-800/60">
+                    <Icon icon="heroicons:inbox" className="size-8 text-slate-300 dark:text-slate-700" />
                   </div>
-                  <p className="text-base font-bold text-slate-400">{t("tourOperator.noActivities", "No activities scheduled for this day.")}</p>
+                  <p className="text-base font-bold text-slate-400 dark:text-slate-500">{t("tourOperator.noActivities", "No activities scheduled for this day.")}</p>
                 </div>
               )}
             </div>

@@ -11,6 +11,7 @@ public interface IVehicleBlockRepository : IRepository<VehicleBlockEntity>
     void Remove(VehicleBlockEntity entity);
     Task DeleteByActivityAsync(Guid tourInstanceDayActivityId, CancellationToken cancellationToken = default);
     Task DeleteByTourInstanceAsync(Guid tourInstanceId, CancellationToken cancellationToken = default);
+    Task DeleteByBookingAsync(Guid bookingId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns vehicle blocks for the given date range scoped to the owner's suppliers.

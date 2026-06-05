@@ -174,7 +174,9 @@ public sealed class AuthControllerLoginIntegrationTests
                     services.AddApplicationServices();
                     services.AddInfrastructureServices(context.Configuration);
                     services.AddPublicApiServices(context.Configuration);
-                    services.AddControllers().AddApplicationPart(typeof(global::ApiPublic.Program).Assembly);
+                    services.AddControllers()
+                        .AddApplicationPart(typeof(global::ApiPublic.Program).Assembly)
+                        .AddApplicationPart(typeof(global::Api.Controllers.AuthController).Assembly);
                     services.AddHealthChecks()
                         .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("API is running"))
                         .AddCheck<DatabaseHealthCheck>("database");

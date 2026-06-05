@@ -13,12 +13,10 @@ const readVisaApplicationsSource = (): string => {
   );
 };
 
-describe("VisaApplicationsPage row key wiring", () => {
-  it("uses a stable generated row key instead of raw visa id", () => {
+describe("VisaApplicationsPage booking key wiring", () => {
+  it("uses bookingId as the stable key for the Bento Cards", () => {
     const source = readVisaApplicationsSource();
 
-    expect(source.includes("buildVisaRowKeys")).toBe(true);
-    expect(source.includes("key={visaRowKeys[index]}")).toBe(true);
-    expect(source.includes("key={visa.id}")).toBe(false);
+    expect(source.includes("key={bookingId}")).toBe(true);
   });
 });

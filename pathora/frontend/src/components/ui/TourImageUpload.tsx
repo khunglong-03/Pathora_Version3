@@ -150,6 +150,7 @@ export default function TourImageUpload({
       if (!error) {
         setThumbnail(file);
       }
+      e.target.value = "";
     },
     [setThumbnail, onThumbnailError, t],
   );
@@ -164,6 +165,7 @@ export default function TourImageUpload({
       const remaining = totalAllowed - images.length;
       if (remaining <= 0) {
         onImagesError?.(t("tourAdmin.validation.maxImagesReached", `Maximum ${MAX_IMAGES} images allowed.`));
+        e.target.value = "";
         return;
       }
 
@@ -184,6 +186,7 @@ export default function TourImageUpload({
         setImages([...images, ...validFiles]);
       }
       onImagesError?.(errors.length > 0 ? errors.join("; ") : undefined);
+      e.target.value = "";
     },
     [images, setImages, onImagesError, t, existingImages.length],
   );

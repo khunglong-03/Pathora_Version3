@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.Common.Interfaces;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
@@ -5,6 +6,7 @@ using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using MediatR;
+using System.Text.Json.Serialization;
 using FluentValidation;
 
 namespace Application.Features.VisaApplication.Commands;
@@ -28,7 +30,7 @@ public sealed record SubmitCustomerVisaApplicationCommand(
     string? IssuingAuthority = null)
     : IRequest<ErrorOr<Guid>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
 }
 
 public sealed class SubmitCustomerVisaApplicationCommandValidator : AbstractValidator<SubmitCustomerVisaApplicationCommand>
@@ -55,6 +57,7 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
     IBookingRepository bookingRepository,
     IPassportRepository passportRepository,
     IVisaApplicationRepository visaApplicationRepository,
+    IVisaRepository visaRepository,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
     : IRequestHandler<SubmitCustomerVisaApplicationCommand, ErrorOr<Guid>>
@@ -132,6 +135,7 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
         application.Visa = visa;
 
         await visaApplicationRepository.AddAsync(application, cancellationToken);
+        await visaRepository.AddAsync(visa, cancellationToken);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
         return application.Id;
@@ -159,7 +163,7 @@ public sealed record UpdateCustomerVisaApplicationCommand(
     string? IssuingAuthority = null)
     : IRequest<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
 }
 
 public sealed class UpdateCustomerVisaApplicationCommandValidator : AbstractValidator<UpdateCustomerVisaApplicationCommand>
@@ -185,6 +189,7 @@ public sealed class UpdateCustomerVisaApplicationCommandValidator : AbstractVali
 public sealed class UpdateCustomerVisaApplicationCommandHandler(
     IBookingRepository bookingRepository,
     IVisaApplicationRepository visaApplicationRepository,
+    IVisaRepository visaRepository,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
     : IRequestHandler<UpdateCustomerVisaApplicationCommand, ErrorOr<Success>>
@@ -256,7 +261,7 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
         }
         else
         {
-            application.Visa = VisaEntity.Create(
+            var visa = VisaEntity.Create(
                 visaApplicationId: application.Id,
                 performedBy: currentUserId.Value.ToString(),
                 visaNumber: request.VisaNumber,
@@ -270,6 +275,8 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
                 issuingAuthority: request.IssuingAuthority,
                 fileUrl: request.VisaFileUrl,
                 status: newStatus ?? VisaStatus.Pending);
+            await visaRepository.AddAsync(visa, cancellationToken);
+            application.Visa = visa;
         }
 
         visaApplicationRepository.Update(application);
@@ -281,10 +288,18 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
 
 // ─── Request Visa Support ─────────────────────────────────────────────────────
 
+public sealed record RequestVisaSupportResponse(
+    [property: JsonPropertyName("applicationId")] Guid ApplicationId,
+    [property: JsonPropertyName("message")] string Message,
+    [property: JsonPropertyName("serviceFeeQuoted")] bool ServiceFeeQuoted);
+
 public sealed record RequestVisaSupportCommand(
     Guid BookingId,
     Guid BookingParticipantId)
-    : IRequest<ErrorOr<Guid>>;
+    : IRequest<ErrorOr<RequestVisaSupportResponse>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
+}
 
 public sealed class RequestVisaSupportCommandValidator : AbstractValidator<RequestVisaSupportCommand>
 {
@@ -301,9 +316,9 @@ public sealed class RequestVisaSupportCommandHandler(
     IVisaApplicationRepository visaApplicationRepository,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
-    : IRequestHandler<RequestVisaSupportCommand, ErrorOr<Guid>>
+    : IRequestHandler<RequestVisaSupportCommand, ErrorOr<RequestVisaSupportResponse>>
 {
-    public async Task<ErrorOr<Guid>> Handle(
+    public async Task<ErrorOr<RequestVisaSupportResponse>> Handle(
         RequestVisaSupportCommand request,
         CancellationToken cancellationToken)
     {
@@ -333,7 +348,15 @@ public sealed class RequestVisaSupportCommandHandler(
             v.IsSystemAssisted &&
             v.Status is VisaStatus.Pending or VisaStatus.Processing);
         if (existingSupport != null)
-            return existingSupport.Id;
+        {
+            var alreadyQuoted = existingSupport.ServiceFee.HasValue && existingSupport.ServiceFeeTransactionId.HasValue;
+            return new RequestVisaSupportResponse(
+                ApplicationId: existingSupport.Id,
+                Message: alreadyQuoted
+                    ? "Support request already exists. Please pay the quoted service fee if pending."
+                    : "Support request already submitted. Please wait for our team to quote the service fee.",
+                ServiceFeeQuoted: alreadyQuoted);
+        }
 
         // Passport phải tồn tại để request support
         var passport = await passportRepository.GetByBookingParticipantIdAsync(participant.Id, cancellationToken);
@@ -351,7 +374,10 @@ public sealed class RequestVisaSupportCommandHandler(
         await visaApplicationRepository.AddAsync(application, cancellationToken);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
-        return application.Id;
+        return new RequestVisaSupportResponse(
+            ApplicationId: application.Id,
+            Message: "Support request submitted successfully. Our team will quote the service fee soon.",
+            ServiceFeeQuoted: false);
     }
 
 }
@@ -366,7 +392,10 @@ public sealed record UpdateCustomerPassportCommand(
     DateTimeOffset? IssuedAt,
     DateTimeOffset? ExpiresAt,
     string? FileUrl)
-    : IRequest<ErrorOr<Guid>>;
+    : IRequest<ErrorOr<Guid>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
+}
 
 public sealed class UpdateCustomerPassportCommandValidator : AbstractValidator<UpdateCustomerPassportCommand>
 {
@@ -408,55 +437,99 @@ public sealed class UpdateCustomerPassportCommandHandler(
         if (currentUserId == null)
             return Error.Unauthorized("User.Unauthorized", "User is not authenticated.");
 
-        var booking = await bookingRepository.GetByIdWithDetailsAsync(request.BookingId, cancellationToken);
-        if (booking == null)
-            return Error.NotFound("Booking.NotFound", "Booking không tồn tại.");
+        ErrorOr<Guid> result = default;
 
-        if (booking.UserId == null || booking.UserId != currentUserId)
-            return Error.Forbidden("Booking.Forbidden", "Bạn không có quyền truy cập booking này.");
-
-        var participant = booking.BookingParticipants.FirstOrDefault(p => p.Id == request.ParticipantId);
-        if (participant == null)
-            return Error.NotFound("Participant.NotFound", "Participant không thuộc booking này.");
-
-        var tourInstance = booking.TourInstance;
-        if (tourInstance == null)
-            return Error.NotFound("TourInstance.NotFound", "TourInstance không tồn tại.");
-
-        if (request.ExpiresAt.HasValue && request.ExpiresAt.Value < tourInstance.EndDate)
-            return Error.Validation("Passport.Expired", "Hộ chiếu phải còn hạn sau ngày kết thúc tour.");
-
-        Guid passportId;
-        var existingPassport = await passportRepository.GetByBookingParticipantIdAsync(request.ParticipantId, cancellationToken);
-        if (existingPassport != null)
+        try
         {
-            existingPassport.Update(
-                request.PassportNumber,
-                currentUserId.Value.ToString(),
-                request.Nationality,
-                request.IssuedAt?.ToUniversalTime(),
-                request.ExpiresAt?.ToUniversalTime(),
-                request.FileUrl
-            );
-            passportRepository.Update(existingPassport);
-            passportId = existingPassport.Id;
+            await unitOfWork.ExecuteTransactionAsync(System.Data.IsolationLevel.RepeatableRead, async () =>
+            {
+                var booking = await bookingRepository.GetByIdWithDetailsAsync(request.BookingId, cancellationToken);
+                if (booking == null)
+                {
+                    result = Error.NotFound("Booking.NotFound", "Booking không tồn tại.");
+                    return;
+                }
+
+                if (booking.UserId == null || booking.UserId != currentUserId)
+                {
+                    result = Error.Forbidden("Booking.Forbidden", "Bạn không có quyền truy cập booking này.");
+                    return;
+                }
+
+                var participant = booking.BookingParticipants.FirstOrDefault(p => p.Id == request.ParticipantId);
+                if (participant == null)
+                {
+                    result = Error.NotFound("Participant.NotFound", "Participant không thuộc booking này.");
+                    return;
+                }
+
+                var tourInstance = booking.TourInstance;
+                if (tourInstance == null)
+                {
+                    result = Error.NotFound("TourInstance.NotFound", "TourInstance không tồn tại.");
+                    return;
+                }
+
+                if (request.ExpiresAt.HasValue && request.ExpiresAt.Value < tourInstance.EndDate)
+                {
+                    result = Error.Validation("Passport.Expired", "Hộ chiếu phải còn hạn sau ngày kết thúc tour.");
+                    return;
+                }
+
+                var existingPassport = await passportRepository.GetByBookingParticipantIdAsync(request.ParticipantId, cancellationToken);
+                bool isPassportChanged = false;
+
+                if (existingPassport != null)
+                {
+                    isPassportChanged = existingPassport.PassportNumber != request.PassportNumber
+                        || existingPassport.Nationality != request.Nationality
+                        || existingPassport.IssuedAt != request.IssuedAt?.ToUniversalTime()
+                        || existingPassport.ExpiresAt != request.ExpiresAt?.ToUniversalTime()
+                        || existingPassport.FileUrl != request.FileUrl;
+
+                    if (isPassportChanged)
+                    {
+                        existingPassport.Update(
+                            request.PassportNumber,
+                            currentUserId.Value.ToString(),
+                            request.Nationality,
+                            request.IssuedAt?.ToUniversalTime(),
+                            request.ExpiresAt?.ToUniversalTime(),
+                            request.FileUrl
+                        );
+                        passportRepository.Update(existingPassport);
+                    }
+                    result = existingPassport.Id;
+                }
+                else
+                {
+                    isPassportChanged = true;
+                    var newPassport = PassportEntity.Create(
+                        bookingParticipantId: request.ParticipantId,
+                        passportNumber: request.PassportNumber,
+                        nationality: request.Nationality,
+                        issuedAt: request.IssuedAt?.ToUniversalTime(),
+                        expiresAt: request.ExpiresAt?.ToUniversalTime(),
+                        fileUrl: request.FileUrl,
+                        performedBy: currentUserId.Value.ToString()
+                    );
+                    await passportRepository.AddAsync(newPassport, cancellationToken);
+                    result = newPassport.Id;
+                }
+
+                if (isPassportChanged)
+                {
+                    participant.ResetInfoReviewOnEdit(currentUserId.Value.ToString());
+                }
+
+                await unitOfWork.SaveChangeAsync(cancellationToken);
+            });
         }
-        else
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
         {
-            var newPassport = PassportEntity.Create(
-                bookingParticipantId: request.ParticipantId,
-                passportNumber: request.PassportNumber,
-                nationality: request.Nationality,
-                issuedAt: request.IssuedAt?.ToUniversalTime(),
-                expiresAt: request.ExpiresAt?.ToUniversalTime(),
-                fileUrl: request.FileUrl,
-                performedBy: currentUserId.Value.ToString()
-            );
-            await passportRepository.AddAsync(newPassport, cancellationToken);
-            passportId = newPassport.Id;
+            return Error.Conflict("Passport.ConcurrencyConflict", "Thông tin passport đã bị thay đổi bởi yêu cầu khác. Vui lòng tải lại.");
         }
 
-        await unitOfWork.SaveChangeAsync(cancellationToken);
-        return passportId;
+        return result;
     }
 }

@@ -36,7 +36,12 @@ export function BookingCard({
   formatCurrency,
   t,
 }: BookingCardProps) {
-  const showPayRemaining = booking.paymentStatus === "partial";
+  const showPayRemaining =
+    (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") &&
+    (booking.remainingAmount ?? 0) > 0 &&
+    booking.status !== "cancelled" &&
+    booking.status !== "rejected" &&
+    booking.status !== "pending_cancellation";
   const showVisaStatus =
     booking.status !== "completed" &&
     booking.status !== "cancelled" &&
@@ -161,7 +166,7 @@ export function BookingCard({
             <div className={cn("flex flex-wrap items-center gap-2.5")}>
               {(showPayRemaining || showVisaStatus || booking.status === "pending_approval") && (
                 <div className={cn("flex flex-wrap items-center gap-2.5")}>
-                  {booking.status === "pending_approval" && (
+                  {booking.tourStatus === "PendingCustomerApproval" && (
                     <motion.div whileTap={{ scale: 0.98 }}>
                       <Link 
                         href={`/bookings/${booking.id}`} 
@@ -175,16 +180,10 @@ export function BookingCard({
                     </motion.div>
                   )}
                   {showPayRemaining && (
-                    <motion.button 
-                      whileTap={{ scale: 0.98 }}
-                      type="button" 
-                      className={cn(
-                        "flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-[0_4px_12px_rgba(28,25,23,0.15)] hover:bg-stone-800"
-                      )}
-                    >
+                    <Link href={`/bookings/${booking.id}#pay`} className={cn("h-stack items-center gap-2 rounded-md bg-[#111111] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#333333] active:scale-95")}>
                       <CurrencyCircleDollar weight="bold" className={cn("size-4")} />
                       {t("landing.bookings.payRemaining")}
-                    </motion.button>
+                    </Link>
                   )}
                   {showVisaStatus && (
                     <motion.div whileTap={{ scale: 0.98 }}>

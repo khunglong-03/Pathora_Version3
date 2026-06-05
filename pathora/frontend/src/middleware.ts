@@ -6,11 +6,7 @@ import {
   USER_DEFAULT_PATH,
   isSafeNextPath,
 } from "./utils/authRouting";
-// Role names generated from role.json — single source of truth
-import { ADMIN_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, MANAGER_ROLE_NAMES, TOUROPERATOR_ROLE_NAMES, TOURGUIDE_ROLE_NAMES } from "./auth-roles";
-
-// TRANSPORTPROVIDER_ROLE_NAMES — not in generated auth-roles.ts, define here
-const TRANSPORTPROVIDER_ROLE_NAMES = new Set(["TransportProvider"]);
+// Role names and routing configuration helper is imported from utils/authRouting
 
 const SUPPORTED_LANGUAGES = ["en", "vi"] as const;
 const DEFAULT_LANGUAGE = "en";
@@ -69,23 +65,26 @@ const parseAuthRoles = (cookieValue: string | undefined): string[] => {
   }
 };
 
+const normalizeRoleName = (name: string): string =>
+  name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
 const hasAdminRole = (roles: string[]): boolean =>
-  roles.some((role) => ADMIN_ROLE_NAMES.has(role));
+  roles.some((role) => normalizeRoleName(role) === "admin");
 
 const hasManagerRole = (roles: string[]): boolean =>
-  roles.some((role) => MANAGER_ROLE_NAMES.has(role));
+  roles.some((role) => normalizeRoleName(role) === "manager");
 
 const hasHotelServiceProviderRole = (roles: string[]): boolean =>
-  roles.some((role) => HOTELSERVICEPROVIDER_ROLE_NAMES.has(role));
+  roles.some((role) => normalizeRoleName(role) === "hotelserviceprovider");
 
 const hasTransportProviderRole = (roles: string[]): boolean =>
-  roles.some((role) => TRANSPORTPROVIDER_ROLE_NAMES.has(role));
+  roles.some((role) => normalizeRoleName(role) === "transportprovider");
 
 const hasTourOperatorRole = (roles: string[]): boolean =>
-  roles.some((role) => TOUROPERATOR_ROLE_NAMES.has(role));
+  roles.some((role) => normalizeRoleName(role) === "touroperator");
 
 const hasTourGuideRole = (roles: string[]): boolean =>
-  roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role));
+  roles.some((role) => normalizeRoleName(role) === "tourguide");
 
 const isManagerRoutePath = (pathname: string): boolean => {
   const MANAGER_ROUTE_PREFIXES = [
@@ -104,13 +103,7 @@ const isManagerRoutePath = (pathname: string): boolean => {
 const PROVIDER_ROUTE_PREFIXES = ["/transport", "/hotel"];
 const TOUR_OPERATOR_ROUTE_PREFIXES = ["/tour-operator"];
 const TOUR_GUIDE_ROUTE_PREFIXES = ["/tour-guide"];
-const AUTH_COOKIE_NAMES = [
-  "access_token",
-  "refresh_token",
-  "auth_status",
-  "auth_portal",
-  "auth_roles",
-] as const;
+
 
 const isProviderRoutePath = (pathname: string): boolean =>
   PROVIDER_ROUTE_PREFIXES.some(
@@ -130,11 +123,7 @@ const isTourGuideRoutePath = (pathname: string): boolean =>
 const isAdminRoutePath = (pathname: string): boolean =>
   pathname === "/admin" || pathname.startsWith("/admin/");
 
-const clearAuthCookies = (response: NextResponse): void => {
-  AUTH_COOKIE_NAMES.forEach((name) => {
-    response.cookies.delete(name);
-  });
-};
+
 
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

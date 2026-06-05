@@ -1492,7 +1492,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   }, [classifications.length]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-32">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Full-screen saving overlay */}
       {saving && (
         <div className="fixed inset-0 z-[100] v-stack center bg-black/60 backdrop-blur-sm">
@@ -1513,25 +1513,30 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       )}
 
       {/* Top Bar */}
-      <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-        <div className="h-stack items-center justify-between px-4 sm:px-6 h-16">
-          <div className="pl-12 lg:pl-0">
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              {isEditMode
-                ? t("tourAdmin.editPage.title", "Edit Tour")
-                : t("tourAdmin.createPage.title")}
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t("tourAdmin.createPage.stepOf", { current: currentStep + 1, total: WIZARD_STEPS.length })}
-            </p>
-          </div>
-          <div className="h-stack items-center gap-2 pr-16 lg:pr-20">
+      <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="h-stack items-center justify-between px-4 sm:px-6 h-[68px]">
+          {/* Left: back arrow + title */}
+          <div className="h-stack items-center gap-3 pl-12 lg:pl-0 min-w-0">
             <button
               onClick={() => onCancel?.()}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50">
-              {t("tourAdmin.createPage.cancel")}
+              className="shrink-0 size-9 center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors disabled:opacity-50">
+              <Icon icon="heroicons:arrow-left" className="size-5" />
             </button>
+            <div className="min-w-0">
+              <h1 className="text-sm font-semibold text-slate-900 dark:text-white leading-tight truncate">
+                {isEditMode
+                  ? t("tourAdmin.editPage.title", "Edit Tour")
+                  : t("tourAdmin.createPage.title")}
+              </h1>
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                {t("tourAdmin.createPage.stepOf", { current: currentStep + 1, total: WIZARD_STEPS.length })}
+              </p>
+            </div>
+          </div>
+
+          {/* Right: actions */}
+          <div className="h-stack items-center gap-2 shrink-0 pr-16 lg:pr-0">
             {!isEditMode && (
               <button
                 onClick={() => {
@@ -1539,19 +1544,17 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                   toast.success(t("toast.draftSaved", "Draft saved"));
                 }}
                 disabled={saving}
-                className="px-4 py-2 text-sm font-medium border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50">
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50">
+                <Icon icon="heroicons:bookmark" className="size-4" />
                 {t("tourAdmin.createPage.saveDraft")}
               </button>
             )}
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 inline-flex items-center gap-2">
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-orange-500 text-white rounded-xl hover:bg-orange-600 active:bg-orange-700 transition-colors disabled:opacity-50 shadow-sm shadow-orange-200 dark:shadow-none">
               {saving && (
-                <Icon
-                  icon="heroicons:arrow-path"
-                  className="size-4 animate-spin"
-                />
+                <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />
               )}
               {isEditMode
                 ? t("tourAdmin.editPage.updateTour", "Update Tour")
@@ -1559,43 +1562,51 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             </button>
           </div>
         </div>
+        {/* Progress bar */}
+        <div className="h-0.5 bg-slate-100 dark:bg-slate-800">
+          <div
+            className="h-full bg-orange-500 transition-all duration-500 ease-out"
+            style={{ width: `${((currentStep + 1) / WIZARD_STEPS.length) * 100}%` }}
+          />
+        </div>
       </header>
 
       {/* Stepper */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 py-4">
-        <div className="h-stack items-center gap-1 overflow-x-auto pb-1">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center px-4 sm:px-8 py-4 overflow-x-auto max-w-4xl mx-auto">
           {WIZARD_STEPS.map((step, i) => (
             <React.Fragment key={step.key}>
               {i > 0 && (
-                <div
-                  className={`hidden sm:block h-px w-6 shrink-0 ${i <= currentStep
-                      ? "bg-orange-500"
-                      : "bg-slate-200 dark:bg-slate-700"
-                    }`}
-                />
+                <div className="flex-1 h-0.5 min-w-[12px] mx-2 shrink">
+                  <div className={`h-full transition-all duration-300 rounded-full ${i <= currentStep ? "bg-orange-500" : "bg-slate-200 dark:bg-slate-700"}`} />
+                </div>
               )}
               <button
                 type="button"
-                onClick={() => {
-                  if (i <= maxNavigableStep) setCurrentStep(i);
-                }}
-                className={`h-stack items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${i === currentStep
-                    ? "bg-orange-500 text-white"
+                onClick={() => { if (i <= maxNavigableStep) setCurrentStep(i); }}
+                disabled={i > maxNavigableStep}
+                className="v-stack items-center gap-1.5 shrink-0">
+                <div className={`size-8 rounded-full center text-xs font-bold transition-all duration-200 ring-2 ring-offset-2 dark:ring-offset-slate-900
+                  ${i === currentStep
+                    ? "bg-orange-500 text-white ring-orange-400 scale-110"
                     : i < currentStep
-                      ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-500/30"
+                      ? "bg-orange-500 text-white ring-orange-300 dark:ring-orange-500/40"
                       : i <= maxNavigableStep
-                        ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-500/30"
-                        : "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed"
-                  }`}
-                disabled={i > maxNavigableStep}>
-                {i < currentStep ? (
-                  <Icon icon="heroicons:check" className="size-3.5" />
-                ) : (
-                  <span className="w-4 h-4 rounded-full border border-current center text-[10px]">
-                    {i + 1}
-                  </span>
-                )}
-                <span className="hidden sm:inline">{wizardStepLabels[i]}</span>
+                        ? "bg-white dark:bg-slate-800 text-orange-500 ring-orange-200 dark:ring-orange-500/30 cursor-pointer hover:ring-orange-400"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-400 ring-slate-200 dark:ring-slate-700 cursor-not-allowed"
+                  }`}>
+                  {i < currentStep
+                    ? <Icon icon="heroicons:check" className="size-4" />
+                    : <span>{i + 1}</span>}
+                </div>
+                <span className={`hidden sm:block text-[11px] font-medium whitespace-nowrap transition-colors leading-tight
+                  ${i === currentStep
+                    ? "text-orange-600 dark:text-orange-400"
+                    : i < currentStep
+                      ? "text-slate-500 dark:text-slate-400"
+                      : "text-slate-400 dark:text-slate-600"}`}>
+                  {wizardStepLabels[i]}
+                </span>
               </button>
             </React.Fragment>
           ))}
@@ -1603,10 +1614,10 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       </div>
 
       {/* Step Content */}
-      <div className="p-4 sm:p-6 max-w-5xl">
+      <div className="p-4 sm:p-6 max-w-4xl mx-auto pb-16">
         {/* ── Step 1: Basic Info ───────────────────────────── */}
         {currentStep === 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-6 shadow-sm">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
               {t("tourAdmin.basicInfo.sectionTitle")}
             </h2>
@@ -2026,7 +2037,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
         {/* ── Step 2: Packages ─────────────────────────────── */}
         {currentStep === 1 && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-6 shadow-sm">
             <div className="h-stack items-center justify-between mb-1">
               <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 {t("tourAdmin.packages.sectionTitle")}
@@ -2079,7 +2090,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                     )}
                   </div>
 
-                  {/* Duration & Base Price — shared fields */}
+                  {/* Duration — shared field */}
                   <div className="mb-5 grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
@@ -2098,22 +2109,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                       {errors[`cls_${clsI}_duration`] && (
                         <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_duration`]}</p>
                       )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
-                        {t("tourAdmin.packages.basePrice")}
-                      </label>
-                      <div className="relative group">
-                        <div className="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400 h-stack items-center justify-between">
-                          <span className="font-semibold text-stone-900 dark:text-white">
-                            {Number(cls.basePrice || 0).toLocaleString("vi-VN")} đ
-                          </span>
-                          <div className="h-stack items-center gap-1.5 text-[10px] text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-500/20">
-                            <Icon icon="heroicons:sparkles" className="size-3" />
-                            {t("tourAdmin.packages.basePriceAutoCalculated")}
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -2230,7 +2225,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         {currentStep === 2 && (
           <div className="space-y-5">
             {/* Package Selector */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-6 shadow-sm">
               <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
                 {t("tourAdmin.itineraries.selectPackageTitle")}
               </h2>
@@ -2280,7 +2275,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             </div>
 
             {/* Itinerary Editor */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-6 shadow-sm">
               <div className="h-stack items-center justify-between mb-5">
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                   {t("tourAdmin.itineraries.itineraryForPackage", { number: ci + 1 })}
@@ -2831,7 +2826,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
         {/* ── Step 3: Services ───────────────────────────────── */}
         {currentStep === 3 && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-6 shadow-sm">
             <div className="h-stack items-center justify-between mb-1">
               <div className="h-stack items-center gap-2">
                 <Icon
@@ -2978,7 +2973,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
         {/* ── Step 4: Insurance ────────────────────────────── */}
         {currentStep === 4 && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-6 shadow-sm">
             <div className="h-stack items-center gap-2 mb-1">
               <Icon
                 icon="heroicons:shield-check"
@@ -3201,7 +3196,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         {/* ── Step 5: Preview ───────────────────────────────── */}
         {currentStep === 5 && (
           <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-6 shadow-sm">
               <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
                 {t("tourAdmin.preview.sectionTitle", "Tour Preview")}
               </h2>
@@ -3386,48 +3381,40 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         )}
 
         {/* ── Navigation Buttons ───────────────────────────── */}
-        <div className="mt-6 h-stack items-center justify-between">
+        <div className="mt-8 pt-5 border-t border-slate-200 dark:border-slate-700/60 h-stack items-center justify-between">
           <button
             type="button"
-            onClick={() =>
-              currentStep === 0 ? onCancel?.() : goPrev()
-            }
+            onClick={() => currentStep === 0 ? onCancel?.() : goPrev()}
             disabled={saving}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50">
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 shadow-sm">
             <Icon icon="heroicons:arrow-left" className="size-4" />
             {currentStep === 0 ? t("tourAdmin.buttons.backToList") : t("tourAdmin.buttons.previous")}
           </button>
 
           {currentStep === WIZARD_STEPS.length - 1 ? (
-            // Preview step: show Confirm button
             <button
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50">
-              {saving && (
-                <Icon
-                  icon="heroicons:arrow-path"
-                  className="size-4 animate-spin"
-                />
-              )}
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold bg-orange-500 text-white rounded-xl hover:bg-orange-600 active:bg-orange-700 transition-colors disabled:opacity-50 shadow-sm shadow-orange-200 dark:shadow-none">
+              {saving && <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />}
               <Icon icon="heroicons:check" className="size-4" />
               {isEditMode
                 ? t("tourAdmin.editPage.updateTour", "Update Tour")
                 : t("tourAdmin.createPage.publishTour")}
             </button>
-          ) : currentStep < WIZARD_STEPS.length - 1 ? (
+          ) : (
             <button
               type="button"
               onClick={goNext}
               disabled={saving}
-              className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50">
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold bg-orange-500 text-white rounded-xl hover:bg-orange-600 active:bg-orange-700 transition-colors disabled:opacity-50 shadow-sm shadow-orange-200 dark:shadow-none">
               {currentStep === WIZARD_STEPS.length - 2
                 ? t("tourAdmin.preview.sectionTitle", "Preview")
                 : t("tourAdmin.buttons.next")}
               <Icon icon="heroicons:arrow-right" className="size-4" />
             </button>
-          ) : null}
+          )}
         </div>
       </div>
 

@@ -26,7 +26,7 @@ public class TourGuideTasksController : BaseApiController
             request.Description,
             request.IsMandatory,
             request.AssignedGuideId);
-        
+
         var result = await Sender.Send(command, cancellationToken);
         return HandleCreated(result);
     }

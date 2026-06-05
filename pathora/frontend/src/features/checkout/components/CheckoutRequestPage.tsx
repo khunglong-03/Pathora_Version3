@@ -368,6 +368,9 @@ export function CheckoutRequestPage() {
         });
         if (price) {
           setCheckoutPrice(price);
+          // Force "full" UI mode whenever deposit percentage >= 100%.
+          // This covers both: (a) IsFullPay bookings and (b) remaining-payment context
+          // where backend already computed remainingBalance from paid deposit transactions.
           if (price.depositPercentage >= 1) {
             setPaymentOption("full");
           }
@@ -526,7 +529,19 @@ export function CheckoutRequestPage() {
   const totalPrice = effectivePrice?.totalPrice ?? 0;
   const depositAmount = effectivePrice?.depositAmount ?? 0;
   const remainingBalance = effectivePrice?.remainingBalance ?? 0;
-  const payAmount = paymentOption === "full" ? totalPrice : depositAmount;
+  // Detect "remaining payment" context: backend signals deposit was already paid when
+  // depositPercentage === 100 (IsFullPay=false path) but remainingBalance is still > 0 and < totalPrice.
+  const isRemainingPayment = Boolean(
+    checkoutPrice &&
+    checkoutPrice.depositPercentage >= 1 &&
+    checkoutPrice.remainingBalance > 0 &&
+    checkoutPrice.remainingBalance < checkoutPrice.totalPrice
+  );
+  const payAmount = isRemainingPayment
+    ? remainingBalance
+    : paymentOption === "full"
+    ? totalPrice
+    : depositAmount;
   const canConfirm = Boolean(
     !isPrivateTopUpCheckout
     && agreeTerms && acknowledgeInfo && !loading && !loadingTopUpTransaction && !transaction
@@ -1022,6 +1037,8 @@ export function CheckoutRequestPage() {
                   depositAmount={depositAmount}
                   totalPrice={totalPrice}
                   remainingBalance={remainingBalance}
+                  payAmount={payAmount}
+                  isRemainingPayment={isRemainingPayment}
                   canConfirm={canConfirm}
                   loading={loading || loadingTopUpTransaction}
                   onConfirmBooking={handleConfirmBooking}

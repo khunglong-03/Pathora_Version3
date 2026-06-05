@@ -3,6 +3,7 @@ using Application.Common.Behaviors;
 using Application.Common.Pricing;
 using Application.Services;
 using Application.Services.PrivateTour;
+using Application.Features.BookingApprovalDeadline;
 using BuildingBlocks.Behaviors;
 using FluentValidation;
 using MediatR;
@@ -55,9 +56,11 @@ public static class DependencyInjection
         services.AddScoped<IOwnershipValidator, OwnershipValidator>();
         services.AddScoped<IPricingPolicyService, PricingPolicyService>();
         services.AddScoped<ICancellationPolicyService, CancellationPolicyService>();
+        services.AddScoped<IBookingPaidAmountResolver, BookingPaidAmountResolver>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IPrivateTourPolicyMetrics, LoggingPrivateTourPolicyMetrics>();
         services.AddScoped<PrivateTourTopUpDeadlineProcessor>();
+        services.AddScoped<ParticipantApprovalDeadlineProcessor>();
         services.AddScoped<IBookingPriceCalculator, BookingPriceCalculator>();
 
         return services;

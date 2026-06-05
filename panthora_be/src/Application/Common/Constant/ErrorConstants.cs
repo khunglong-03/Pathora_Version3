@@ -1,6 +1,6 @@
 namespace Application.Common.Constant;
 
-public static class ErrorConstants
+public static partial class ErrorConstants
 {
     public static class Classification
     {
@@ -372,6 +372,34 @@ public static class ErrorConstants
                 "This participant was modified by another request. Please refresh and try again.");
     }
 
+    public static class ParticipantInfoReview
+    {
+        public const string NotAssignedTourOperatorCode = "ParticipantInfoReview.NotAssignedTourOperator";
+        public static readonly LocalizedMessage NotAssignedTourOperatorDescription =
+            new("Bạn không thuộc đội Tour Operator được phân công cho booking này.",
+                "You are not assigned as a Tour Operator for this booking.");
+
+        public const string RejectionReasonRequiredCode = "ParticipantInfoReview.RejectionReasonRequired";
+        public static readonly LocalizedMessage RejectionReasonRequiredDescription =
+            new("Lý do từ chối là bắt buộc khi không duyệt.",
+                "Rejection reason is required when rejecting.");
+
+        public const string ConcurrencyConflictCode = "ParticipantInfoReview.ConcurrencyConflict";
+        public static readonly LocalizedMessage ConcurrencyConflictDescription =
+            new("Thông tin hành khách đã được thay đổi bởi người khác. Vui lòng tải lại.",
+                "Participant information was changed by someone else. Please reload.");
+
+        public const string ParticipantCancelledCode = "ParticipantInfoReview.ParticipantCancelled";
+        public static readonly LocalizedMessage ParticipantCancelledDescription =
+            new("Không thể duyệt hành khách đã bị huỷ.",
+                "Cannot review a cancelled participant.");
+
+        public const string BookingNotReviewableCode = "ParticipantInfoReview.BookingNotReviewable";
+        public static readonly LocalizedMessage BookingNotReviewableDescription =
+            new("Booking này không thể duyệt thông tin hành khách (đã huỷ hoặc hoàn thành).",
+                "This booking is not eligible for participant review (cancelled or completed).");
+    }
+
     public static class Passport
     {
         public const string NotFoundCode = "Passport.NotFound";
@@ -680,6 +708,11 @@ public static class ErrorConstants
             var value when value == BookingTeam.TourManagerNotFoundCode => BookingTeam.TourManagerNotFoundDescription,
             var value when value == BookingParticipant.NotFoundCode => BookingParticipant.NotFoundDescription,
             var value when value == BookingParticipant.ConcurrencyConflictCode => BookingParticipant.ConcurrencyConflictDescription,
+            var value when value == ParticipantInfoReview.NotAssignedTourOperatorCode => ParticipantInfoReview.NotAssignedTourOperatorDescription,
+            var value when value == ParticipantInfoReview.RejectionReasonRequiredCode => ParticipantInfoReview.RejectionReasonRequiredDescription,
+            var value when value == ParticipantInfoReview.ConcurrencyConflictCode => ParticipantInfoReview.ConcurrencyConflictDescription,
+            var value when value == ParticipantInfoReview.ParticipantCancelledCode => ParticipantInfoReview.ParticipantCancelledDescription,
+            var value when value == ParticipantInfoReview.BookingNotReviewableCode => ParticipantInfoReview.BookingNotReviewableDescription,
             var value when value == Passport.NotFoundCode => Passport.NotFoundDescription,
             var value when value == Passport.ExistsCode => Passport.ExistsDescription,
             var value when value == Passport.ExpiryBeforeTourStartCode => Passport.ExpiryBeforeTourStartDescription,

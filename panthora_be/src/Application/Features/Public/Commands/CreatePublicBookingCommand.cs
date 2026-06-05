@@ -89,11 +89,24 @@ public sealed class CreatePublicBookingCommandHandler(
                 ErrorConstants.TourInstance.NotFoundDescription);
         }
 
-        if (tourInstance.StartDate.Date < DateTimeOffset.UtcNow.AddDays(10).Date)
+        if (tourInstance.InstanceType == TourType.Private)
         {
-            return Error.Validation(
-                "TourInstance.LeadTimeTooShort",
-                "Ngày đặt tour phải cách ngày hiện tại ít nhất 10 ngày.");
+            if (tourInstance.StartDate.Date < DateTimeOffset.UtcNow.AddDays(10).Date)
+            {
+                return Error.Validation(
+                    "TourInstance.LeadTimeTooShort",
+                    "Ngày đặt tour phải cách ngày hiện tại ít nhất 10 ngày.");
+            }
+        }
+        else
+        {
+            var deadline = tourInstance.ConfirmationDeadline ?? tourInstance.StartDate;
+            if (DateTimeOffset.UtcNow >= deadline)
+            {
+                return Error.Validation(
+                    "TourInstance.LeadTimeTooShort",
+                    "Đã qua hạn chót xác nhận hoặc ngày khởi hành của chuyến đi này.");
+            }
         }
 
         if (tourInstance.Status != TourInstanceStatus.Available)

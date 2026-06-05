@@ -63,13 +63,13 @@
       <div class="body">
         <p style="margin-top: 0">A customer has submitted a new custom tour request.</p>
         <div class="meta">
-          <div class="row"><strong>Customer:</strong> {{ customername }}</div>
+          <div class="row"><strong>Customer:</strong> {{ customer_name }}</div>
           <div class="row"><strong>Destination:</strong> {{ destination }}</div>
-          <div class="row"><strong>Dates:</strong> {{ startdate }} - {{ enddate }}</div>
-          <div class="row"><strong>Participants:</strong> {{ numberofparticipants }}</div>
-          <div class="row"><strong>Budget (USD/person):</strong> {{ budgetperpersonusd }}</div>
+          <div class="row"><strong>Dates:</strong> {{ start_date }} - {{ end_date }}</div>
+          <div class="row"><strong>Participants:</strong> {{ number_of_participants }}</div>
+          <div class="row"><strong>Budget (USD/person):</strong> {{ budget_per_person_usd }}</div>
         </div>
-        <a class="cta" href="{{ dashboardlink }}">Review In Dashboard</a>
+        <a class="cta" href="{{ dashboard_link }}">Review In Dashboard</a>
       </div>
       <div class="foot">Pathora automated notification.</div>
     </div>

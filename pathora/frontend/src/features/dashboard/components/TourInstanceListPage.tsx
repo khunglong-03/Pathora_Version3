@@ -184,7 +184,9 @@ export function TourInstanceListPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
   const debouncedSearchText = useDebounce(searchText, 300);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(
+    instanceTypeFilter === "public" && role === "tour-operator" ? "available" : "all"
+  );
   // If instanceTypeFilter prop is provided, it overrides and locks the visibility dropdown
   const [visibilityFilter, setVisibilityFilter] = useState(instanceTypeFilter ?? (role === "manager" ? "public" : "all"));
   const [excludePast, setExcludePast] = useState(true);
@@ -394,38 +396,40 @@ export function TourInstanceListPage({
           </div>
 
           <div className="h-stack items-center gap-3 w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-stone-100 pt-3 md:pt-0 md:pl-4">
-            <div className="relative spacer md:flex-none min-w-[140px]">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
-                <option value="all">All Status</option>
-                <option value="draft">Draft</option>
-                {instanceTypeFilter !== "public" && (
-                  <>
-                    <option value="pendingadjustment">Pending Adjustment</option>
-                    <option value="pendingmanagerreview">Pending Manager Review</option>
-                    <option value="pendingcustomerapproval">Pending Customer Approval</option>
-                    <option value="pendingvisa">Pending Visa</option>
-                    <option value="pendingapproval">Pending Approval</option>
-                  </>
-                )}
-                <option value="available">Available</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="soldout">Sold Out</option>
-                <option value="inprogress">In Progress</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="completed">Completed</option>
-              </select>
-              <Icon
-                icon="heroicons:chevron-down"
-                className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
-              />
-              <Icon
-                icon="heroicons:funnel"
-                className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
-              />
-            </div>
+            {!(instanceTypeFilter === "public" && role === "tour-operator") && (
+              <div className="relative spacer md:flex-none min-w-[140px]">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
+                  <option value="all">All Status</option>
+                  <option value="draft">Draft</option>
+                  {instanceTypeFilter !== "public" && (
+                    <>
+                      <option value="pendingadjustment">Pending Adjustment</option>
+                      <option value="pendingmanagerreview">Pending Manager Review</option>
+                      <option value="pendingcustomerapproval">Pending Customer Approval</option>
+                      <option value="pendingvisa">Pending Visa</option>
+                      <option value="pendingapproval">Pending Approval</option>
+                    </>
+                  )}
+                  <option value="available">Available</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="soldout">Sold Out</option>
+                  <option value="inprogress">In Progress</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <Icon
+                  icon="heroicons:chevron-down"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
+                />
+                <Icon
+                  icon="heroicons:funnel"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
+                />
+              </div>
+            )}
 
             {/* Only show visibility dropdown when NOT locked to a specific type */}
             {!instanceTypeFilter && (
@@ -578,6 +582,7 @@ export function TourInstanceListPage({
                             src={inst.thumbnail.publicURL}
                             alt={inst.title || inst.tourName}
                             className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
+                            style={{ height: "100%", width: "100%", objectFit: "cover" }}
                           />
                         ) : (
                           <div className="w-full h-full center">

@@ -121,7 +121,7 @@ public sealed class SepayParsingHelperTests
 
         Assert.Equal("tx-123", result.TransactionId);
         Assert.Equal(6000m, result.Amount);
-        Assert.Equal("26040120K188", result.ReferenceCode);
+        Assert.Null(result.ReferenceCode);
         Assert.Equal("26040120K188", result.ReferenceNumber);
     }
 
@@ -138,7 +138,7 @@ public sealed class SepayParsingHelperTests
 
         var result = SepayParsingHelper.ToTransactionData(sePayTx);
 
-        Assert.Equal(string.Empty, result.ReferenceCode);
+        Assert.Null(result.ReferenceCode);
         Assert.Equal(string.Empty, result.ReferenceNumber);
     }
 

@@ -71,7 +71,8 @@ public sealed class VisaApplicationController : BaseApiController
             EntryType: body.EntryType,
             MaxStayDays: body.MaxStayDays,
             IssuingAuthority: body.IssuingAuthority,
-            VisaFileUrl: body.VisaFileUrl);
+            VisaFileUrl: body.VisaFileUrl,
+            ServiceFee: body.ServiceFee);
         var result = await Sender.Send(command);
         return HandleResult(result);
     }
@@ -81,10 +82,11 @@ public sealed record RegisterVisaDetailsRequest(
     [property: System.Text.Json.Serialization.JsonPropertyName("visaNumber")] string VisaNumber,
     [property: System.Text.Json.Serialization.JsonPropertyName("issuedAt")] DateTimeOffset IssuedAt,
     [property: System.Text.Json.Serialization.JsonPropertyName("expiresAt")] DateTimeOffset ExpiresAt,
-    [property: System.Text.Json.Serialization.JsonPropertyName("category")] Domain.Enums.VisaCategory? Category,
-    [property: System.Text.Json.Serialization.JsonPropertyName("format")] Domain.Enums.VisaFormat? Format,
-    [property: System.Text.Json.Serialization.JsonPropertyName("destinationCountry")] string DestinationCountry,
+    [property: System.Text.Json.Serialization.JsonPropertyName("category")] Domain.Enums.VisaCategory? Category = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("format")] Domain.Enums.VisaFormat? Format = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("destinationCountry")] string? DestinationCountry = null,
     [property: System.Text.Json.Serialization.JsonPropertyName("entryType")] Domain.Enums.VisaEntryType? EntryType = null,
     [property: System.Text.Json.Serialization.JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
     [property: System.Text.Json.Serialization.JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null,
-    [property: System.Text.Json.Serialization.JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null);
+    [property: System.Text.Json.Serialization.JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("serviceFee")] decimal? ServiceFee = null);

@@ -263,7 +263,11 @@ describe("bookingService", () => {
     });
 
     it("requestVisaSupport calls REQUEST_VISA_SUPPORT and handles duplicate support response", async () => {
-      const mockResponse = { serviceFeeQuoted: true, message: "OK" };
+      const mockResponse = {
+        applicationId: "app-1",
+        serviceFeeQuoted: false,
+        message: "Support request submitted successfully.",
+      };
       vi.mocked(api.post).mockResolvedValue({ data: { result: mockResponse } } as never);
 
       const result = await bookingService.requestVisaSupport("bk-1", "p-1");

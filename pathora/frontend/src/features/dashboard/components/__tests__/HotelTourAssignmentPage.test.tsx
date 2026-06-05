@@ -30,6 +30,7 @@ vi.mock("@/api/services/hotelProviderService", () => ({
   hotelProviderService: {
     getAccommodations: vi.fn(),
     getRoomAvailability: vi.fn(),
+    getSupplierInfo: vi.fn(),
   },
 }));
 
@@ -107,13 +108,14 @@ describe("HotelTourAssignmentPage", () => {
     });
     (hotelProviderService.getAccommodations as any).mockResolvedValue(mockInventory);
     (hotelProviderService.getRoomAvailability as any).mockResolvedValue(mockAvailability);
+    (hotelProviderService.getSupplierInfo as any).mockResolvedValue([{ id: "sup-1", name: "Supplier 1" }]);
   });
 
   it("renders inventory summary table populated correctly", async () => {
     render(<HotelTourAssignmentPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("inventory_summary")).toBeInTheDocument();
+      expect(screen.getByText("Inventory Summary")).toBeInTheDocument();
     });
 
     // Check headers
@@ -146,6 +148,12 @@ describe("HotelTourAssignmentPage", () => {
 
     // Save deluxe room activity (first save button)
     (tourInstanceService.assignRoomToAccommodation as any).mockImplementation(() => Promise.resolve({ success: true }));
+    
+    const changeButtons = screen.queryAllByText(/Change room allocation/);
+    if (changeButtons.length > 0) {
+      fireEvent.click(changeButtons[0]);
+    }
+
     const saveButtons = screen.getAllByText(/Update/);
     fireEvent.click(saveButtons[0]);
 
@@ -162,11 +170,11 @@ describe("HotelTourAssignmentPage", () => {
     render(<HotelTourAssignmentPage />);
 
     await waitFor(() => {
-      // Deluxe day 1, available = 5, required = 2. It should be green (Còn 5 phòng)
-      expect(screen.getByText(/Còn 5\/10 phòng/)).toBeInTheDocument();
+      // Deluxe day 1, available = 5, required = 2. It should be green (5/10 rooms available)
+      expect(screen.getByText(/5\/10 rooms available/)).toBeInTheDocument();
 
-      // Standard day 2, available = 1, required = 3. It should be orange/low (Còn 1 phòng)
-      expect(screen.getByText(/⚠️ Chỉ còn 1\/10/)).toBeInTheDocument();
+      // Standard day 2, available = 1, required = 3. It should be orange/low (⚠️ Only 1/10 left)
+      expect(screen.getByText(/⚠️ Only 1\/10 left/)).toBeInTheDocument();
     });
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
@@ -8,6 +8,9 @@ import { bookingService, type AdminBookingListResponse } from "@/api/services/bo
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { handleApiError } from "@/utils/apiResponse";
 import { getApprovalAppearance } from "@/utils/approvalStatusHelper";
+import { useAuth } from "@/contexts/AuthContext";
+import ParticipantReviewModal from "./bookings/ui/ParticipantReviewModal";
+import { ClipboardText } from "@phosphor-icons/react";
 
 interface Props {
   instanceId: string;
@@ -37,6 +40,197 @@ export default function BookingAssignmentLandingPage({
   const [error, setError] = useState<string | null>(null);
   const [booking, setBooking] = useState<AdminBookingListResponse | null>(null);
   const [activities, setActivities] = useState<any[]>([]);
+
+  // 1.3: Read role and loading state from useAuth()
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const isTourOperator = user?.roles?.some((r) => r.name === "TourOperator");
+
+  // Cache strategy (Task 8.2): Chosen raw useState + callback updates instead of registering in RTK Query apiSlice
+  // because the participant list is only reviewed and handled locally within this landing page context
+  // and doesn't require cross-route persistence once the operator leaves this deep detail page.
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [isLoadingParticipants, setIsLoadingParticipants] = useState(false);
+  const [participantsError, setParticipantsError] = useState<string | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [showOpacity, setShowOpacity] = useState(false);
+  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 1.1: Gate fetch by role
+  const fetchParticipantsData = useCallback(async (showIndicator = false) => {
+    if (!bookingId || !isTourOperator) return;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setParticipantsError(null);
+    let timeoutId: any = null;
+
+    if (showIndicator) {
+      timeoutId = setTimeout(() => {
+        setShowOpacity(true);
+      }, 200);
+    } else {
+      setIsLoadingParticipants(true);
+    }
+
+    try {
+      const data = await bookingService.getOperatorParticipants(bookingId);
+      if (controller.signal.aborted) return;
+      setParticipants(data || []);
+    } catch (err: any) {
+      if (controller.signal.aborted) return;
+      setParticipantsError(err?.response?.status === 403 ? "Forbidden" : "Error");
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!controller.signal.aborted) {
+        setIsLoadingParticipants(false);
+        setShowOpacity(false);
+      }
+    }
+  }, [bookingId, isTourOperator]);
+
+  useEffect(() => {
+    if (isTourOperator && !isAuthLoading) {
+      void fetchParticipantsData(false);
+    }
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [isTourOperator, isAuthLoading, fetchParticipantsData]);
+
+  // 2.1: Compute badge counts from participants list
+  const badgeCounts = useMemo(() => {
+    const active = participants.filter((p) => p.status !== "Cancelled");
+    const approved = active.filter((p) => p.infoReviewStatus === "Approved").length;
+    const rejected = active.filter((p) => p.infoReviewStatus === "Rejected").length;
+    return {
+      approvedCount: approved,
+      rejectedCount: rejected,
+      totalActiveCount: active.length,
+    };
+  }, [participants]);
+
+  // 4.2: Callback split (handleClose no refetch vs handleReviewed payload update)
+  const handleClose = useCallback(() => {
+    setIsReviewModalOpen(false);
+  }, []);
+
+  const handleReviewed = useCallback((updatedList?: any[]) => {
+    setIsReviewModalOpen(false);
+    if (Array.isArray(updatedList)) {
+      setParticipants(updatedList);
+    } else {
+      void fetchParticipantsData(true);
+    }
+  }, [fetchParticipantsData]);
+
+  // 2.2: Render badge inline (pill) next to button
+  const renderReviewBadgeAndButton = () => {
+    if (isAuthLoading) {
+      return (
+        <div className="h-8 w-32 bg-stone-100 animate-pulse rounded-xl" />
+      );
+    }
+
+    if (!isTourOperator) return null;
+
+    if (participantsError === "Forbidden") {
+      return (
+        <span 
+          className="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-semibold bg-stone-50 text-stone-400 ring-1 ring-stone-200"
+          title={t("participantReview.publicBookingLanding.noPermissionTooltip", "Bạn không có quyền duyệt booking này")}
+        >
+          —
+        </span>
+      );
+    }
+
+    if (isLoadingParticipants && participants.length === 0) {
+      return (
+        <div className="h-8 w-24 bg-stone-100 animate-pulse rounded-xl" />
+      );
+    }
+
+    const { approvedCount, rejectedCount, totalActiveCount } = badgeCounts;
+
+    let badgeText = "";
+    let badgeCls = "";
+    let ariaLabel = "";
+
+    if (participantsError === "Error") {
+      badgeText = t("participantReview.publicBookingLanding.badge.loadError", "Tải lỗi");
+      badgeCls = "bg-stone-100 text-stone-700 ring-1 ring-stone-200";
+      ariaLabel = t("participantReview.publicBookingLanding.retryTooltip", "Tải lại trạng thái");
+    } else if (totalActiveCount === 0) {
+      badgeText = t("participantReview.publicBookingLanding.badge.empty", "Chưa có hành khách");
+      badgeCls = "bg-stone-100 text-stone-700 ring-1 ring-stone-200";
+      ariaLabel = t("participantReview.publicBookingLanding.badge.empty", "Chưa có hành khách");
+    } else if (approvedCount === totalActiveCount) {
+      badgeText = t("participantReview.publicBookingLanding.badge.allApproved", { approved: approvedCount, total: totalActiveCount, defaultValue: "{{approved}}/{{total}} đã duyệt" });
+      badgeCls = "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
+      ariaLabel = t("participantReview.publicBookingLanding.badgeAriaLabel", { approved: approvedCount, total: totalActiveCount, defaultValue: "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt" });
+    } else if (rejectedCount > 0) {
+      badgeText = t("participantReview.publicBookingLanding.badge.partial", { approved: approvedCount, total: totalActiveCount, defaultValue: "{{approved}}/{{total}} đã duyệt" }) + 
+                  t("participantReview.publicBookingLanding.badge.withRejected", { rejected: rejectedCount, defaultValue: " • {{rejected}} từ chối" });
+      badgeCls = "bg-red-50 text-red-700 ring-1 ring-red-200";
+      ariaLabel = t("participantReview.publicBookingLanding.badgeAriaLabel_withRejected", { approved: approvedCount, total: totalActiveCount, rejected: rejectedCount, defaultValue: "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt, {{rejected}} bị từ chối" });
+    } else {
+      badgeText = t("participantReview.publicBookingLanding.badge.partial", { approved: approvedCount, total: totalActiveCount, defaultValue: "{{approved}}/{{total}} đã duyệt" });
+      badgeCls = "bg-white text-stone-700 ring-1 ring-stone-200";
+      ariaLabel = t("participantReview.publicBookingLanding.badgeAriaLabel", { approved: approvedCount, total: totalActiveCount, defaultValue: "Trạng thái duyệt: {{approved}} trên {{total}} hành khách đã duyệt" });
+    }
+
+    const isButtonDisabled = participantsError !== "Error" && totalActiveCount === 0;
+
+    return (
+      <div 
+        className={`flex flex-col md:flex-row items-stretch md:items-center gap-3 transition-opacity duration-200 w-full md:w-auto ${showOpacity ? "opacity-60" : ""}`}
+      >
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <span 
+            className={`inline-flex items-center justify-center px-2.5 py-2 md:py-1 rounded-xl text-xs font-semibold w-full md:w-auto text-center ${badgeCls}`}
+            aria-label={ariaLabel}
+            title={isButtonDisabled ? t("participantReview.publicBookingLanding.noActiveTooltip", "Không có hành khách để duyệt") : undefined}
+          >
+            {badgeText}
+          </span>
+          {participantsError === "Error" && (
+            <button
+              type="button"
+              onClick={() => fetchParticipantsData(false)}
+              className="p-1 rounded bg-stone-100 text-stone-600 hover:bg-stone-200 text-xs font-bold"
+            >
+              {t("participantReview.publicBookingLanding.retryTooltip", "Tải lại")}
+            </button>
+          )}
+        </div>
+        <button
+          ref={triggerButtonRef}
+          type="button"
+          disabled={isButtonDisabled || (isLoadingParticipants && showOpacity)}
+          onClick={(e) => {
+            triggerButtonRef.current = e.currentTarget;
+            setIsReviewModalOpen(true);
+          }}
+          className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl border transition-all w-full md:w-auto min-h-[40px] md:min-h-0 ${
+            isButtonDisabled
+              ? "bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed"
+              : "bg-amber-500 border-transparent text-white hover:bg-amber-600 cursor-pointer"
+          }`}
+          title={isButtonDisabled ? t("participantReview.publicBookingLanding.noActiveTooltip", "Không có hành khách để duyệt") : undefined}
+        >
+          <ClipboardText size={16} weight="bold" />
+          <span>{t("participantReview.publicBookingLanding.button", "Duyệt hành khách")}</span>
+        </button>
+      </div>
+    );
+  };
 
   const fetchData = useCallback(async () => {
     if (!instanceId || !bookingId) return;
@@ -247,9 +441,12 @@ export default function BookingAssignmentLandingPage({
       <main className="mx-auto max-w-4xl px-4 py-8 md:px-8 space-y-6">
         {/* Booking Details Card */}
         <div className="rounded-2xl border border-stone-200/70 bg-white p-6 shadow-sm">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">
-            Thông tin Booking
-          </h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <h2 className="text-xs font-bold text-stone-400 uppercase tracking-wider">
+              Thông tin Booking
+            </h2>
+            {renderReviewBadgeAndButton()}
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
               <p className="text-xs text-stone-400">
@@ -417,6 +614,13 @@ export default function BookingAssignmentLandingPage({
           )}
         </div>
       </main>
+
+      <ParticipantReviewModal
+        bookingId={bookingId}
+        isOpen={isReviewModalOpen}
+        onClose={handleClose}
+        onReviewed={handleReviewed}
+      />
     </div>
   );
 }

@@ -220,12 +220,12 @@ describe("isManagerRoutePath", () => {
     expect(isManagerRoutePath("/tour-management/edit/123")).toBe(true);
     expect(isManagerRoutePath("/tour-instances")).toBe(true);
     expect(isManagerRoutePath("/tour-instances/new")).toBe(true);
+    expect(isManagerRoutePath("/tour-requests")).toBe(true);
+    expect(isManagerRoutePath("/pricing-policies")).toBe(true);
   });
 
   it("returns false for non-manager routes", () => {
     expect(isManagerRoutePath("/")).toBe(false);
-    expect(isManagerRoutePath("/tour-requests")).toBe(false);
-    expect(isManagerRoutePath("/pricing-policies")).toBe(false);
     expect(isManagerRoutePath("/admin/dashboard")).toBe(false);
   });
 });

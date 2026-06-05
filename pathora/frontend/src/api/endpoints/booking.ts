@@ -28,6 +28,8 @@ export interface BookingEndpoints {
   GET_ACCOMMODATION_DETAILS: (id: string) => string;
   GET_PARTICIPANTS: (id: string) => string;
   UPDATE_PARTICIPANT: (id: string, participantId: string) => string;
+  REVIEW_PARTICIPANT_INFO: (id: string, participantId: string) => string;
+  REVIEW_PARTICIPANT_INFO_BULK: (id: string) => string;
   GET_PAYABLES: (id: string) => string;
   GET_ACTIVITY_STATUSES: (id: string) => string;
   GET_ACTIVITY_STATUS_DETAIL: (id: string, tourDayId: string) => string;
@@ -42,6 +44,7 @@ export interface BookingEndpoints {
   SET_TOUR_GUIDES: (id: string) => string;
   GET_MY_RECENT: string;
   GET_MY_BOOKINGS: string;
+  GET_REJECTED_PARTICIPANT_COUNT: string;
   UPDATE_REFUND_STATUS: (id: string) => string;
 }
 
@@ -86,6 +89,7 @@ export const BOOKING: BookingEndpoints = {
   GET_BY_TOUR_INSTANCE: (tourInstanceId: string): string => `/api/bookings/by-tour-instance/${tourInstanceId}`,
   GET_MY_RECENT: "/api/customer/bookings/my-recent-bookings",
   GET_MY_BOOKINGS: "/api/customer/bookings/my-bookings",
+  GET_REJECTED_PARTICIPANT_COUNT: "/api/customer/bookings/rejected-participant-count",
   GET_DETAIL: (id: string): string => `/api/bookings/${id}`,
   GET_CHECKOUT_PRICE: (id: string): string => `/api/bookings/${id}/checkout-price`,
   GET_CUSTOMER_CHECKOUT_PRICE: (id: string): string => `/api/customer/bookings/${id}/customer-checkout-price`,
@@ -96,6 +100,8 @@ export const BOOKING: BookingEndpoints = {
   GET_ACCOMMODATION_DETAILS: (id: string): string => `/api/bookings/${id}/accommodation-details`,
   GET_PARTICIPANTS: (id: string): string => `/api/bookings/${id}/participants`,
   UPDATE_PARTICIPANT: (id: string, participantId: string): string => `/api/bookings/${id}/participants/${participantId}`,
+  REVIEW_PARTICIPANT_INFO: (id: string, participantId: string): string => `/api/bookings/${id}/participants/${participantId}/review`,
+  REVIEW_PARTICIPANT_INFO_BULK: (id: string): string => `/api/bookings/${id}/participants/review-bulk`,
   GET_PAYABLES: (id: string): string => `/api/bookings/${id}/payables`,
   GET_ACTIVITY_STATUSES: (id: string): string => `/api/bookings/${id}/activity-statuses`,
   GET_ACTIVITY_STATUS_DETAIL: (id: string, tourDayId: string): string =>

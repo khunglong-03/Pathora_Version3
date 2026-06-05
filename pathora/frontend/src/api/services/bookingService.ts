@@ -90,6 +90,9 @@ export interface AdminBookingListResponse {
   taxAmount?: number;
   totalAmount?: number;
   remainingBalance?: number;
+  totalParticipants?: number;
+  approvedParticipants?: number;
+  hasRejectedParticipants?: boolean;
 }
 
 export const bookingService = {
@@ -210,6 +213,13 @@ export const bookingService = {
     return extractResult<any[]>(response.data);
   },
 
+  getOperatorParticipants: async (bookingId: string) => {
+    const response = await api.get<ServiceResponse<any[]>>(
+      API_ENDPOINTS.BOOKING.GET_PARTICIPANTS(bookingId)
+    );
+    return extractResult<any[]>(response.data);
+  },
+
   createParticipant: async (bookingId: string, payload: any) => {
     const response = await api.post<ServiceResponse<string>>(
       API_ENDPOINTS.PUBLIC_BOOKING.CREATE_PARTICIPANT(bookingId),
@@ -243,5 +253,35 @@ export const bookingService = {
       { params: queryParams }
     );
     return response.data;
+  },
+
+  reviewParticipantInfo: async (
+    bookingId: string,
+    participantId: string,
+    payload: { isApproved: boolean; rejectionReason?: string | null }
+  ) => {
+    const response = await api.post<ServiceResponse<unknown>>(
+      API_ENDPOINTS.BOOKING.REVIEW_PARTICIPANT_INFO(bookingId, participantId),
+      payload
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  bulkApproveParticipantInfo: async (
+    bookingId: string,
+    participantIds: string[]
+  ) => {
+    const response = await api.post<ServiceResponse<any>>(
+      API_ENDPOINTS.BOOKING.REVIEW_PARTICIPANT_INFO_BULK(bookingId),
+      { participantIds }
+    );
+    return extractResult<any>(response.data);
+  },
+
+  getRejectedParticipantCount: async () => {
+    const response = await api.get<ServiceResponse<number>>(
+      API_ENDPOINTS.BOOKING.GET_REJECTED_PARTICIPANT_COUNT
+    );
+    return extractResult<number>(response.data);
   },
 };

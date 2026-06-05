@@ -66,9 +66,9 @@ public sealed class UpdateTourGuideTaskCommandHandler(
         // Validate that assigned guide is part of the tour instance guides
         if (!string.IsNullOrEmpty(request.AssignedGuideId) && Guid.TryParse(request.AssignedGuideId, out var guideGuid))
         {
-            var isGuideAssigned = tourInstance.Managers.Any(m => 
+            var isGuideAssigned = tourInstance.Managers.Any(m =>
                 m.UserId == guideGuid && m.Role == TourInstanceManagerRole.Guide);
-            
+
             if (!isGuideAssigned)
             {
                 return Error.Validation("TourGuideTask.GuideNotAssigned", "Hướng dẫn viên được chọn chưa được gán cho chuyến đi này.");

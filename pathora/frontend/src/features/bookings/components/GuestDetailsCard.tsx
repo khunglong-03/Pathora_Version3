@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { bookingService } from "@/api/services";
-import { Users, User, Baby, WarningCircle, UserCirclePlus, Spinner, IdentificationCard } from "@phosphor-icons/react";
+import { Users, User, Baby, WarningCircle, UserCirclePlus, Spinner, IdentificationCard, CheckCircle, Info } from "@phosphor-icons/react";
 import { BookingDetail } from "./BookingDetailData";
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
@@ -180,6 +180,25 @@ export function GuestDetailsCard({ booking, totalGuests }: GuestDetailsCardProps
                 </div>
               )}
 
+              {/* Alert Warning if passenger details rejected */}
+              {participants.some(p => p.infoReviewStatus === "Rejected") && (
+                <div className="p-5 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-3">
+                  <WarningCircle weight="fill" className="size-5 text-red-500 shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-red-800 leading-snug">
+                      {t("landing.bookingDetail.rejectedPassengerDetailsWarning", "Có thông tin hành khách bị từ chối duyệt. Vui lòng cập nhật lại thông tin.")}
+                    </p>
+                    <div className="mt-2 space-y-1">
+                      {participants.filter(p => p.infoReviewStatus === "Rejected").map((p, idx) => (
+                        <div key={p.participantId || p.id || idx} className="text-xs text-red-700 font-medium">
+                          • <span className="font-bold">{p.fullName}</span>: {p.infoRejectionReason || t("landing.bookingDetail.noRejectionReason", "Cần cập nhật lại thông tin")}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Passenger list */}
               {participants.length > 0 && (
                 <div className="flex flex-col gap-2">
@@ -188,15 +207,47 @@ export function GuestDetailsCard({ booking, totalGuests }: GuestDetailsCardProps
                     {t("landing.bookingDetail.passengerList")}
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-                    {participants.map((p, idx) => (
-                      <div
-                        key={p.participantId || p.id || idx}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-700 text-sm font-semibold truncate"
-                      >
-                        <User className="size-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{p.fullName || `Passenger ${idx + 1}`}</span>
-                      </div>
-                    ))}
+                    {participants.map((p, idx) => {
+                      const pId = p.participantId || p.id;
+                      const hasWarning = p.infoReviewStatus === "Rejected";
+                      return (
+                        <div
+                          key={pId || idx}
+                          onClick={() => router.push(`/bookings/${booking.id}/participants#participant-${pId}`)}
+                          className={`flex items-center justify-between px-3 py-2.5 rounded-xl border text-slate-700 text-sm font-semibold gap-3 cursor-pointer transition-all hover:bg-slate-100/70 hover:shadow-sm ${
+                            hasWarning 
+                              ? "bg-red-50/40 border-red-200 hover:bg-red-50/60" 
+                              : "bg-slate-50 border-slate-100"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <User className="size-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{p.fullName || `Passenger ${idx + 1}`}</span>
+                          </div>
+                          
+                          <div className="shrink-0 flex items-center gap-1.5">
+                            {p.infoReviewStatus === "Approved" && (
+                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-100">
+                                <CheckCircle weight="fill" className="size-3 text-emerald-600" />
+                                {t("landing.bookingDetail.reviewStatusApproved", "Đã duyệt")}
+                              </span>
+                            )}
+                            {p.infoReviewStatus === "Rejected" && (
+                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-red-50 text-red-700 text-[10px] font-bold rounded-full border border-red-100">
+                                <WarningCircle weight="fill" className="size-3 text-red-600" />
+                                {t("landing.bookingDetail.reviewStatusRejected", "Cần sửa")}
+                              </span>
+                            )}
+                            {p.infoReviewStatus === "NotReviewed" && (
+                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-full border border-slate-200">
+                                <Info weight="fill" className="size-3 text-slate-400" />
+                                {t("landing.bookingDetail.reviewStatusNotReviewed", "Chờ duyệt")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

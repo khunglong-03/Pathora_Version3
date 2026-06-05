@@ -63,8 +63,9 @@ export function TourFormPage({ mode, initialData, existingImages, showPolicySect
         toast.success(t("tourOperator.messages.updated", "Tour updated successfully"));
       }
       
-      router.refresh();
-      router.push("/tour-operator/tours");
+      // Use location.assign to force a full navigation so the tour list
+      // re-mounts and its useEffect re-fetches fresh data from the server.
+      window.location.assign("/tour-operator/tours");
     } catch (err) {
       const message = handleApiError(err).message;
       toast.error(message);

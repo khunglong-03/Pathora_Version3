@@ -40,7 +40,8 @@ public sealed class GetAllVisaApplicationsQueryHandler(IVisaApplicationRepositor
             e.Visa?.Category,
             e.Visa?.Format,
             e.Visa?.MaxStayDays,
-            e.Visa?.IssuingAuthority
+            e.Visa?.IssuingAuthority,
+            e.Passport?.FileUrl
         )).ToList();
         return result;
     }
@@ -81,7 +82,8 @@ public sealed class GetVisaApplicationByIdQueryHandler(IVisaApplicationRepositor
             entity.Visa?.Category,
             entity.Visa?.Format,
             entity.Visa?.MaxStayDays,
-            entity.Visa?.IssuingAuthority
+            entity.Visa?.IssuingAuthority,
+            entity.Passport?.FileUrl
         );
     }
 }
@@ -118,7 +120,8 @@ public sealed class GetVisaApplicationsByParticipantQueryHandler(IVisaApplicatio
             e.Visa?.Category,
             e.Visa?.Format,
             e.Visa?.MaxStayDays,
-            e.Visa?.IssuingAuthority
+            e.Visa?.IssuingAuthority,
+            e.Passport?.FileUrl
         )).ToList();
         return result;
     }

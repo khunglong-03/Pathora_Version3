@@ -364,6 +364,7 @@ export function TourListPage() {
                                   src={tour.thumbnail.publicURL}
                                   alt={tour.tourName || "Tour thumbnail"}
                                   className="h-full w-full object-cover"
+                                  style={{ height: "100%", width: "100%", objectFit: "cover" }}
                                   loading="lazy"
                                   onError={() =>
                                     setFailedThumbnailIds((prev) => {

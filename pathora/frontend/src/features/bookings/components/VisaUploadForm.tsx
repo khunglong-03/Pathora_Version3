@@ -65,12 +65,18 @@ export function VisaUploadForm({
     minReturnDate: yup.string().nullable(),
     visaFileUrl: yup.string().nullable(),
     visaNumber: yup.string().nullable(),
-    entryType: yup.number().nullable(),
+    entryType: yup.string().nullable(),
     visaIssuedAt: yup.string().nullable(),
     visaExpiresAt: yup.string().nullable(),
-    category: yup.number().nullable(),
-    format: yup.number().nullable(),
-    maxStayDays: yup.number().nullable().transform((value) => (isNaN(value) ? null : value)),
+    category: yup.string().nullable(),
+    format: yup.string().nullable(),
+    maxStayDays: yup.number().nullable().transform((value, originalValue) => {
+      if (originalValue === "" || originalValue === null || originalValue === undefined) {
+        return null;
+      }
+      const num = Number(value);
+      return isNaN(num) ? null : num;
+    }),
     issuingAuthority: yup.string().nullable(),
   });
 
@@ -103,6 +109,24 @@ export function VisaUploadForm({
 
   const handleFormSubmit = async (data: any) => {
     try {
+      // Convert "" → undefined để backend không deserialize empty-string vào nullable enums.
+      const clean = (v: any) => (v === "" || v === null ? undefined : v);
+      const visaPayloadBase = {
+        destinationCountry: clean(data.destinationCountry),
+        minReturnDate: clean(data.minReturnDate),
+        visaFileUrl: clean(data.visaFileUrl),
+        visaNumber: clean(data.visaNumber),
+        issuedAt: clean(data.visaIssuedAt),
+        expiresAt: clean(data.visaExpiresAt),
+        issuingAuthority: clean(data.issuingAuthority),
+        // Advanced fields (entryType/category/format/maxStayDays) preserved from existing state nếu có,
+        // không bắt buộc nhập ở form resubmit. Nếu form không render, chúng vẫn được giữ từ defaultValues.
+        entryType: clean(data.entryType),
+        category: clean(data.category),
+        format: clean(data.format),
+        maxStayDays: clean(data.maxStayDays),
+        isResubmitting,
+      };
       if (isPassportMissing) {
         const newPassportId = await onSubmitPassport({
           passportNumber: data.passportNumber,
@@ -111,36 +135,9 @@ export function VisaUploadForm({
           expiresAt: data.expiresAt,
           fileUrl: data.fileUrl,
         });
-        await onSubmitVisaApp({
-          _passportId: newPassportId,
-          destinationCountry: data.destinationCountry,
-          minReturnDate: data.minReturnDate,
-          visaFileUrl: data.visaFileUrl,
-          visaNumber: data.visaNumber,
-          entryType: data.entryType,
-          issuedAt: data.visaIssuedAt,
-          expiresAt: data.visaExpiresAt,
-          category: data.category,
-          format: data.format,
-          maxStayDays: data.maxStayDays,
-          issuingAuthority: data.issuingAuthority,
-          isResubmitting,
-        });
+        await onSubmitVisaApp({ _passportId: newPassportId, ...visaPayloadBase });
       } else {
-        await onSubmitVisaApp({
-          destinationCountry: data.destinationCountry,
-          minReturnDate: data.minReturnDate,
-          visaFileUrl: data.visaFileUrl,
-          visaNumber: data.visaNumber,
-          entryType: data.entryType,
-          issuedAt: data.visaIssuedAt,
-          expiresAt: data.visaExpiresAt,
-          category: data.category,
-          format: data.format,
-          maxStayDays: data.maxStayDays,
-          issuingAuthority: data.issuingAuthority,
-          isResubmitting,
-        });
+        await onSubmitVisaApp(visaPayloadBase);
       }
     } catch (error) {
       console.error(error);
@@ -259,22 +256,7 @@ export function VisaUploadForm({
 
         <div>
           <label className="text-sm font-medium text-slate-600 mb-1 block">
-            Entry Type
-          </label>
-          <select
-            {...register("entryType")}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="">{t("common.select")}</option>
-            <option value="Single">Single</option>
-            <option value="Double">Double</option>
-            <option value="Multiple">Multiple</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-slate-600 mb-1 block">
-            Issued At
+            {t("landing.visa.visaIssuedAt", "Ngày cấp")}
           </label>
           <input
             type="date"
@@ -285,7 +267,7 @@ export function VisaUploadForm({
 
         <div>
           <label className="text-sm font-medium text-slate-600 mb-1 block">
-            Expires At
+            {t("landing.visa.visaExpiresAt", "Ngày hết hạn")}
           </label>
           <input
             type="date"
@@ -294,59 +276,14 @@ export function VisaUploadForm({
           />
         </div>
 
-        <div>
+        <div className="md:col-span-2">
           <label className="text-sm font-medium text-slate-600 mb-1 block">
-            {t("landing.visa.category")}
-          </label>
-          <select
-            {...register("category")}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="">{t("common.select")}</option>
-            <option value="Tourist">Tourist</option>
-            <option value="Business">Business</option>
-            <option value="FamilyVisit">Family Visit</option>
-            <option value="Student">Student</option>
-            <option value="Transit">Transit</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-slate-600 mb-1 block">
-            {t("landing.visa.format")}
-          </label>
-          <select
-            {...register("format")}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="">{t("common.select")}</option>
-            <option value="Sticker">Sticker</option>
-            <option value="EVisa">E-Visa</option>
-            <option value="VisaOnArrival">Visa On Arrival</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-slate-600 mb-1 block">
-            {t("landing.visa.maxStayDays")}
-          </label>
-          <input
-            type="number"
-            {...register("maxStayDays")}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            placeholder="Ex: 30"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-slate-600 mb-1 block">
-            {t("landing.visa.issuingAuthority")}
+            {t("landing.visa.issuingAuthority", "Cơ quan cấp")}
           </label>
           <input
             {...register("issuingAuthority")}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            placeholder="Ex: Embassy of Japan"
+            placeholder="Ex: Đại sứ quán Nhật Bản"
           />
         </div>
       </div>

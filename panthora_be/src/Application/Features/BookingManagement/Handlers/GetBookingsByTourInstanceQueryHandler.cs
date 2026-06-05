@@ -80,6 +80,10 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
             var paidAmount = b.PaymentTransactions?.Where(t => t.Status == Domain.Enums.TransactionStatus.Completed).Sum(t => t.PaidAmount ?? t.Amount) ?? 0m;
             var breakdown = priceCalculator.Calculate(b, b.TourInstance, pricingPolicy?.Tiers, activeTaxConfig, paidAmount);
 
+            var totalParticipants = b.BookingParticipants?.Count(p => p.Status != Domain.Enums.ReservationStatus.Cancelled) ?? 0;
+            var approvedParticipants = b.BookingParticipants?.Count(p => p.Status != Domain.Enums.ReservationStatus.Cancelled && p.InfoReviewStatus == Domain.Enums.ParticipantInfoReviewStatus.Approved) ?? 0;
+            var hasRejected = b.BookingParticipants?.Any(p => p.Status != Domain.Enums.ReservationStatus.Cancelled && p.InfoReviewStatus == Domain.Enums.ParticipantInfoReviewStatus.Rejected) ?? false;
+
             return new AdminBookingListResponse(
                 b.Id,
                 b.CustomerName,
@@ -90,9 +94,15 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
                 b.NumberAdult,
                 b.NumberChild,
                 b.NumberInfant,
+                CustomerPhone: b.CustomerPhone,
+                CustomerEmail: b.CustomerEmail,
                 Subtotal: breakdown.Subtotal,
                 TaxAmount: breakdown.TaxAmount,
-                TotalAmount: breakdown.TotalAmount, RemainingBalance: breakdown.RemainingBalance
+                TotalAmount: breakdown.TotalAmount,
+                RemainingBalance: breakdown.RemainingBalance,
+                TotalParticipants: totalParticipants,
+                ApprovedParticipants: approvedParticipants,
+                HasRejectedParticipants: hasRejected
             );
         }).ToList();
 

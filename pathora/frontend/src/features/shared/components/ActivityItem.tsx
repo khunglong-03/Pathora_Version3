@@ -15,6 +15,74 @@ interface ActivityItemProps {
   activity: TourDayActivityDto;
 }
 
+// Maps all possible activityType formats (numbers, lowercase, variations) to canonical C# enum string names
+const CANONICAL_ACTIVITY_TYPES: Record<string, string> = {
+  "0": "Sightseeing",
+  sightseeing: "Sightseeing",
+  Sightseeing: "Sightseeing",
+
+  "1": "Dining",
+  dining: "Dining",
+  Dining: "Dining",
+  food: "Dining",
+  Food: "Dining",
+
+  "2": "Shopping",
+  shopping: "Shopping",
+  Shopping: "Shopping",
+
+  "3": "Adventure",
+  adventure: "Adventure",
+  Adventure: "Adventure",
+
+  "4": "Relaxation",
+  relaxation: "Relaxation",
+  Relaxation: "Relaxation",
+
+  "5": "Cultural",
+  cultural: "Cultural",
+  Cultural: "Cultural",
+
+  "6": "Entertainment",
+  entertainment: "Entertainment",
+  Entertainment: "Entertainment",
+
+  "7": "Transportation",
+  transportation: "Transportation",
+  Transportation: "Transportation",
+  transport: "Transportation",
+  Transport: "Transportation",
+
+  "8": "Accommodation",
+  accommodation: "Accommodation",
+  Accommodation: "Accommodation",
+
+  "9": "FreeTime",
+  freetime: "FreeTime",
+  FreeTime: "FreeTime",
+  "free time": "FreeTime",
+  "Free Time": "FreeTime",
+
+  "99": "Other",
+  other: "Other",
+  Other: "Other",
+};
+
+// Maps canonical C# enum names to the numeric index key used in i18n tourAdmin.activityTypes
+const ACTIVITY_TYPE_KEYS: Record<string, string> = {
+  Sightseeing: "0",
+  Dining: "1",
+  Shopping: "2",
+  Adventure: "3",
+  Relaxation: "4",
+  Cultural: "5",
+  Entertainment: "6",
+  Transportation: "7",
+  Accommodation: "8",
+  FreeTime: "9",
+  Other: "99",
+};
+
 // Color + icon config per activity type
 const ACTIVITY_TYPE_CONFIG: Record<
   string,
@@ -41,7 +109,7 @@ const ACTIVITY_TYPE_CONFIG: Record<
     iconBg: "#dcfce7",
     icon: "heroicons:bolt",
   },
-  Food: {
+  Dining: {
     bg: "#fff7ed",
     border: "#fed7aa",
     text: "#ea580c",
@@ -62,7 +130,14 @@ const ACTIVITY_TYPE_CONFIG: Record<
     iconBg: "#fce7f3",
     icon: "heroicons:shopping-bag",
   },
-  Transport: {
+  Entertainment: {
+    bg: "#faf5ff",
+    border: "#ddd6fe",
+    text: "#7c3aed",
+    iconBg: "#f3e8ff",
+    icon: "heroicons:ticket",
+  },
+  Transportation: {
     bg: "#f8fafc",
     border: "#cbd5e1",
     text: "#475569",
@@ -76,14 +151,28 @@ const ACTIVITY_TYPE_CONFIG: Record<
     iconBg: "#dbeafe",
     icon: "heroicons:building-office-2",
   },
+  FreeTime: {
+    bg: "#f0fdfa",
+    border: "#99f6e4",
+    text: "#0d9488",
+    iconBg: "#ccfbf1",
+    icon: "heroicons:clock",
+  },
+  Other: {
+    bg: "#f8fafc",
+    border: "#e2e8f0",
+    text: "#64748b",
+    iconBg: "#f1f5f9",
+    icon: "heroicons:information-circle",
+  },
 };
 
 const DEFAULT_CONFIG = {
-  bg: "#fef9f0",
-  border: "#fde8c4",
-  text: "#c47c18",
-  iconBg: "#fef3e0",
-  icon: "heroicons:star",
+  bg: "#f8fafc",
+  border: "#e2e8f0",
+  text: "#64748b",
+  iconBg: "#f1f5f9",
+  icon: "heroicons:information-circle",
 };
 
 export function ActivityItem({ activity }: ActivityItemProps) {
@@ -105,10 +194,14 @@ export function ActivityItem({ activity }: ActivityItemProps) {
   const endTime = formatTimeLabel(activity.endTime);
   const timeStr = [startTime, endTime].filter(Boolean).join(" – ");
 
-  const activityTypeKey = activity.activityType ?? "";
-  const activityTypeLabel =
-    ActivityTypeMap[activityTypeKey] ?? t("landing.tourDetail.activity");
-  const config = ACTIVITY_TYPE_CONFIG[activityTypeKey] ?? DEFAULT_CONFIG;
+  const activityTypeRaw = activity.activityType ?? "";
+  const canonicalType = CANONICAL_ACTIVITY_TYPES[activityTypeRaw] || "";
+  const typeIndex = ACTIVITY_TYPE_KEYS[canonicalType] || "";
+
+  const activityTypeLabel = typeIndex 
+    ? t(`tourAdmin.activityTypes.${typeIndex}`) 
+    : t("landing.tourDetail.activity");
+  const config = ACTIVITY_TYPE_CONFIG[canonicalType] ?? DEFAULT_CONFIG;
 
   return (
     <div

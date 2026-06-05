@@ -15,11 +15,11 @@ export function StatusOverlay({ status, label }: StatusOverlayProps) {
   let colorClasses = "bg-stone-50 text-stone-600 border-stone-200/50";
   let iconColor = "text-stone-500";
 
-  if (normalizedStatus.includes("confirmed") || normalizedStatus.includes("approved")) {
+  if (normalizedStatus.includes("confirmed") || normalizedStatus.includes("approved") || normalizedStatus.includes("paid")) {
     StatusIcon = CheckCircle;
     colorClasses = "bg-emerald-50/90 text-emerald-700 border-emerald-500/20 shadow-[0_2px_8px_rgba(16,185,129,0.04)]";
     iconColor = "text-emerald-600";
-  } else if (normalizedStatus.includes("completed")) {
+  } else if (normalizedStatus.includes("completed") || normalizedStatus.includes("deposited")) {
     StatusIcon = CheckCircle;
     colorClasses = "bg-blue-50/90 text-blue-700 border-blue-500/20 shadow-[0_2px_8px_rgba(59,130,246,0.04)]";
     iconColor = "text-blue-600";

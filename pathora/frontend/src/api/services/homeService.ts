@@ -43,6 +43,7 @@ const normalizePublicInstance = (
   currentParticipation: item.currentParticipation ?? 0,
   maxParticipation: item.maxParticipation ?? 0,
   status: normalizeStatus(item.status),
+  confirmationDeadline: item.confirmationDeadline ?? null,
   registeredParticipants: item.currentParticipation ?? 0,
 });
 
@@ -184,5 +185,13 @@ export const homeService = {
     );
     const result = extractResult<TourInstanceDto>(response.data);
     return result ? normalizePublicInstanceDetail(result) : null;
+  },
+
+  subscribeNewsletter: async (email: string) => {
+    const response = await api.post<ServiceResponse<unknown>>(
+      API_ENDPOINTS.PUBLIC_HOME.SUBSCRIBE_NEWSLETTER,
+      { email },
+    );
+    return extractResult(response.data);
   },
 };

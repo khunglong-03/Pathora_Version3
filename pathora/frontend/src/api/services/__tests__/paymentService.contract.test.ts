@@ -68,6 +68,40 @@ describe("paymentService contract", () => {
     });
   });
 
+  it("maps pay-remaining transaction type to backend enum value 5", async () => {
+    const payload: CreateTransactionPayload = {
+      bookingId: "booking-remaining",
+      type: "PayRemain",
+      amount: 500000,
+      paymentMethod: "BankTransfer",
+      paymentNote: "Remaining balance for Da Nang Tour",
+      createdBy: "customer@pathora.vn",
+    };
+
+    const transaction: PaymentTransaction = {
+      id: "tx-remaining",
+      transactionCode: "PAY-REMAINING",
+      bookingId: "booking-remaining",
+      type: "PayRemain",
+      status: "Pending",
+      amount: 500000,
+      paymentMethod: "BankTransfer",
+      createdAt: "2026-04-19T10:00:00Z",
+    };
+
+    vi.mocked(api.post).mockResolvedValue({
+      data: { result: transaction },
+    } as never);
+
+    await paymentService.createTransaction(payload);
+
+    expect(api.post).toHaveBeenCalledWith(API_ENDPOINTS.PAYMENT.CREATE_TRANSACTION, {
+      ...payload,
+      type: 5,
+      paymentMethod: 2,
+    });
+  });
+
   it("loads transaction details from payment endpoint", async () => {
     const transaction: PaymentTransaction = {
       id: "tx-002",

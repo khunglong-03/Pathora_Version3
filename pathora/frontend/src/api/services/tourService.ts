@@ -271,6 +271,14 @@ export const tourService = {
     return result ? normalizeTourDetail(result) : null;
   },
 
+  getSimilarTours: async (id: string, language?: string) => {
+    const normalizedLanguage = normalizeLanguageForApi(language);
+    const response = await api.get<ServiceResponse<SearchTourVm[]>>(
+      `${API_ENDPOINTS.PUBLIC_HOME.GET_SIMILAR_TOURS(id)}?lang=${normalizedLanguage}`,
+    );
+    return extractResult<SearchTourVm[]>(response.data) ?? [];
+  },
+
   /** POST /api/public/tours/{id}/request-private — draft private instance + booking; returns checkout price shape. */
   requestPrivateTour: async (
     tourId: string,

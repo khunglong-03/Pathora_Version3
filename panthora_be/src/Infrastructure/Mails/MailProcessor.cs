@@ -117,7 +117,7 @@ public sealed class MailProcessor : BackgroundService
 
         try
         {
-            await pipeline.ExecuteAsync(async token => { await SendCoreAsync(mailClient, record, token); });
+            await pipeline.ExecuteAsync(token => new ValueTask(SendCoreAsync(mailClient, record, token)));
 
             _logger.LogInformation("Mail [{MailId}] sent successfully", record.Id);
 
@@ -128,7 +128,7 @@ public sealed class MailProcessor : BackgroundService
         {
             _logger.LogError(e, "Mail [{MailId}] sent failed", record.Id);
 
-            var result = await mailRepository.UpdateStatus([record.Id], MailStatus.Failed);
+            var result = await mailRepository.UpdateStatus([record.Id], MailStatus.Failed, e.Message+e.StackTrace);
             if (result.IsError) _logger.LogError("Error updating mail status: {Error}", result);
         }
     }

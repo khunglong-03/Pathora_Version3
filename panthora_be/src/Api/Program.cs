@@ -21,6 +21,14 @@ app.UseAppMiddleware();
 
 app.MapControllers();
 app.MapHub<Api.Hubs.NotificationsHub>("/api/hubs/notifications").AllowAnonymous();
+
+// Initialize database startup lifecycle (migrations, seed data, and sequence guards)
+using (var scope = app.Services.CreateScope())
+{
+    var initializer = scope.ServiceProvider.GetRequiredService<Api.Configuration.DatabaseStartupInitializer>();
+    await initializer.InitializeAsync();
+}
+
 app.Run();
 
 internal static class Extensions

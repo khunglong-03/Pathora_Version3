@@ -3,6 +3,7 @@ using Application.Common.Constant;
 using Application.Common.Pricing;
 using Application.Options;
 using Domain.Common.Repositories;
+using Domain.Mails;
 using Microsoft.Extensions.Options;
 using Domain.Entities;
 using Domain.Enums;
@@ -61,6 +62,8 @@ public class PaymentService : IPaymentService
     private readonly IBookingPriceCalculator _priceCalculator;
     private readonly IPricingPolicyRepository _pricingPolicyRepository;
     private readonly ITaxConfigRepository _taxConfigRepository;
+    private readonly IMailRepository _mailRepository;
+    private readonly IConfiguration _configuration;
 
     public PaymentService(
         IPaymentTransactionRepository transactionRepository,
@@ -76,7 +79,8 @@ public class PaymentService : IPaymentService
         IPostPaymentVisaGateService postPaymentVisaGateService,
         IBookingPriceCalculator priceCalculator,
         IPricingPolicyRepository pricingPolicyRepository,
-        ITaxConfigRepository taxConfigRepository)
+        ITaxConfigRepository taxConfigRepository,
+        IMailRepository mailRepository)
     {
         _transactionRepository = transactionRepository;
         _bookingRepository = bookingRepository;
@@ -91,6 +95,8 @@ public class PaymentService : IPaymentService
         _priceCalculator = priceCalculator;
         _pricingPolicyRepository = pricingPolicyRepository;
         _taxConfigRepository = taxConfigRepository;
+        _mailRepository = mailRepository;
+        _configuration = configuration;
         _sepayAccountNumber = NormalizeConfigValue(configuration["Payment:Account"]);
         _sepayBankCode = NormalizeConfigValue(configuration["Payment:Bank"]);
         _sepayQrBaseUrl = NormalizeConfigValue(configuration["Payment:QrBaseUrl"]);
@@ -142,8 +148,8 @@ public class PaymentService : IPaymentService
         string createdBy,
         int? expirationMinutes = null)
     {
-        // Fetch the booking to get tour instance
-        var booking = await _bookingRepository.GetByIdAsync(bookingId);
+        // Fetch the booking with payment transactions (needed for PayRemain/VisaServiceFee amount calc)
+        var booking = await _bookingRepository.GetByIdWithDetailsAsync(bookingId);
         if (booking == null)
         {
             return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
@@ -168,6 +174,32 @@ public class PaymentService : IPaymentService
         if (type == TransactionType.Deposit)
         {
             amount = booking.TotalPrice * 0.3m; // 30% deposit
+        }
+
+        if (type == TransactionType.PayRemain)
+        {
+            // Tính số tiền còn lại dựa trên tất cả giao dịch đã hoàn thành,
+            // trừ Refund (Refund không phải là tiền đã nhận được từ khách)
+            var paidAmount = booking.PaymentTransactions
+                .Where(t => t.Status == TransactionStatus.Completed
+                         && t.Type != TransactionType.Refund)
+                .Sum(t => t.PaidAmount ?? t.Amount);
+            amount = booking.TotalPrice - paidAmount;
+        }
+
+        if (type == TransactionType.VisaServiceFee)
+        {
+            // Tính phí visa chưa thanh toán: VisaServiceFeeTotal trừ các transaction VisaServiceFee đã hoàn thành
+            var paidVisaFee = booking.PaymentTransactions
+                .Where(t => t.Type == TransactionType.VisaServiceFee
+                         && t.Status == TransactionStatus.Completed)
+                .Sum(t => t.PaidAmount ?? t.Amount);
+            amount = booking.VisaServiceFeeTotal - paidVisaFee;
+        }
+
+        if (amount <= 0)
+        {
+            return Error.Failure(ErrorConstants.Payment.InvalidAmountCode, "Calculated payment amount must be greater than zero.");
         }
         // VND is a zero-decimal currency — ensure whole-number amount for QR, DB, and webhook matching
         var roundedAmount = Math.Round(amount, 0, MidpointRounding.ToEven);
@@ -421,6 +453,12 @@ public class PaymentService : IPaymentService
             throw;
         }
 
+        // Queue payment confirmation email (fire-and-forget — never fail the payment flow)
+        if (isBookingSuccess && bookingForCredit != null)
+        {
+            await TryQueuePaymentConfirmedMailAsync(bookingForCredit, transaction);
+        }
+
         if (updateResult.ShouldTriggerAssignments)
         {
             var assignmentBooking = bookingForCredit ?? booking;
@@ -618,6 +656,25 @@ public class PaymentService : IPaymentService
                 }
                 break;
 
+            case TransactionType.PayRemain:
+                // Trả phần còn lại của public tour đã deposit → đánh dấu Paid
+                if (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Completed)
+                {
+                    var oldStatus = booking.Status;
+                    booking.MarkPaid("SYSTEM");
+                    _logger.LogInformation(
+                        "Booking {BookingId} status {Old} → {New} via PayRemain transaction {TransactionCode}",
+                        booking.Id, oldStatus, BookingStatus.Paid, transaction.TransactionCode);
+
+                    // Kiểm tra visa gate sau khi trả đủ
+                    if (tourInstance.InstanceType == TourType.Private
+                        && tourInstance.Status == TourInstanceStatus.Confirmed)
+                    {
+                        shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
+                    }
+                }
+                break;
+
             case TransactionType.VisaServiceFee:
                 // Phí visa: chỉ đánh dấu VisaApplication fee paid, KHÔNG đổi BookingStatus
                 var marked = await _postPaymentVisaGateService.MarkVisaServiceFeePaidAsync(transaction.Id);
@@ -782,5 +839,81 @@ public class PaymentService : IPaymentService
         }
 
         return trimmed;
+    }
+
+    /// <summary>
+    /// Queue email xác nhận thanh toán cho khách hàng.
+    /// Fire-and-forget: lỗi chỉ được log, không fail luồng thanh toán.
+    /// </summary>
+    private async Task TryQueuePaymentConfirmedMailAsync(
+        BookingEntity booking,
+        PaymentTransactionEntity transaction)
+    {
+        try
+        {
+            var email = booking.CustomerEmail;
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                _logger.LogDebug(
+                    "Skip payment confirmation email for booking {BookingId}: no customer email.",
+                    booking.Id);
+                return;
+            }
+
+            var tourName = booking.TourInstance?.Tour?.TourName
+                ?? booking.TourInstance?.Title
+                ?? "Tour của bạn";
+
+            var departureDate = booking.TourInstance?.StartDate
+                .ToOffset(TimeSpan.FromHours(7))
+                .ToString("dd/MM/yyyy HH:mm") ?? "—";
+
+            var paymentType = transaction.Type switch
+            {
+                TransactionType.Deposit => "Đặt cọc",
+                TransactionType.FullPayment => "Toàn phần",
+                _ => transaction.Type.ToString()
+            };
+
+            var paidAmount = (transaction.PaidAmount ?? transaction.Amount)
+                .ToString("N0") + " VNĐ";
+
+            var bookingCode = "PATH-" + booking.CreatedOnUtc.ToString("yyyy-MMdd-HHmm");
+            var frontendBase = _configuration["AppConfig:FrontendBaseUrl"] ?? _frontendBaseUrl;
+            var bookingDetailLink = $"{frontendBase}/bookings/{booking.Id}";
+            var hotline = _configuration["Pathora:HotlinePhone"] ?? "1900-XXXX";
+
+            var mailDto = new Domain.Mails.BookingPaymentConfirmedMail(
+                CustomerName: booking.CustomerName ?? "Quý khách",
+                BookingCode: bookingCode,
+                TourName: tourName,
+                DepartureDate: departureDate,
+                PaymentType: paymentType,
+                PaidAmount: paidAmount,
+                BookingDetailLink: bookingDetailLink,
+                HotlinePhone: hotline);
+
+            var mailEntity = mailDto.ToMail(email);
+            var result = await _mailRepository.Add(mailEntity, CancellationToken.None);
+
+            if (result.IsError)
+            {
+                _logger.LogWarning(
+                    "Failed to queue payment confirmation email for booking {BookingId}: {Error}",
+                    booking.Id, result.FirstError.Description);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Payment confirmation email queued for booking {BookingId} ({PaymentType}, {Amount}).",
+                    booking.Id, paymentType, paidAmount);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Exception while queueing payment confirmation email for booking {BookingId}. Payment flow unaffected.",
+                booking.Id);
+        }
     }
 }

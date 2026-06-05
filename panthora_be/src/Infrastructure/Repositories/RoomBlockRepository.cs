@@ -127,4 +127,16 @@ public class RoomBlockRepository(AppDbContext context)
             )",
             cancellationToken);
     }
+
+    public async Task DeleteByBookingAsync(Guid bookingId, CancellationToken cancellationToken = default)
+    {
+        var blocks = await _dbSet
+            .Where(x => x.BookingAccommodationDetailId != null && _context.BookingAccommodationDetails
+                .Any(ad => ad.Id == x.BookingAccommodationDetailId && _context.BookingActivityReservations
+                    .Any(ar => ar.Id == ad.BookingActivityReservationId && ar.BookingId == bookingId)))
+            .ToListAsync(cancellationToken);
+
+        _dbSet.RemoveRange(blocks);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

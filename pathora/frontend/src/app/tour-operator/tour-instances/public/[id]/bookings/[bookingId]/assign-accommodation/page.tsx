@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { featureFlags } from "@/configs/featureFlags";
-import BookingAccommodationAssignmentPage from "@/features/dashboard/components/BookingAccommodationAssignmentPage";
+import HotelTourAssignmentPage from "@/features/dashboard/components/HotelTourAssignmentPage";
 
 export const metadata: Metadata = {
   title: "Gán Khách Sạn Booking — Tour Public | Tour Operator",
@@ -20,10 +20,10 @@ export default async function BookingAssignAccommodationPage({
   }
 
   return (
-    <BookingAccommodationAssignmentPage
+    <HotelTourAssignmentPage
       instanceId={id}
-      bookingId={bookingId}
-      backUrl={`/tour-operator/tour-instances/public/${id}`}
+      scopedBookingId={bookingId}
+      backUrl={`/tour-operator/tour-instances/public/${id}/bookings/${bookingId}`}
     />
   );
 }

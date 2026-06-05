@@ -14,6 +14,8 @@ public static class BookingManagementEndpoint
     public const string AccommodationDetails = "{id:guid}/accommodation-details";
     public const string AccommodationDetailId = "{id:guid}/accommodation-details/{detailId:guid}";
     public const string Participants = "{id:guid}/participants";
+    public const string ParticipantInfoReview = "{id:guid}/participants/{participantId:guid}/review";
+    public const string ParticipantInfoReviewBulk = "{id:guid}/participants/review-bulk";
     public const string Payables = "{id:guid}/payables";
     public const string ActivityStatuses = "{id:guid}/activity-statuses";
     public const string ActivityStatusDetail = "{id:guid}/activity-statuses/{tourDayId:guid}";

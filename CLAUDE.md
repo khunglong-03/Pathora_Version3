@@ -85,6 +85,10 @@ D:\DoAn\
 > - **PublicApi (`panthora_be/src/PublicApi/ApiPublic`)**: cho các endpoint anonymous (không cần JWT token, ví dụ lấy danh sách tour public, webhook, etc.).
 > - **Api (`panthora_be/src/Api`)**: cho các endpoint nội bộ cần authentication (JWT token, ví dụ `/api/customer/*`, `/api/admin/*`, v.v.).
 > **Migrations:** Chỉ tạo và chạy (dotnet ef database update) migration từ project `Api`! Không chạy auto-migration ở bất kỳ service nào.
+> **Cache Invalidation:** Cache system là **tag-based**. `ExtractTag(cacheKey)` lấy substring TRƯỚC dấu `:` đầu tiên làm tag. Cache key `"Booking:participants:{id}"` được track dưới tag `"Booking"` (qua `CacheKeyTracker`). Để invalidate, `CacheKeysToInvalidate` của command MUST chứa tag đó. KHÔNG dùng full key (sẽ no-op vì tracker lookup `tracker:Booking:participants:{id}` không tồn tại). KHÔNG dùng tag tùy ý không match prefix (`"Admin"`, `"manager"` nếu không có query cùng tag — sẽ dead intent).
+> **Fan-out warning**: invalidate tag `Booking` xóa ~14 keys per booking (participants, passport, visa, activity reservations, accommodation details, transport details, team×4, supplier payables, ...). Acceptable cho correctness; theo dõi cache hit rate nếu trở thành perf concern.
+> **Known anti-pattern**: `ParticipantReviewCommands.cs:25, 218` khai báo cả full key VÀ tag — full key no-op. Defer fix sang change `clean-cache-invalidation-anti-patterns`.
+> **Database Conventions (Sequence Guards):** Các bảng owned-image collection sử dụng identity sequence (`TourInstanceImages`, `TourImages`, `HotelRoomImages`) có nguy cơ bị lệch sequence khi phục hồi database dump hoặc seed dữ liệu thủ công. Hệ thống cấu hình một runtime guard tự động kiểm tra và self-heal (đồng bộ lại sequence bằng `setval()`) trong quá trình bootstrap backend (`DatabaseStartupInitializer`). Khi restore database dump thủ công, cần lưu ý chạy `setval()` để tránh gây cảnh báo (Warning log) lúc khởi động.
 
 > **Runtime Ingress (Docker Compose):**
 > - **Chạy Local / Dev** (`docker compose up -d`): Khởi động toàn bộ stack với các cổng được map trực tiếp ra máy host để phát triển (`localhost:80` / `localhost:8099` cho nginx, `localhost:3003` cho Frontend, và `localhost:8088`/`localhost:8089` cho API).
@@ -141,6 +145,9 @@ dotnet run --project "panthora_be/src/Api/Api.csproj"                    # Chạ
 
 - **`approvalStatusHelper` (`src/utils/approvalStatusHelper.ts`)**: Standardizes the normalization and appearance (colors, icons) of transportation approval statuses.
 - **`SupplierReassignmentModal` (`src/features/dashboard/components/SupplierReassignmentModal.tsx`)**: Reusable modal for reassigning suppliers. Handles backend API calls and re-renders smoothly.
+- **`ParticipantReviewModal` (`src/features/dashboard/components/bookings/ui/ParticipantReviewModal.tsx`)**: Reusable modal for Tour Operators to review passenger details. Enforces role-split logic (only Tour Operators review passenger details, while Managers handle visa review). Features bulk approve command (`BulkApproveParticipantInfoCommand`) with per-row result reporting, status sorting (Rejected first), sticky totals headers, visual feedback for concurrent reviews (409 conflict handling), and robust WCAG AA contrast compliance.
+- **`CustomerAddParticipants` (`src/features/bookings/components/CustomerAddParticipants.tsx`)**: Form for entering booking passenger details. Features client-side image compression running in the background (using `OffscreenCanvas` / `createImageBitmap` on modern browsers, and yielding fallback via `requestIdleCallback` / `setTimeout` on older browsers) to avoid blocking the main thread. Upload progress uses Axios `onUploadProgress` to show `0-100%` and transitions to a `"Đang xử lý..."` state at 100% progress. Files larger than **10MB** are rejected client-side.
+- **`BookingAssignmentLandingPage` (`src/features/dashboard/components/BookingAssignmentLandingPage.tsx`)**: Entry point "Duyệt hành khách" cho TourOperator + badge (token stone/emerald/red theo trạng thái); re-use `ParticipantReviewModal` từ change `tour-operator-review-participant-info` qua `onReviewed` callback split.
 - **`handleApiError` (`src/utils/apiResponse.ts`)**: Extended to localize backend error codes via a sentinel-list pattern (`TOUR_INSTANCE_TRANSPORT_ERROR_CODES`). Do not use raw error messages in `toast`; instead map through `handleApiError` and translate via `t()`.
 - **Bulk Approve Button**: Present in `TransportTourAssignmentPage`. Provides a `BulkApproveConfirmationModal` with inline error localization, `failedState` tracking, and a disabled-state warning list for incomplete drafts.
 - **Tour Operator public instance routes**: public tour detail and per-booking assignment use `/tour-operator/tour-instances/public/[id]`, the landing page `/tour-operator/tour-instances/public/[id]/bookings/[bookingId]`, and sub-routes `/bookings/[bookingId]/assign-accommodation` and `/bookings/[bookingId]/assign-flight-tickets`. The namespace is guarded by `NEXT_PUBLIC_ENABLE_PUBLIC_TOUR_SUB_ROUTES` (default enabled); set it to `false` to roll public row clicks back to the generic `/tour-operator/tour-instances/[id]` fallback.
@@ -234,7 +241,7 @@ This workspace is configured to use **gstack** for all web browsing and design t
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Pathora_Version3** (27302 symbols, 62689 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Pathora_Version3** (28658 symbols, 65951 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

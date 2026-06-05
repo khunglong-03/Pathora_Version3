@@ -20,7 +20,7 @@ public sealed class GetCheckoutPriceQueryHandler(
 {
     public async Task<ErrorOr<CheckoutPriceResponse>> Handle(GetCheckoutPriceQuery request, CancellationToken cancellationToken)
     {
-        var booking = await bookingRepository.GetByIdAsync(request.BookingId);
+        var booking = await bookingRepository.GetByIdWithDetailsAsync(request.BookingId, cancellationToken);
         if (booking == null)
             return Error.NotFound("Booking not found");
 
@@ -78,8 +78,25 @@ public sealed class GetCheckoutPriceQueryHandler(
             depositPercentage = 100m;
         }
 
+        // When deposit is not full-pay, check if any deposit transaction has been completed.
+        // If so, compute remainingBalance from actual paid amount instead of policy percentage.
+        decimal? overrideRemainingBalance = null;
+        if (!booking.IsFullPay && booking.PaymentTransactions != null)
+        {
+            var paidDepositAmount = booking.PaymentTransactions
+                .Where(t => t.Type == Domain.Enums.TransactionType.Deposit
+                         && t.Status == Domain.Enums.TransactionStatus.Completed)
+                .Sum(t => t.PaidAmount ?? t.Amount);
+
+            if (paidDepositAmount > 0)
+            {
+                var remaining = totalPrice - paidDepositAmount;
+                overrideRemainingBalance = remaining > 0 ? remaining : 0m;
+            }
+        }
+
         var depositAmount = Math.Round(totalPrice * depositPercentage / 100m, 0, MidpointRounding.ToEven);
-        var remainingBalance = totalPrice - depositAmount;
+        var remainingBalance = overrideRemainingBalance ?? (totalPrice - depositAmount);
 
         return new CheckoutPriceResponse(
             booking.Id,

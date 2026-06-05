@@ -1,6 +1,7 @@
 using ApiPublic.Controller.BaseController;
 using ApiPublic.Endpoint;
 using Application.Features.Public.Queries;
+using Application.Features.Public.Commands;
 using Contracts.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -105,6 +106,13 @@ public class PublicHomeController : BaseApiController
     public async Task<IActionResult> GetContinents()
     {
         var result = await Sender.Send(new GetContinentsQuery());
+        return HandleResult(result);
+    }
+
+    [HttpPost("newsletter/subscribe")]
+    public async Task<IActionResult> SubscribeNewsletter([FromBody] SubscribeNewsletterCommand command)
+    {
+        var result = await Sender.Send(command);
         return HandleResult(result);
     }
 }

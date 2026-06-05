@@ -21,4 +21,5 @@ public interface IRoomBlockRepository : IRepository<RoomBlockEntity>
     /// the given tour instance. Used by tour cancel / delete cleanup (ER-3).
     /// </summary>
     Task DeleteByTourInstanceAsync(Guid tourInstanceId, CancellationToken cancellationToken = default);
+    Task DeleteByBookingAsync(Guid bookingId, CancellationToken cancellationToken = default);
 }
