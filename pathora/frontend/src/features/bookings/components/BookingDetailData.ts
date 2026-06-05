@@ -59,10 +59,7 @@ export interface BookingDetail {
   isVisaFeePending?: boolean;
   cancellationRequest?: any;
   cancellationRequests?: any[];
-  tickets?: CustomerTicketDto[];
-  roomAssignments?: CustomerRoomAssignmentDto[];
-  dayStatuses?: CustomerDayStatusDto[];
-  ticketImages?: CustomerTicketImageDto[];
+  pendingTransactions?: import("@/types/booking").BookingPendingTransaction[];
 }
 
 /* ── Status config ─────────────────────────────────────────── */

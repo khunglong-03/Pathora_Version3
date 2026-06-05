@@ -266,28 +266,29 @@ export interface BookingDetailResponse {
   activityStatuses?: TourDayActivityStatusDto[];
   cancellationRequest?: BookingCancellationRequestSummaryDto;
   cancellationRequests: BookingCancellationRequestSummaryDto[];
-  refundStatus?: RefundStatusString;
-  refundOutstandingAmount?: number | null;
-  refundContactedAt?: string | null;
-  refundCompletedAt?: string | null;
+  /** Customer booking detail — camelCase from BookingDetailDto */
+  id?: string;
   tourName?: string;
   reference?: string;
   tier?: string;
+  status?: string;
+  tourStatus?: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
   location?: string;
   duration?: string;
   bookingDate?: string;
   departureDate?: string;
   returnDate?: string;
   pricePerPerson?: number;
+  totalAmount?: number;
+  paidAmount?: number;
+  remainingBalance?: number;
   image?: string;
   description?: string;
   highlights?: string[];
-  importantInfo?: Record<string, unknown>[];
+  importantInfo?: string[];
   pendingTransactionCode?: string;
-  tickets?: CustomerTicketDto[];
-  roomAssignments?: CustomerRoomAssignmentDto[];
-  dayStatuses?: CustomerDayStatusDto[];
-  ticketImages?: CustomerTicketImageDto[];
 }
 
 export interface CustomerTicketDto {
@@ -396,7 +397,9 @@ export interface VisaApplicationSummaryDto {
   visaFileUrl: string | null;
   isSystemAssisted: boolean;
   serviceFee: number | null;
-  serviceFeePaidAt: string | null;
+  /** Backend sends `serviceFeePaid` (bool); legacy alias `serviceFeePaidAt` for display */
+  serviceFeePaid?: boolean;
+  serviceFeePaidAt?: string | null;
   hasPendingServiceFee: boolean;
   category: string | null;
   format: string | null;
@@ -457,6 +460,7 @@ export interface UpdateVisaApplicationPayload {
 }
 
 export interface RequestVisaSupportResponse {
+  applicationId: string;
   serviceFeeQuoted: boolean;
   message: string;
 }

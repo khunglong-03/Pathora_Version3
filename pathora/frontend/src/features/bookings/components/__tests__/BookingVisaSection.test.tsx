@@ -196,12 +196,12 @@ describe("BookingVisaSection", () => {
     expect(screen.getByText("/ 1")).toBeInTheDocument();
   });
 
-  it("handles support request", async () => {
+    it("handles support request", async () => {
     window.confirm = vi.fn().mockReturnValue(true);
     requestVisaSupportMock.mockResolvedValue({
-      serviceFeeQuoted: true,
-      message: "Support fee quoted successfully.",
-      transactionId: "tx-1",
+      applicationId: "app-1",
+      serviceFeeQuoted: false,
+      message: "Support request submitted successfully.",
     });
     
     getVisaRequirementsMock.mockResolvedValue({
@@ -229,7 +229,7 @@ describe("BookingVisaSection", () => {
 
     await waitFor(() => {
       expect(requestVisaSupportMock).toHaveBeenCalledWith("bk-1", "p-1");
-      expect(toast.info).toHaveBeenCalledWith("Support fee quoted successfully.");
+      expect(toast.success).toHaveBeenCalledWith("Support request submitted successfully.");
     });
   });
 });

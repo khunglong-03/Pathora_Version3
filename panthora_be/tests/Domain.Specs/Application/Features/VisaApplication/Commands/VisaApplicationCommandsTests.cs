@@ -15,7 +15,7 @@ public class VisaApplicationCommandsTests
     private readonly IVisaApplicationRepository _visaRepoMock = Substitute.For<IVisaApplicationRepository>();
     private readonly IVisaRepository _visaEntityRepoMock = Substitute.For<IVisaRepository>();
     private readonly IBookingRepository _bookingRepoMock = Substitute.For<IBookingRepository>();
-    private readonly IPaymentTransactionRepository _transactionRepoMock = Substitute.For<IPaymentTransactionRepository>();
+    private readonly IPaymentService _paymentServiceMock = Substitute.For<IPaymentService>();
     private readonly ICurrentUser _currentUserMock = Substitute.For<ICurrentUser>();
     private readonly IPostPaymentVisaGateService _visaGateMock = Substitute.For<IPostPaymentVisaGateService>();
     private readonly global::Domain.UnitOfWork.IUnitOfWork _uowMock = Substitute.For<global::Domain.UnitOfWork.IUnitOfWork>();
@@ -70,8 +70,8 @@ public class VisaApplicationCommandsTests
     [Fact]
     public async Task QuoteFee_WhenNotSystemAssisted_ShouldReturnValidation()
     {
-        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
-
+        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _paymentServiceMock, _currentUserMock, _uowMock);
+        
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
         _currentUserMock.IsInRole(global::Application.Common.Constant.RoleConstants.Admin).Returns(true);
@@ -102,8 +102,8 @@ public class VisaApplicationCommandsTests
     [Fact]
     public async Task QuoteFee_WhenAlreadyQuoted_ShouldReturnExistingTransactionId()
     {
-        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
-
+        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _paymentServiceMock, _currentUserMock, _uowMock);
+        
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
         _currentUserMock.IsInRole(global::Application.Common.Constant.RoleConstants.Admin).Returns(true);
@@ -133,6 +133,6 @@ public class VisaApplicationCommandsTests
         result.Value.Should().Be(transactionId);
 
         // Ensure no new transaction is created
-        await _transactionRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!);
+        await _paymentServiceMock.DidNotReceiveWithAnyArgs().CreatePaymentTransactionAsync(default, default, default, default, default!, default!, default);
     }
 }

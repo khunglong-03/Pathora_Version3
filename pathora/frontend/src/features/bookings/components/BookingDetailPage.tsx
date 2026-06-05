@@ -23,20 +23,18 @@ import { BookingNeedHelp } from "./BookingNeedHelp";
 
 import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
 import { CancellationRequestTimeline } from "./CancellationRequestTimeline";
-import { BookingRefundSection } from "./BookingRefundSection";
-import { useBookingStatusListener } from "@/hooks/useBookingStatusListener";
+import { BookingDetail } from "./BookingDetailData";
+import { mapBookingDetailResponse } from "../utils/bookingDetailMapper";
 
-import { NormalizedTourInstanceDto } from "@/types/tour";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
-import type { BookingDetailResponse } from "@/types/booking";
-import type { BookingDetail } from "./BookingDetailData";
+import { NormalizedTourInstanceDto } from "@/types/tour";
 
 export function BookingDetailPage() {
   const { t } = useTranslation();
   const params = useParams();
   const bookingId = params?.id as string;
   
-  const [booking, setBooking] = useState<BookingDetailResponse | null>(null);
+  const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [tourInstance, setTourInstance] = useState<NormalizedTourInstanceDto | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +69,7 @@ export function BookingDetailPage() {
           const data = await bookingService.getBookingDetail(bookingId);
           if (cancelled) return;
           if (data) {
-            setBooking(data);
+            setBooking(mapBookingDetailResponse(data));
             if (data.tourInstanceId) {
               try {
                 const instanceData = await tourInstanceService.getInstanceDetail(data.tourInstanceId);
@@ -106,6 +104,15 @@ export function BookingDetailPage() {
     return () => { cancelled = true; };
   }, [bookingId]);
 
+  const fetchBookingWithoutLoading = async () => {
+    try {
+      const data = await bookingService.getBookingDetail(bookingId);
+      if (data) setBooking(mapBookingDetailResponse(data));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     if (loading || !booking) return;
     if (typeof window === "undefined") return;
@@ -126,67 +133,9 @@ export function BookingDetailPage() {
 
   if (!booking) return null;
 
-  let mappedStatusStr = booking.status?.toLowerCase() || "pending";
-  if (mappedStatusStr === "pendingapproval") mappedStatusStr = "pending_approval";
-  if (mappedStatusStr === "pendingcancellation") mappedStatusStr = "pending_cancellation";
+  const mappedBooking = booking;
 
-  // Private tour chưa duyệt xong (chờ manager hoặc chờ khách duyệt lịch trình) → badge "Chờ phê duyệt".
-  const tourPendingApprovalStates = ["Draft", "PendingManagerReview", "PendingAdjustment", "PendingCustomerApproval"];
-  const actualStatus = (mappedStatusStr === "pending" && tourPendingApprovalStates.includes(booking.tourStatus))
-    ? "pending_approval"
-    : mappedStatusStr;
-  const resolvedBookingId = booking.id ?? booking.bookingId ?? bookingId;
-
-  // Bridge BookingDetailResponse → BookingDetail for existing child components
-  const mappedBooking: BookingDetail = {
-    id: resolvedBookingId,
-    tourName: booking.tourName ?? booking.description ?? "Unknown Tour",
-    reference: booking.reference ?? `PATH-${resolvedBookingId.slice(0, 8)}`,
-    tier: "standard",
-    status: actualStatus as any,
-    paymentStatus: (booking.paymentStatus as any) ?? "unpaid",
-    paymentMethod: (booking.paymentMethod as any) ?? "bank_transfer",
-    location: "",
-    duration: "",
-    bookingDate: booking.bookingDate ?? "",
-    departureDate: booking.departureDate ?? "",
-    returnDate: booking.returnDate ?? "",
-    adults: booking.adults ?? 0,
-    children: booking.children ?? 0,
-    infants: booking.infants ?? 0,
-    pricePerPerson: booking.adultPrice ?? 0,
-    adultPrice: booking.adultPrice,
-    childPrice: booking.childPrice,
-    infantPrice: booking.infantPrice,
-    adultSubtotal: booking.adultSubtotal,
-    childSubtotal: booking.childSubtotal,
-    infantSubtotal: booking.infantSubtotal,
-    subtotal: booking.subtotal,
-    taxRate: booking.taxRate,
-    taxAmount: booking.taxAmount,
-    totalAmount: booking.totalAmount,
-    paidAmount: booking.paidAmount,
-    remainingBalance: booking.remainingBalance,
-    image: booking.image || "/assets/images/tours/placeholder.png",
-    description: booking.description ?? "",
-    highlights: booking.highlights ?? [],
-    importantInfo: (booking.importantInfo as unknown as string[]) ?? [],
-    pendingTransactionCode: booking.pendingTransactionCode,
-    tourInstanceId: booking.tourInstanceId,
-    isVisaRequired: booking.isVisaRequired,
-    tourStatus: booking.tourStatus,
-    bookingType: booking.bookingType,
-    visaServiceFeeTotal: booking.visaServiceFeeTotal,
-    isVisaFeePending: booking.isVisaFeePending,
-    cancellationRequest: booking.cancellationRequest,
-    cancellationRequests: booking.cancellationRequests,
-    tickets: booking.tickets ?? [],
-    roomAssignments: booking.roomAssignments ?? [],
-    dayStatuses: booking.dayStatuses ?? [],
-    ticketImages: booking.ticketImages ?? [],
-  };
-
-  const { totalGuests, showPayRemaining, showPayVisa, showVisaSection, showCancelBooking } =
+  const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =
     getBookingDerivedState(mappedBooking);
 
   const labelFns = {
@@ -217,7 +166,10 @@ export function BookingDetailPage() {
               <GuestDetailsCard booking={mappedBooking} totalGuests={totalGuests} />
               {showVisaSection && (
                 <div id="visa" className="scroll-mt-24">
-                  <BookingVisaSection bookingId={mappedBooking.id} />
+                  <BookingVisaSection
+                    bookingId={mappedBooking.id}
+                    pendingTransactions={mappedBooking.pendingTransactions}
+                  />
                 </div>
               )}
               <BookingOverviewTab
@@ -238,6 +190,7 @@ export function BookingDetailPage() {
                   onSuccess={fetchBookingWithoutLoading}
                 />
               )}
+              <div id="pay" className="scroll-mt-24">
               <BookingPaymentSummary
                 booking={mappedBooking}
                 totalGuests={totalGuests}
@@ -247,6 +200,7 @@ export function BookingDetailPage() {
                 getPaymentStatusLabel={labelFns.getPaymentStatusLabel}
                 onCancellationChanged={fetchBookingWithoutLoading}
               />
+              </div>
               <CancellationRequestTimeline requests={mappedBooking.cancellationRequests || []} />
               <BookingRefundSection
                 bookingId={mappedBooking.id}

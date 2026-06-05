@@ -14,6 +14,7 @@ export interface MyBookingDto {
   paymentStatus: string;
   totalPrice: number;
   paidAmount: number;
+  remainingBalance?: number;
   startDate: string;
   endDate: string;
   location: string;
