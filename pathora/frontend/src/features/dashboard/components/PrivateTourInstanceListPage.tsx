@@ -85,13 +85,14 @@ export function PrivateTourInstanceListPage() {
 
   /* ── Statuses for ticket-assignment workflow ─────────────────
      Only show tours where payment has been confirmed:
-     - confirmed   : customer paid / manager confirmed
-     - available   : ready to depart
-     - inprogress  : tour currently happening
+     - confirmed    : customer paid / manager confirmed
+     - available    : ready to depart
+     - inprogress   : tour currently happening
+     - pendingvisa  : awaiting visa processing
      pendingcustomerapproval is intentionally excluded because
      the customer hasn't paid a deposit at that stage yet.
      ─────────────────────────────────────────────────────────── */
-  const TICKET_ASSIGNMENT_STATUSES = ["confirmed", "available", "inprogress"];
+  const TICKET_ASSIGNMENT_STATUSES = ["confirmed", "available", "inprogress", "pendingvisa"];
 
   const resolveStatuses = (filter: string): string[] | undefined => {
     switch (filter) {
@@ -103,6 +104,8 @@ export function PrivateTourInstanceListPage() {
         return ["available"];
       case "inprogress":
         return ["inprogress"];
+      case "pendingvisa":
+        return ["pendingvisa"];
       default:
         return TICKET_ASSIGNMENT_STATUSES;
     }
@@ -237,6 +240,7 @@ export function PrivateTourInstanceListPage() {
               <option value="confirmed">Đã xác nhận</option>
               <option value="available">Sẵn sàng</option>
               <option value="inprogress">Đang diễn ra</option>
+              <option value="pendingvisa">Chờ xin Visa</option>
             </select>
             <Icon
               icon="heroicons:funnel"
