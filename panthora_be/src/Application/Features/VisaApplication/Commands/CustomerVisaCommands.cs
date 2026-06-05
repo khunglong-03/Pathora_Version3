@@ -1,6 +1,8 @@
 using Application.Common;
 using Application.Common.Interfaces;
 using Contracts.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Application.Common.Constant;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -426,9 +428,20 @@ public sealed class UpdateCustomerPassportCommandHandler(
     IBookingRepository bookingRepository,
     IPassportRepository passportRepository,
     ICurrentUser currentUser,
-    Domain.UnitOfWork.IUnitOfWork unitOfWork)
+    Domain.UnitOfWork.IUnitOfWork unitOfWork,
+    ILanguageContext? languageContext = null)
     : IRequestHandler<UpdateCustomerPassportCommand, ErrorOr<Guid>>
 {
+    private static string? NormalizePassportNumber(string? raw)
+        => string.IsNullOrWhiteSpace(raw) ? null : raw.Trim().ToUpperInvariant();
+
+    private static string? GetExceptionProperty(object? obj, string propertyName)
+    {
+        if (obj == null) return null;
+        var prop = obj.GetType().GetProperty(propertyName);
+        return prop?.GetValue(obj) as string;
+    }
+
     public async Task<ErrorOr<Guid>> Handle(
         UpdateCustomerPassportCommand request,
         CancellationToken cancellationToken)
@@ -437,6 +450,7 @@ public sealed class UpdateCustomerPassportCommandHandler(
         if (currentUserId == null)
             return Error.Unauthorized("User.Unauthorized", "User is not authenticated.");
 
+        var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         ErrorOr<Guid> result = default;
 
         try
@@ -476,12 +490,25 @@ public sealed class UpdateCustomerPassportCommandHandler(
                     return;
                 }
 
+                var normalizedNumber = NormalizePassportNumber(request.PassportNumber);
+                if (normalizedNumber != null)
+                {
+                    var conflict = await passportRepository.GetByPassportNumberAsync(normalizedNumber, cancellationToken);
+                    if (conflict != null && conflict.BookingParticipantId != request.ParticipantId)
+                    {
+                        result = Error.Conflict(
+                            ErrorConstants.Passport.DuplicateNumberCode,
+                            ErrorConstants.Passport.DuplicateNumberDescription.Resolve(lang));
+                        return;
+                    }
+                }
+
                 var existingPassport = await passportRepository.GetByBookingParticipantIdAsync(request.ParticipantId, cancellationToken);
                 bool isPassportChanged = false;
 
                 if (existingPassport != null)
                 {
-                    isPassportChanged = existingPassport.PassportNumber != request.PassportNumber
+                    isPassportChanged = existingPassport.PassportNumber != normalizedNumber
                         || existingPassport.Nationality != request.Nationality
                         || existingPassport.IssuedAt != request.IssuedAt?.ToUniversalTime()
                         || existingPassport.ExpiresAt != request.ExpiresAt?.ToUniversalTime()
@@ -490,7 +517,7 @@ public sealed class UpdateCustomerPassportCommandHandler(
                     if (isPassportChanged)
                     {
                         existingPassport.Update(
-                            request.PassportNumber,
+                            normalizedNumber,
                             currentUserId.Value.ToString(),
                             request.Nationality,
                             request.IssuedAt?.ToUniversalTime(),
@@ -506,7 +533,7 @@ public sealed class UpdateCustomerPassportCommandHandler(
                     isPassportChanged = true;
                     var newPassport = PassportEntity.Create(
                         bookingParticipantId: request.ParticipantId,
-                        passportNumber: request.PassportNumber,
+                        passportNumber: normalizedNumber,
                         nationality: request.Nationality,
                         issuedAt: request.IssuedAt?.ToUniversalTime(),
                         expiresAt: request.ExpiresAt?.ToUniversalTime(),
@@ -524,6 +551,15 @@ public sealed class UpdateCustomerPassportCommandHandler(
 
                 await unitOfWork.SaveChangeAsync(cancellationToken);
             });
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException?.GetType().Name == "PostgresException"
+                  && GetExceptionProperty(ex.InnerException, "SqlState") == "23505"
+                  && GetExceptionProperty(ex.InnerException, "ConstraintName") == "IX_Passports_PassportNumber")
+        {
+            return Error.Conflict(
+                ErrorConstants.Passport.DuplicateNumberCode,
+                ErrorConstants.Passport.DuplicateNumberDescription.Resolve(lang));
         }
         catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
         {

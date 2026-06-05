@@ -3,6 +3,7 @@ export interface ApiError {
   message: string;
   details?: string;
   validationErrors?: Record<string, string[]>;
+  field?: string;
 }
 
 export interface ServiceResponse<T> {

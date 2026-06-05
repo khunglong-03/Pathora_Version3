@@ -9,6 +9,7 @@ using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
+using Microsoft.EntityFrameworkCore;
 using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
@@ -278,6 +279,16 @@ public sealed class CreatePassportCommandHandler(
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreatePassportCommand, ErrorOr<Guid>>
 {
+    private static string? NormalizePassportNumber(string? raw)
+        => string.IsNullOrWhiteSpace(raw) ? null : raw.Trim().ToUpperInvariant();
+
+    private static string? GetExceptionProperty(object? obj, string propertyName)
+    {
+        if (obj == null) return null;
+        var prop = obj.GetType().GetProperty(propertyName);
+        return prop?.GetValue(obj) as string;
+    }
+
     public async Task<ErrorOr<Guid>> Handle(CreatePassportCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
@@ -313,17 +324,41 @@ public sealed class CreatePassportCommandHandler(
                 ErrorConstants.Passport.ExistsDescription.Resolve(lang));
         }
 
+        var normalizedNumber = NormalizePassportNumber(request.PassportNumber);
+        if (normalizedNumber != null)
+        {
+            var conflict = await passportRepository.GetByPassportNumberAsync(normalizedNumber, cancellationToken);
+            if (conflict != null && conflict.BookingParticipantId != request.BookingParticipantId)
+            {
+                return Error.Conflict(
+                    ErrorConstants.Passport.DuplicateNumberCode,
+                    ErrorConstants.Passport.DuplicateNumberDescription.Resolve(lang));
+            }
+        }
+
         var entity = PassportEntity.Create(
             request.BookingParticipantId,
-            request.PassportNumber,
+            normalizedNumber,
             performedBy: performedBy,
             request.Nationality,
             request.IssuedAt?.ToUniversalTime(),
             request.ExpiresAt?.ToUniversalTime(),
             request.FileUrl);
 
-        await passportRepository.AddAsync(entity);
-        await unitOfWork.SaveChangeAsync(cancellationToken);
+        try
+        {
+            await passportRepository.AddAsync(entity);
+            await unitOfWork.SaveChangeAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException?.GetType().Name == "PostgresException"
+                  && GetExceptionProperty(ex.InnerException, "SqlState") == "23505"
+                  && GetExceptionProperty(ex.InnerException, "ConstraintName") == "IX_Passports_PassportNumber")
+        {
+            return Error.Conflict(
+                ErrorConstants.Passport.DuplicateNumberCode,
+                ErrorConstants.Passport.DuplicateNumberDescription.Resolve(lang));
+        }
 
         return entity.Id;
     }
@@ -364,6 +399,16 @@ public sealed class UpdatePassportCommandHandler(
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdatePassportCommand, ErrorOr<Success>>
 {
+    private static string? NormalizePassportNumber(string? raw)
+        => string.IsNullOrWhiteSpace(raw) ? null : raw.Trim().ToUpperInvariant();
+
+    private static string? GetExceptionProperty(object? obj, string propertyName)
+    {
+        if (obj == null) return null;
+        var prop = obj.GetType().GetProperty(propertyName);
+        return prop?.GetValue(obj) as string;
+    }
+
     public async Task<ErrorOr<Success>> Handle(UpdatePassportCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
@@ -399,16 +444,40 @@ public sealed class UpdatePassportCommandHandler(
                 ErrorConstants.Passport.ExpiryBeforeTourStartDescription.Resolve(lang));
         }
 
+        var normalizedNumber = NormalizePassportNumber(request.PassportNumber);
+        if (normalizedNumber != null)
+        {
+            var conflict = await passportRepository.GetByPassportNumberAsync(normalizedNumber, cancellationToken);
+            if (conflict != null && conflict.BookingParticipantId != entity.BookingParticipantId)
+            {
+                return Error.Conflict(
+                    ErrorConstants.Passport.DuplicateNumberCode,
+                    ErrorConstants.Passport.DuplicateNumberDescription.Resolve(lang));
+            }
+        }
+
         entity.Update(
-            request.PassportNumber,
+            normalizedNumber,
             performedBy: performedBy,
             request.Nationality,
             request.IssuedAt?.ToUniversalTime(),
             request.ExpiresAt?.ToUniversalTime(),
             request.FileUrl);
 
-        passportRepository.Update(entity);
-        await unitOfWork.SaveChangeAsync(cancellationToken);
+        try
+        {
+            passportRepository.Update(entity);
+            await unitOfWork.SaveChangeAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException?.GetType().Name == "PostgresException"
+                  && GetExceptionProperty(ex.InnerException, "SqlState") == "23505"
+                  && GetExceptionProperty(ex.InnerException, "ConstraintName") == "IX_Passports_PassportNumber")
+        {
+            return Error.Conflict(
+                ErrorConstants.Passport.DuplicateNumberCode,
+                ErrorConstants.Passport.DuplicateNumberDescription.Resolve(lang));
+        }
 
         return Result.Success;
     }

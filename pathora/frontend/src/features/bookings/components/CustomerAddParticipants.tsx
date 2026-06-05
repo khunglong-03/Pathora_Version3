@@ -8,6 +8,7 @@ import { bookingService } from "@/api/services/bookingService";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { fileService } from "@/api/services/fileService";
+import { handleApiError } from "@/utils/apiResponse";
 
 type VisaMode = "has_visa" | "needs_support" | "";
 
@@ -1056,7 +1057,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
         });
       } catch (err: any) {
         console.error(`Failed to save participant ${p.fullName || p.id}:`, err);
-        const errMsg = err?.response?.data?.message || err?.message || "Lưu thông tin thất bại";
+        const handled = handleApiError(err);
+        const errMsg = handled.message ? t(handled.message) : (err?.response?.data?.message || err?.message || "Lưu thông tin thất bại");
         setRowStatus(prev => ({ ...prev, [p.id]: "error" }));
         setRowError(prev => ({ ...prev, [p.id]: errMsg }));
         allSucceeded = false;

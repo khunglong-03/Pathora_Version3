@@ -5,6 +5,8 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useTranslation } from "react-i18next";
 import { VisaRequirementParticipant, VisaApplicationSummaryDto, VisaCategory, VisaFormat } from "@/types/booking";
+import { toast } from "react-toastify";
+import { handleApiError } from "@/utils/apiResponse";
 
 interface VisaUploadFormProps {
   participant: VisaRequirementParticipant;
@@ -83,6 +85,7 @@ export function VisaUploadForm({
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<any>({
     resolver: yupResolver(schema),
@@ -141,6 +144,13 @@ export function VisaUploadForm({
       }
     } catch (error) {
       console.error(error);
+      const handled = handleApiError(error);
+      if (handled.code === "Passport.DuplicateNumber") {
+        setError("passportNumber", { type: "server", message: t(handled.message) });
+        toast.error(t(handled.message));
+      } else {
+        toast.error(handled.message ? t(handled.message) : String(error));
+      }
     }
   };
 

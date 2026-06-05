@@ -3441,7 +3441,8 @@
       "maxStayDays": "Max Stay Days",
       "issuingAuthority": "Issuing Authority",
       "visaNumber": "Visa Number",
-      "entryType": "Entry Type"
+      "entryType": "Entry Type",
+      "passportNumberDuplicate": "This passport number is already in use. Please check again."
     },
     "visa": {
       "title": "Visa Application Status",
@@ -3504,7 +3505,8 @@
       "maxStayDays": "Max Stay Days",
       "issuingAuthority": "Issuing Authority",
       "visaNumber": "Visa Number",
-      "entryType": "Entry Type"
+      "entryType": "Entry Type",
+      "passportNumberDuplicate": "This passport number is already in use. Please check again."
     },
     "auth": {
       "login": "Log In",

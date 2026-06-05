@@ -26,4 +26,11 @@ public class PassportRepository(AppDbContext context) : Repository<PassportEntit
 
         return passports.ToDictionary(p => p.BookingParticipantId);
     }
+
+    public async Task<PassportEntity?> GetByPassportNumberAsync(string passportNumber, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.PassportNumber == passportNumber, cancellationToken);
+    }
 }

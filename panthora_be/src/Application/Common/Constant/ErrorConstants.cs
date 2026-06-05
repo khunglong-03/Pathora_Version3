@@ -415,6 +415,12 @@ public static partial class ErrorConstants
             new(
                 "Ngày hết hạn passport phải sau ngày khởi hành tour.",
                 "Passport expiry date must be after the tour start date.");
+
+        public const string DuplicateNumberCode = "Passport.DuplicateNumber";
+        public static readonly LocalizedMessage DuplicateNumberDescription =
+            new(
+                "Số hộ chiếu này đã được sử dụng bởi hành khách khác.",
+                "This passport number is already used by another passenger.");
     }
 
     public static class VisaApplication
@@ -716,6 +722,7 @@ public static partial class ErrorConstants
             var value when value == Passport.NotFoundCode => Passport.NotFoundDescription,
             var value when value == Passport.ExistsCode => Passport.ExistsDescription,
             var value when value == Passport.ExpiryBeforeTourStartCode => Passport.ExpiryBeforeTourStartDescription,
+            var value when value == Passport.DuplicateNumberCode => Passport.DuplicateNumberDescription,
             var value when value == VisaApplication.NotFoundCode => VisaApplication.NotFoundDescription,
             var value when value == VisaApplication.PassportInvalidCode => VisaApplication.PassportInvalidDescription,
             var value when value == VisaApplication.ApprovalTooLateCode => VisaApplication.ApprovalTooLateDescription,

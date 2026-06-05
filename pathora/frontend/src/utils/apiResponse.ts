@@ -196,6 +196,7 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TourInstance.CannotCancelAfterStart": "errors.TourInstance.CannotCancelAfterStart",
   "Booking.InvalidRefundStatusTransition": "errors.Booking.InvalidRefundStatusTransition",
   "Booking.RefundStatusOnlyForCancelled": "errors.Booking.RefundStatusOnlyForCancelled",
+  "Passport.DuplicateNumber": "landing.visa.passportNumberDuplicate",
 };
 
 const AUTH_ERROR_CODE_MAP: Record<string, string> = {
@@ -388,6 +389,13 @@ export const handleApiError = (error: unknown): ApiError => {
     }
 
     const { rawMessage, rawCode, rawDetails, rawValidationErrors } = extractBackendErrorPayload(error.response?.data);
+    if (rawCode === "Passport.DuplicateNumber" || rawDetails === "Passport.DuplicateNumber") {
+      return {
+        code: "Passport.DuplicateNumber",
+        message: "landing.visa.passportNumberDuplicate",
+        field: "passportNumber",
+      };
+    }
     const rawMappingCandidate = resolveErrorMappingCandidate(rawMessage, rawCode, rawDetails);
 
     // Map to translation key for specific error types
@@ -408,6 +416,13 @@ export const handleApiError = (error: unknown): ApiError => {
       error?: string;
     };
     const { rawMessage, rawCode, rawDetails, rawValidationErrors } = extractBackendErrorPayload(rtkError.data);
+    if (rawCode === "Passport.DuplicateNumber" || rawDetails === "Passport.DuplicateNumber") {
+      return {
+        code: "Passport.DuplicateNumber",
+        message: "landing.visa.passportNumberDuplicate",
+        field: "passportNumber",
+      };
+    }
     const rawMappingCandidate =
       rawMessage !== "DEFAULT_ERROR"
         ? resolveErrorMappingCandidate(rawMessage, rawCode, rawDetails)

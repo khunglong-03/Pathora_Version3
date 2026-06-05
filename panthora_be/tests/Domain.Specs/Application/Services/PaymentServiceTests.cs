@@ -30,6 +30,7 @@ public sealed class PaymentServiceTests
     private readonly IBookingPriceCalculator _priceCalculator = Substitute.For<IBookingPriceCalculator>();
     private readonly IPricingPolicyRepository _pricingPolicyRepo = Substitute.For<IPricingPolicyRepository>();
     private readonly ITaxConfigRepository _taxConfigRepo = Substitute.For<ITaxConfigRepository>();
+    private readonly IMailRepository _mailRepo = Substitute.For<IMailRepository>();
 
     public PaymentServiceTests()
     {
@@ -79,7 +80,8 @@ public sealed class PaymentServiceTests
             _postPaymentVisaGateService,
             _priceCalculator,
             _pricingPolicyRepo,
-            _taxConfigRepo);
+            _taxConfigRepo,
+            _mailRepo);
     }
 
     private static PaymentTransactionEntity CreatePendingTransaction(

@@ -3492,7 +3492,8 @@
       "maxStayDays": "Số ngày lưu trú tối đa",
       "issuingAuthority": "Cơ quan cấp",
       "visaNumber": "Số Visa",
-      "entryType": "Loại nhập cảnh"
+      "entryType": "Loại nhập cảnh",
+      "passportNumberDuplicate": "Số hộ chiếu này đã được sử dụng. Vui lòng kiểm tra lại."
     },
     "auth": {
       "login": "Đăng nhập",
