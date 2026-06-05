@@ -74,7 +74,7 @@ export function BookingPaymentSummary({
     try {
       const result = await paymentService.createTransaction({
         bookingId: booking.id,
-        type: "FullPayment",
+        type: "PayRemain",
         amount: booking.remainingBalance,
         paymentMethod: "BankTransfer",
         paymentNote: `Remaining balance for ${booking.tourName}`,

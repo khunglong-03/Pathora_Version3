@@ -1,6 +1,7 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { paymentService } from "@/api/services/paymentService";
 import { BookingPaymentSummary } from "../BookingPaymentSummary";
 import type { BookingDetail } from "../BookingDetailData";
 
@@ -119,5 +120,34 @@ describe("BookingPaymentSummary cancellation", () => {
     );
 
     expect(screen.getByRole("button", { name: /request cancellation/i })).toBeInTheDocument();
+  });
+
+  it("creates pay-remaining transactions with PayRemain type", async () => {
+    vi.mocked(paymentService.createTransaction).mockResolvedValue({
+      transactionCode: "PAY-001",
+    } as never);
+
+    render(
+      <BookingPaymentSummary
+        booking={{ ...booking, paidAmount: 500_000, remainingBalance: 1_500_000 }}
+        totalGuests={2}
+        showPayRemaining={true}
+        showCancelBooking={false}
+        getPaymentStatusLabel={(status) => status}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /pay now|pay remaining balance/i }));
+
+    await waitFor(() => {
+      expect(paymentService.createTransaction).toHaveBeenCalledWith({
+        bookingId: "booking-1",
+        type: "PayRemain",
+        amount: 1_500_000,
+        paymentMethod: "BankTransfer",
+        paymentNote: "Remaining balance for Da Nang Tour",
+        createdBy: "customer@test.com",
+      });
+    });
   });
 });
