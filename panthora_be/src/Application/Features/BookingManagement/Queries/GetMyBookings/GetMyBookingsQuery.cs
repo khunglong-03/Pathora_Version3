@@ -30,8 +30,7 @@ public sealed record MyBookingDto(
     decimal InfantUnitPrice = 0m,
     decimal Subtotal = 0m,
     decimal TaxAmount = 0m,
-    decimal TotalAmount = 0m,
-    decimal RemainingBalance = 0m
+    decimal TotalAmount = 0m
 );
 
 public sealed record MyBookingListResult(

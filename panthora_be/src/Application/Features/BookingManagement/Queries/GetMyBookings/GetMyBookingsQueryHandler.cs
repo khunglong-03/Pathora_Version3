@@ -50,7 +50,6 @@ public sealed class GetMyBookingsQueryHandler(
                 .Where(t => t.Type == TransactionType.VisaServiceFee && t.Status == TransactionStatus.Pending)
                 .Sum(t => t.Amount) ?? 0m;
             var remainingBalance = Math.Max(0m, b.TotalPrice - paidAmount - pendingVisaFees);
-            var paymentStatus = paidAmount >= b.TotalPrice ? PaymentStatus.Paid : (paidAmount > 0 ? PaymentStatus.Partial : PaymentStatus.Unpaid);
 
             var breakdown = priceCalculator.Calculate(
                 b,
@@ -71,7 +70,7 @@ public sealed class GetMyBookingsQueryHandler(
                 PaymentStatus: paymentStatus,
                 TotalPrice: breakdown.TotalAmount,
                 PaidAmount: paidAmount,
-                RemainingBalance: remainingBalance,
+                RemainingBalance: breakdown.RemainingBalance,
                 StartDate: b.TourInstance?.StartDate ?? DateTimeOffset.MinValue,
                 EndDate: b.TourInstance?.EndDate ?? DateTimeOffset.MinValue,
                 Location: b.TourInstance?.Location ?? string.Empty,
@@ -85,8 +84,7 @@ public sealed class GetMyBookingsQueryHandler(
                 InfantUnitPrice: breakdown.InfantUnitPrice,
                 Subtotal: breakdown.Subtotal,
                 TaxAmount: breakdown.TaxAmount,
-                TotalAmount: breakdown.TotalAmount,
-                RemainingBalance: breakdown.RemainingBalance
+                TotalAmount: breakdown.TotalAmount
             );
         }).ToList();
 

@@ -296,8 +296,7 @@ public sealed record RequestVisaSupportResponse(
 public sealed record RequestVisaSupportCommand(
     Guid BookingId,
     Guid BookingParticipantId)
-    : IRequest<ErrorOr<RequestVisaSupportResponse>>;
-    : IRequest<ErrorOr<Guid>>, ICacheInvalidator
+    : IRequest<ErrorOr<RequestVisaSupportResponse>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking, CacheKey.Admin];
 }

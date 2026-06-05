@@ -92,7 +92,6 @@ public class GetBookingDetailQueryHandler(
         var taxRate = breakdown.TaxRate;
         var taxAmount = breakdown.TaxAmount;
         var totalAmount = breakdown.TotalAmount;
-        var remainingBalance = breakdown.RemainingBalance;
 
         string paymentStatusStr = booking.Status switch
         {
