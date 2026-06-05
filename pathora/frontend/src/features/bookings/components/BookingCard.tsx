@@ -36,7 +36,12 @@ export function BookingCard({
   formatCurrency,
   t,
 }: BookingCardProps) {
-  const showPayRemaining = booking.paymentStatus === "partial";
+  const showPayRemaining =
+    (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") &&
+    (booking.remainingAmount ?? 0) > 0 &&
+    booking.status !== "cancelled" &&
+    booking.status !== "rejected" &&
+    booking.status !== "pending_cancellation";
   const showVisaStatus =
     booking.status !== "completed" &&
     booking.status !== "cancelled" &&
@@ -144,10 +149,10 @@ export function BookingCard({
                     </Link>
                   )}
                   {showPayRemaining && (
-                    <button type="button" className={cn("h-stack items-center gap-2 rounded-md bg-[#111111] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#333333] active:scale-95")}>
+                    <Link href={`/bookings/${booking.id}#pay`} className={cn("h-stack items-center gap-2 rounded-md bg-[#111111] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#333333] active:scale-95")}>
                       <CurrencyCircleDollar weight="bold" className={cn("size-4")} />
                       {t("landing.bookings.payRemaining")}
-                    </button>
+                    </Link>
                   )}
                   {showVisaStatus && (
                     <Link href={`/bookings/${booking.id}`} className={cn("h-stack items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>

@@ -205,7 +205,7 @@ public sealed record QuoteVisaSupportFeeCommand(
 
 public sealed class QuoteVisaSupportFeeCommandHandler(
     IVisaApplicationRepository visaRepository,
-    IPaymentTransactionRepository transactionRepository,
+    IPaymentService paymentService,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
     : IRequestHandler<QuoteVisaSupportFeeCommand, ErrorOr<Guid>>
@@ -246,17 +246,19 @@ public sealed class QuoteVisaSupportFeeCommandHandler(
 
         var performedBy = currentUserId.Value.ToString();
 
-        // 1. Tạo Transaction mới type VisaServiceFee
-        var transaction = PaymentTransactionEntity.Create(
+        // 1. Tạo transaction qua PaymentService (QR, refCode, outbox polling)
+        var transactionResult = await paymentService.CreatePaymentTransactionAsync(
             bookingId: booking.Id,
-            transactionCode: $"VFEE-{Guid.CreateVersion7().ToString()[..8].ToUpper()}",
             type: TransactionType.VisaServiceFee,
             amount: request.Fee,
-            paymentMethod: PaymentMethod.Sepay,
-            paymentNote: $"Visa Support Fee for Booking {booking.Id}",
+            paymentMethod: PaymentMethod.BankTransfer,
+            paymentNote: $"Visa support fee for participant {visaApp.BookingParticipantId}",
             createdBy: performedBy);
 
-        await transactionRepository.AddAsync(transaction, cancellationToken);
+        if (transactionResult.IsError)
+            return transactionResult.Errors;
+
+        var transaction = transactionResult.Value;
 
         // 2. Add VisaServiceFeeTotal vào booking (nhưng không đổi status)
         // booking & visaApp đã tracked qua GetByIdWithGraphAsync — EF tự detect mutation,

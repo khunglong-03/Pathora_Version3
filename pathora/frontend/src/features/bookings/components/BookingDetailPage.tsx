@@ -23,16 +23,18 @@ import { BookingNeedHelp } from "./BookingNeedHelp";
 import { BookingFloatingSocial } from "./BookingFloatingSocial";
 import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
 import { CancellationRequestTimeline } from "./CancellationRequestTimeline";
+import { BookingDetail } from "./BookingDetailData";
+import { mapBookingDetailResponse } from "../utils/bookingDetailMapper";
 
-import { NormalizedTourInstanceDto } from "@/types/tour";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
+import { NormalizedTourInstanceDto } from "@/types/tour";
 
 export function BookingDetailPage() {
   const { t } = useTranslation();
   const params = useParams();
   const bookingId = params?.id as string;
   
-  const [booking, setBooking] = useState<any>(null);
+  const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [tourInstance, setTourInstance] = useState<NormalizedTourInstanceDto | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +53,7 @@ export function BookingDetailPage() {
           const data = await bookingService.getBookingDetail(bookingId);
           if (cancelled) return;
           if (data) {
-            setBooking(data);
+            setBooking(mapBookingDetailResponse(data));
             if (data.tourInstanceId) {
               try {
                 const instanceData = await tourInstanceService.getInstanceDetail(data.tourInstanceId);
@@ -89,7 +91,7 @@ export function BookingDetailPage() {
   const fetchBookingWithoutLoading = async () => {
     try {
       const data = await bookingService.getBookingDetail(bookingId);
-      if (data) setBooking(data);
+      if (data) setBooking(mapBookingDetailResponse(data));
     } catch (e) {
       console.error(e);
     }
@@ -115,14 +117,7 @@ export function BookingDetailPage() {
 
   if (!booking) return null;
 
-  let mappedStatusStr = booking.status?.toLowerCase() || "pending";
-  if (mappedStatusStr === "pendingapproval") mappedStatusStr = "pending_approval";
-  if (mappedStatusStr === "pendingcancellation") mappedStatusStr = "pending_cancellation";
-
-  const actualStatus = booking.tourStatus === "PendingCustomerApproval" 
-    ? "pending_approval" 
-    : mappedStatusStr;
-  const mappedBooking = { ...booking, status: actualStatus };
+  const mappedBooking = booking;
 
   const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =
     getBookingDerivedState(mappedBooking);
@@ -155,7 +150,10 @@ export function BookingDetailPage() {
               <GuestDetailsCard booking={mappedBooking} totalGuests={totalGuests} />
               {showVisaSection && (
                 <div id="visa" className="scroll-mt-24">
-                  <BookingVisaSection bookingId={mappedBooking.id} />
+                  <BookingVisaSection
+                    bookingId={mappedBooking.id}
+                    pendingTransactions={mappedBooking.pendingTransactions}
+                  />
                 </div>
               )}
               <BookingOverviewTab
@@ -176,6 +174,7 @@ export function BookingDetailPage() {
                   onSuccess={fetchBookingWithoutLoading}
                 />
               )}
+              <div id="pay" className="scroll-mt-24">
               <BookingPaymentSummary
                 booking={mappedBooking}
                 totalGuests={totalGuests}
@@ -183,6 +182,7 @@ export function BookingDetailPage() {
                 showCancelBooking={showCancelBooking}
                 getPaymentStatusLabel={labelFns.getPaymentStatusLabel}
               />
+              </div>
               <CancellationRequestTimeline requests={mappedBooking.cancellationRequests || []} />
               <BookingNeedHelp />
             </div>

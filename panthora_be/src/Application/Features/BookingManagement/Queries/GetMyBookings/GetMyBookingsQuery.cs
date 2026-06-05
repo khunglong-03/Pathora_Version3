@@ -15,6 +15,7 @@ public sealed record MyBookingDto(
     PaymentStatus PaymentStatus,
     decimal TotalPrice,
     decimal PaidAmount,
+    decimal RemainingBalance,
     DateTimeOffset StartDate,
     DateTimeOffset EndDate,
     string Location,

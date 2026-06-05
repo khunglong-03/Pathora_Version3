@@ -62,6 +62,7 @@ export const getBookingDerivedState = (booking: BookingDetail) => {
       (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") &&
       booking.status !== "cancelled" &&
       booking.status !== "rejected" &&
+      booking.status !== "pending_cancellation" &&
       !isCustomTourPending,
     showVisaSection: booking.isVisaRequired || booking.tourStatus === "PendingVisa",
     showCancelBooking:

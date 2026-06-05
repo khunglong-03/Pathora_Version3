@@ -14,6 +14,7 @@ export enum TransactionTypeEnum {
   Deposit = 1,
   FullPayment = 2,
   Refund = 3,
+  VisaServiceFee = 4,
 }
 
 export enum PaymentMethodEnum {
@@ -34,7 +35,7 @@ export enum TransactionStatusEnum {
 }
 
 // Frontend-facing string types for developer convenience
-export type TransactionTypeString = "Deposit" | "FullPayment" | "Refund";
+export type TransactionTypeString = "Deposit" | "FullPayment" | "Refund" | "VisaServiceFee";
 export type PaymentMethodString = "Cash" | "BankTransfer" | "Card" | "Momo" | "VnPay";
 export type NormalizedPaymentStatus = "pending" | "paid" | "cancelled" | "expired" | "failed";
 
@@ -64,7 +65,7 @@ export interface PaymentTransaction {
   id: string;
   transactionCode: string;
   bookingId: string;
-  type: "Deposit" | "FullPayment" | "Refund";
+  type: "Deposit" | "FullPayment" | "Refund" | "VisaServiceFee";
   status: "Pending" | "Processing" | "Completed" | "Failed" | "Refunded" | "Cancelled";
   amount: number;
   paidAmount?: number;

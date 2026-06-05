@@ -44,6 +44,7 @@ export interface BookingDetail {
   visaServiceFeeTotal?: number;
   cancellationRequest?: any;
   cancellationRequests?: any[];
+  pendingTransactions?: import("@/types/booking").BookingPendingTransaction[];
 }
 
 /* ── Sample Data ───────────────────────────────────────────── */

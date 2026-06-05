@@ -30,8 +30,13 @@ public class GetBookingDetailQueryHandler(
             .Where(t => t.Status == Domain.Enums.TransactionStatus.Completed)
             .Sum(t => t.PaidAmount ?? t.Amount);
 
+        // Exclude unpaid visa service fees from tour remaining — those are paid via separate VisaServiceFee transactions.
+        var pendingVisaServiceFees = booking.PaymentTransactions
+            .Where(t => t.Type == TransactionType.VisaServiceFee && t.Status == Domain.Enums.TransactionStatus.Pending)
+            .Sum(t => t.Amount);
+
         // Include VisaServiceFeeTotal inside TotalPrice has been handled in booking.AddVisaServiceFee.
-        var remainingBalance = Math.Max(0, booking.TotalPrice - paidAmount);
+        var remainingBalance = Math.Max(0, booking.TotalPrice - paidAmount - pendingVisaServiceFees);
 
         var pendingTransactions = booking.PaymentTransactions
             .Where(t => t.Status == Domain.Enums.TransactionStatus.Pending)
@@ -55,6 +60,7 @@ public class GetBookingDetailQueryHandler(
             Domain.Enums.BookingStatus.Deposited => "confirmed",
             Domain.Enums.BookingStatus.Paid => "confirmed",
             Domain.Enums.BookingStatus.PendingAdjustment => "pending",
+            Domain.Enums.BookingStatus.PendingCancellation => "pending_cancellation",
             Domain.Enums.BookingStatus.Completed => "completed",
             Domain.Enums.BookingStatus.Cancelled => "cancelled",
             _ => "pending"
@@ -97,7 +103,7 @@ public class GetBookingDetailQueryHandler(
                 Type = t.Type.ToString(),
                 Purpose = t.Type == TransactionType.VisaServiceFee ? "Visa Service Fee" : "Tour Payment",
                 CreatedAt = t.CreatedOnUtc,
-                ExpiresAt = null // If you have an ExpiresAt logic, add it here
+                ExpiresAt = t.ExpiredAt
             }).ToList()
         };
 

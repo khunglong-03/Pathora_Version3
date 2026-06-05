@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.VisaApplication.Commands;
 
@@ -240,10 +241,15 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
 
 // ─── Request Visa Support ─────────────────────────────────────────────────────
 
+public sealed record RequestVisaSupportResponse(
+    [property: JsonPropertyName("applicationId")] Guid ApplicationId,
+    [property: JsonPropertyName("message")] string Message,
+    [property: JsonPropertyName("serviceFeeQuoted")] bool ServiceFeeQuoted);
+
 public sealed record RequestVisaSupportCommand(
     Guid BookingId,
     Guid BookingParticipantId)
-    : IRequest<ErrorOr<Guid>>;
+    : IRequest<ErrorOr<RequestVisaSupportResponse>>;
 
 public sealed class RequestVisaSupportCommandHandler(
     IBookingRepository bookingRepository,
@@ -251,9 +257,9 @@ public sealed class RequestVisaSupportCommandHandler(
     IVisaApplicationRepository visaApplicationRepository,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
-    : IRequestHandler<RequestVisaSupportCommand, ErrorOr<Guid>>
+    : IRequestHandler<RequestVisaSupportCommand, ErrorOr<RequestVisaSupportResponse>>
 {
-    public async Task<ErrorOr<Guid>> Handle(
+    public async Task<ErrorOr<RequestVisaSupportResponse>> Handle(
         RequestVisaSupportCommand request,
         CancellationToken cancellationToken)
     {
@@ -283,7 +289,15 @@ public sealed class RequestVisaSupportCommandHandler(
             v.IsSystemAssisted &&
             v.Status is VisaStatus.Pending or VisaStatus.Processing);
         if (existingSupport != null)
-            return existingSupport.Id;
+        {
+            var alreadyQuoted = existingSupport.ServiceFee.HasValue && existingSupport.ServiceFeeTransactionId.HasValue;
+            return new RequestVisaSupportResponse(
+                ApplicationId: existingSupport.Id,
+                Message: alreadyQuoted
+                    ? "Support request already exists. Please pay the quoted service fee if pending."
+                    : "Support request already submitted. Please wait for our team to quote the service fee.",
+                ServiceFeeQuoted: alreadyQuoted);
+        }
 
         // Passport phải tồn tại để request support
         var passport = await passportRepository.GetByBookingParticipantIdAsync(participant.Id, cancellationToken);
@@ -301,7 +315,10 @@ public sealed class RequestVisaSupportCommandHandler(
         await visaApplicationRepository.AddAsync(application, cancellationToken);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
-        return application.Id;
+        return new RequestVisaSupportResponse(
+            ApplicationId: application.Id,
+            Message: "Support request submitted successfully. Our team will quote the service fee soon.",
+            ServiceFeeQuoted: false);
     }
 
 }

@@ -69,6 +69,13 @@ public sealed class CreatePaymentTransactionCommandHandler(
             return Error.Conflict(ErrorConstants.Payment.TransactionAlreadyCompletedCode, ErrorConstants.Payment.TransactionAlreadyCompletedDescription);
         }
 
+        if (booking.Status == BookingStatus.PendingCancellation)
+        {
+            return Error.Conflict(
+                ErrorConstants.Payment.TransactionAlreadyCancelledCode,
+                "Cannot create payment while a cancellation request is pending review.");
+        }
+
         return await paymentService.CreatePaymentTransactionAsync(
             bookingId: request.BookingId,
             type: request.Type,
