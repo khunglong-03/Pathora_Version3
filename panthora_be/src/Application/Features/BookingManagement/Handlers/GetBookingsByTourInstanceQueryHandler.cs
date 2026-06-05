@@ -70,7 +70,7 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
         if (isTourGuide)
         {
             bookings = bookings.Where(b =>
-                b.Status == Domain.Enums.BookingStatus.Paid
+                b.Status == Domain.Enums.BookingStatus.Confirmed 
             ).ToList();
         }
 

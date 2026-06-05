@@ -7,7 +7,6 @@ import { AdminPageHeader } from "@/features/dashboard/components";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { bookingService } from "@/api/services/bookingService";
 import type { NormalizedTourInstanceDto } from "@/types/tour";
-import { isQualifiedBooking } from "@/features/tour-operator/utils/fulfillmentHelpers";
 import { featureFlags } from "@/configs/featureFlags";
 import TourGuideTasksPortalSection from "@/features/dashboard/components/TourGuideTasksPortalSection";
 import { cn } from "@/lib/cn";
@@ -51,10 +50,10 @@ export default function TourOperationDetailPage() {
         if (!isMounted) return;
         setInstance(instanceData as NormalizedTourInstanceDto);
 
-        const qualifiedBookings = bookingsData.filter(isQualifiedBooking);
-        if (qualifiedBookings.length > 0) {
-          setBookings(qualifiedBookings);
-          const mainBooking = qualifiedBookings[0];
+        // Backend đã filter đúng status cho tour guide — lấy booking đầu tiên trực tiếp
+        if (bookingsData.length > 0) {
+          setBookings(bookingsData);
+          const mainBooking = bookingsData[0];
           setBookingId(mainBooking.id);
           
           try {
@@ -62,7 +61,6 @@ export default function TourOperationDetailPage() {
             setActivityStatuses(statuses);
           } catch (statusErr) {
             console.error("Failed to load activity statuses", statusErr);
-            // Optionally set error, but we might still want to show the tour
           }
         }
       } catch (err: any) {
@@ -85,26 +83,34 @@ export default function TourOperationDetailPage() {
   }, [instanceId, refreshKey, t]);
 
   const handleStartActivity = async (tourDayId: string) => {
-    if (!bookingId) return;
+    if (!bookingId) {
+      alert("Không tìm thấy booking hợp lệ cho tour này. Vui lòng liên hệ quản lý.");
+      return;
+    }
     setActionLoading(`start-${tourDayId}`);
     try {
       await bookingService.startActivity(bookingId, tourDayId, new Date().toISOString());
       setRefreshKey(prev => prev + 1);
-    } catch (err) {
-      alert("Lỗi khi Check-in hoạt động. Vui lòng thử lại.");
+    } catch (err: any) {
+      const msg = err?.response?.data?.errorMessage || err?.response?.data?.message || err?.message || "Lỗi không xác định";
+      alert(`Lỗi khi Check-in hoạt động: ${msg}`);
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleCompleteActivity = async (tourDayId: string) => {
-    if (!bookingId) return;
+    if (!bookingId) {
+      alert("Không tìm thấy booking hợp lệ cho tour này. Vui lòng liên hệ quản lý.");
+      return;
+    }
     setActionLoading(`complete-${tourDayId}`);
     try {
       await bookingService.completeActivity(bookingId, tourDayId, new Date().toISOString());
       setRefreshKey(prev => prev + 1);
-    } catch (err) {
-      alert("Lỗi khi hoàn thành hoạt động. Vui lòng thử lại.");
+    } catch (err: any) {
+      const msg = err?.response?.data?.errorMessage || err?.response?.data?.message || err?.message || "Lỗi không xác định";
+      alert(`Lỗi khi hoàn thành hoạt động: ${msg}`);
     } finally {
       setActionLoading(null);
     }
@@ -262,7 +268,9 @@ export default function TourOperationDetailPage() {
               </div>
             ) : (
               <div className="text-sm text-slate-500 italic mt-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                Chưa có dữ liệu khách tham gia chi tiết từ booking.
+                {!bookingId
+                  ? "Chưa có booking hợp lệ (Confirmed/Deposited/Paid) cho tour này."
+                  : "Chưa có dữ liệu khách tham gia chi tiết từ booking."}
               </div>
             )}
 
@@ -438,7 +446,7 @@ export default function TourOperationDetailPage() {
                               )}
                               
                               <div className="sm:ml-auto mt-2 sm:mt-0 w-full sm:w-auto">
-                                {isPending && (
+                                {bookingId && isPending && (
                                   <button
                                     onClick={() => handleStartActivity(targetId)}
                                     disabled={!!actionLoading || !canCheckIn}

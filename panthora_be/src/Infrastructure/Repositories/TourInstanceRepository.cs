@@ -580,8 +580,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return await _context.TourInstances
             .Where(t => !t.IsDeleted
                 && t.Managers.Any(m => m.UserId == userId && m.Role == TourInstanceManagerRole.Guide)
-                && t.Status != TourInstanceStatus.Completed
-                && t.Status != TourInstanceStatus.Cancelled)
+                && (t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.InProgress))
             .CountAsync(cancellationToken);
     }
 
@@ -595,8 +594,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Thumbnail)
             .Where(t => !t.IsDeleted
                 && t.Managers.Any(m => m.UserId == userId && m.Role == TourInstanceManagerRole.Guide)
-                && t.Status != TourInstanceStatus.Completed
-                && t.Status != TourInstanceStatus.Cancelled)
+                && (t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.InProgress))
             .OrderByDescending(t => t.StartDate)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
