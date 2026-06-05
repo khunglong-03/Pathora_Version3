@@ -23,6 +23,8 @@ import { BookingNeedHelp } from "./BookingNeedHelp";
 
 import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
 import { CancellationRequestTimeline } from "./CancellationRequestTimeline";
+import { BookingRefundSection } from "./BookingRefundSection";
+import { useBookingStatusListener } from "@/hooks/useBookingStatusListener";
 import { BookingDetail } from "./BookingDetailData";
 import { mapBookingDetailResponse } from "../utils/bookingDetailMapper";
 
@@ -41,18 +43,18 @@ export function BookingDetailPage() {
   const fetchBookingWithoutLoading = useCallback(async () => {
     try {
       const data = await bookingService.getBookingDetail(bookingId);
-      if (data) setBooking(data);
+      if (data) setBooking(mapBookingDetailResponse(data));
     } catch (e) {
       console.error(e);
     }
   }, [bookingId]);
 
   useBookingStatusListener(useCallback((event) => {
-    const matchingIds = [bookingId, booking?.id, booking?.bookingId].filter(Boolean);
+    const matchingIds = [bookingId, booking?.id].filter(Boolean);
     if (matchingIds.includes(event.bookingId)) {
       void fetchBookingWithoutLoading();
     }
-  }, [bookingId, booking?.id, booking?.bookingId, fetchBookingWithoutLoading]));
+  }, [bookingId, booking?.id, fetchBookingWithoutLoading]));
 
   useEffect(() => {
     if (!bookingId) return;
@@ -103,15 +105,6 @@ export function BookingDetailPage() {
     void fetchBooking();
     return () => { cancelled = true; };
   }, [bookingId]);
-
-  const fetchBookingWithoutLoading = async () => {
-    try {
-      const data = await bookingService.getBookingDetail(bookingId);
-      if (data) setBooking(mapBookingDetailResponse(data));
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   useEffect(() => {
     if (loading || !booking) return;

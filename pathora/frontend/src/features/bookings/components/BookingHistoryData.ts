@@ -8,7 +8,8 @@ export type BookingStatus =
   | "cancelled"
   | "rejected"
   | "paid"
-  | "deposited";
+  | "deposited"
+  | "pending_cancellation";
 
 export type TourTier = "standard" | "luxury" | "premium";
 export type PaymentStatus = "paid" | "partial" | "unpaid";
