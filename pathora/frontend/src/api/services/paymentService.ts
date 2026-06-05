@@ -14,8 +14,6 @@ export enum TransactionTypeEnum {
   Deposit = 1,
   FullPayment = 2,
   Refund = 3,
-  VisaServiceFee = 4,
-  PayRemain = 5,
 }
 
 export enum PaymentMethodEnum {
@@ -36,7 +34,7 @@ export enum TransactionStatusEnum {
 }
 
 // Frontend-facing string types for developer convenience
-export type TransactionTypeString = "Deposit" | "FullPayment" | "Refund" | "VisaServiceFee";
+export type TransactionTypeString = "Deposit" | "FullPayment" | "Refund";
 export type PaymentMethodString = "Cash" | "BankTransfer" | "Card" | "Momo" | "VnPay";
 export type NormalizedPaymentStatus = "pending" | "paid" | "cancelled" | "expired" | "failed";
 
@@ -130,9 +128,6 @@ export interface CheckoutPriceResponse {
   depositPercentage: number;
   depositAmount: number;
   remainingBalance: number;
-  // Visa fee
-  visaServiceFeeTotal?: number;
-  isVisaFeePending?: boolean;
 }
 
 export const paymentService = {

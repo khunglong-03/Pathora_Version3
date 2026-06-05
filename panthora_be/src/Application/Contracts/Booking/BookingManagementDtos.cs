@@ -364,11 +364,7 @@ public sealed record CheckoutPriceResponse(
     [property: JsonPropertyName("totalPrice")] decimal TotalPrice,
     [property: JsonPropertyName("depositPercentage")] decimal DepositPercentage,
     [property: JsonPropertyName("depositAmount")] decimal DepositAmount,
-    [property: JsonPropertyName("remainingBalance")] decimal RemainingBalance,
-    /// <summary>Tổng phí visa hỗ trợ đã được manager báo giá cho booking này.</summary>
-    [property: JsonPropertyName("visaServiceFeeTotal")] decimal VisaServiceFeeTotal = 0m,
-    /// <summary>True khi có phí visa chưa thanh toán (VisaServiceFeeTotal > 0 và chưa có transaction VisaServiceFee hoàn thành).</summary>
-    [property: JsonPropertyName("isVisaFeePending")] bool IsVisaFeePending = false
+    [property: JsonPropertyName("remainingBalance")] decimal RemainingBalance
 );
 
 public sealed record AdminBookingListResponse(

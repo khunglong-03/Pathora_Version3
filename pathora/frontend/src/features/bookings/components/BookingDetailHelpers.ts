@@ -59,8 +59,6 @@ interface BookingDerivedInput {
   status: string;
   isVisaRequired?: boolean;
   tourStatus?: string;
-  visaServiceFeeTotal?: number;
-  isVisaFeePending?: boolean;
 }
 
 export const getBookingDerivedState = (booking: BookingDerivedInput) => {
@@ -71,20 +69,13 @@ export const getBookingDerivedState = (booking: BookingDerivedInput) => {
     "PendingCustomerApproval",
   ].includes(booking.tourStatus ?? "");
 
-  const isActive =
-    booking.status !== "cancelled" &&
-    booking.status !== "rejected" &&
-    booking.status !== "pending_cancellation";
-
   return {
     totalGuests: booking.adults + booking.children + (booking.infants ?? 0),
     showPayRemaining:
       (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") &&
-      isActive &&
+      booking.status !== "cancelled" &&
+      booking.status !== "rejected" &&
       !isCustomTourPending,
-    showPayVisa:
-      (booking.visaServiceFeeTotal ?? 0) > 0 &&
-      isActive,
     showVisaSection: booking.isVisaRequired || booking.tourStatus === "PendingVisa",
     showCancelBooking:
       booking.status !== "completed" &&

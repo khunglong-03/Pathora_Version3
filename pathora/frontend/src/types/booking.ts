@@ -249,7 +249,6 @@ export interface BookingDetailResponse {
   paidAmount: number;
   remainingBalance: number;
   visaServiceFeeTotal: number;
-  isVisaFeePending?: boolean;
   status: string;
   paymentStatus: string;
   paymentMethod: string;

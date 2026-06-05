@@ -19,7 +19,6 @@ interface BookingPaymentSummaryProps {
   booking: BookingDetail;
   totalGuests: number;
   showPayRemaining: boolean;
-  showPayVisa: boolean;
   showCancelBooking: boolean;
   getPaymentStatusLabel: (s: BookingDetail["paymentStatus"]) => string;
   onCancellationChanged?: () => void | Promise<void>;
@@ -29,7 +28,6 @@ export function BookingPaymentSummary({
   booking,
   totalGuests,
   showPayRemaining,
-  showPayVisa,
   showCancelBooking,
   getPaymentStatusLabel,
   onCancellationChanged,
@@ -38,7 +36,6 @@ export function BookingPaymentSummary({
   const router = useRouter();
   const { user } = useAuth();
   const [creatingTransaction, setCreatingTransaction] = useState(false);
-  const [creatingVisaTransaction, setCreatingVisaTransaction] = useState(false);
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const { estimate, isLoading: isEstimateLoading } = useCancellationEstimate(
@@ -77,7 +74,7 @@ export function BookingPaymentSummary({
     try {
       const result = await paymentService.createTransaction({
         bookingId: booking.id,
-        type: "PayRemain",
+        type: "FullPayment",
         amount: booking.remainingBalance,
         paymentMethod: "BankTransfer",
         paymentNote: `Remaining balance for ${booking.tourName}`,
@@ -95,38 +92,6 @@ export function BookingPaymentSummary({
       toast.error(handledError.message || "Failed to create payment transaction.");
     } finally {
       setCreatingTransaction(false);
-    }
-  };
-
-  const handlePayVisa = async () => {
-    if (creatingVisaTransaction) return;
-    if ((booking.visaServiceFeeTotal ?? 0) <= 0) {
-      toast.info("No visa service fee to pay.");
-      return;
-    }
-
-    setCreatingVisaTransaction(true);
-    try {
-      const result = await paymentService.createTransaction({
-        bookingId: booking.id,
-        type: "VisaServiceFee",
-        amount: booking.visaServiceFeeTotal ?? 0,
-        paymentMethod: "BankTransfer",
-        paymentNote: `Visa service fee for ${booking.tourName}`,
-        createdBy: user?.email ?? user?.username ?? "customer",
-      });
-
-      if (result?.transactionCode) {
-        router.push(`/payment/${result.transactionCode}?bookingId=${booking.id}`);
-      } else {
-        toast.error("Failed to create visa payment transaction.");
-      }
-    } catch (error: unknown) {
-      const handledError = handleApiError(error);
-      console.error("Failed to create visa payment transaction:", handledError.message);
-      toast.error(handledError.message || "Failed to create visa payment transaction.");
-    } finally {
-      setCreatingVisaTransaction(false);
     }
   };
   return (
@@ -321,34 +286,6 @@ export function BookingPaymentSummary({
                   </button>
                 );
               })()}
-            </motion.div>
-          )}
-
-          {showPayVisa && (
-            <motion.div key="btn-pay-visa" whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
-              <button
-                type="button"
-                onClick={handlePayVisa}
-                disabled={creatingVisaTransaction || booking.status === "pending_cancellation"}
-                className={`group relative h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] text-white text-sm font-bold shadow-lg shadow-blue-500/20 overflow-hidden transition-colors ${
-                  creatingVisaTransaction || booking.status === "pending_cancellation"
-                    ? "bg-slate-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
-                }`}
-                title={
-                  booking.status === "pending_cancellation"
-                    ? t("landing.bookings.paymentDisabledPendingCancellation")
-                    : ""
-                }
-              >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                <AirplaneTilt weight="bold" className="size-5 relative z-10" />
-                <span className="relative z-10">
-                  {creatingVisaTransaction
-                    ? t("landing.bookings.generatingQr", "Generating QR…")
-                    : `${t("landing.bookings.payVisaFee", "Trả phí Visa")} (${formatCurrency(booking.visaServiceFeeTotal ?? 0)})`}
-                </span>
-              </button>
             </motion.div>
           )}
 

@@ -36,7 +36,6 @@ public class BookingDetailDto
     public decimal PaidAmount { get; set; }
     public decimal RemainingBalance { get; set; }
     public decimal VisaServiceFeeTotal { get; set; }
-    public bool IsVisaFeePending { get; set; }
     public string BookingType { get; set; } = string.Empty;
     public string Image { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
