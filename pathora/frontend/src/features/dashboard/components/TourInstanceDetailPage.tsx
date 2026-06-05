@@ -2691,22 +2691,6 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                 </div>
               </div>
             </div>
-            <div className="p-6 space-y-3">
-              <label className="block text-sm font-semibold text-stone-700">
-                {t("tourInstance.cancelReasonLabel", "Lý do huỷ")} <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder={t(
-                  "tourInstance.cancelReasonPlaceholder",
-                  "VD: Không đủ khách đăng ký, đối tác rút lui...",
-                )}
-                rows={4}
-                disabled={cancellingInstance}
-                className={inputClassName}
-              />
-            </div>
             <div className="p-6 border-t border-stone-100 flex flex-wrap items-center justify-end gap-3">
               <button
                 type="button"
@@ -2721,7 +2705,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
               <button
                 type="button"
                 onClick={() => void handleConfirmCancelInstance()}
-                disabled={cancellingInstance || !cancelReason.trim()}
+                disabled={cancellingInstance}
                 className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">
                 <Icon icon="heroicons:x-circle" className="size-4" />
                 {cancellingInstance

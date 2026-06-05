@@ -98,16 +98,23 @@ public sealed class ApproveCancellationRequestCommandHandler(
             booking.ApproveCancellation(approvalReason, performedBy);
             booking.InitializeRefundTrackingWithAmount(cancellationRequest.RefundAmount, performedBy);
 
-            // Free up participant slots
+            // Free up participant slots + auto-cancel private tour instance
             var tourInstance = booking.TourInstance;
             if (tourInstance is not null)
             {
                 var totalParticipants = booking.NumberAdult + booking.NumberChild + booking.NumberInfant;
                 if (totalParticipants > 0)
-                {
                     tourInstance.RemoveParticipant(totalParticipants);
-                    await tourInstanceRepository.Update(tourInstance, cancellationToken);
+
+                // Private tour: 1 booking = toàn bộ tour → cancel instance khi booking bị hủy
+                if (tourInstance.InstanceType == Domain.Enums.TourType.Private
+                    && tourInstance.Status != Domain.Enums.TourInstanceStatus.Cancelled)
+                {
+                    var cancelReason = request.ManagerNote ?? cancellationRequest.CustomerReason ?? "Booking bị hủy";
+                    tourInstance.Cancel(cancelReason, performedBy);
                 }
+
+                await tourInstanceRepository.Update(tourInstance, cancellationToken);
             }
 
             // 10.D.1 Cleanup BookingTourGuide assignments
