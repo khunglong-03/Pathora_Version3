@@ -296,13 +296,16 @@ public sealed record TourDayActivityStatusDto(
     [property: JsonPropertyName("cancellationReason")] string? CancellationReason,
     [property: JsonPropertyName("cancelledAt")] DateTimeOffset? CancelledAt,
     [property: JsonPropertyName("note")] string? Note,
-    [property: JsonPropertyName("guides")] List<TourDayActivityGuideDto> Guides
+    [property: JsonPropertyName("guides")] List<TourDayActivityGuideDto> Guides,
+    [property: JsonPropertyName("startedActivityIds")] List<Guid>? StartedActivityIds = null,
+    [property: JsonPropertyName("completedActivityIds")] List<Guid>? CompletedActivityIds = null
 );
 
 public sealed record UpdateActivityStatusDto(
     [property: JsonPropertyName("actualTime")] DateTimeOffset? ActualTime,
     [property: JsonPropertyName("reason")] string? Reason,
-    [property: JsonPropertyName("note")] string? Note
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("activityId")] Guid? ActivityId = null
 );
 
 public sealed record CreateBookingRequest(

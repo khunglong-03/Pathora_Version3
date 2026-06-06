@@ -222,4 +222,54 @@ public sealed class GetTourGuideManifestQueryHandlerTests
         Assert.False(result.IsError);
         Assert.Single(result.Value.Bookings);
     }
+
+    [Fact]
+    public async Task Handle_TourGuideAssignedToTourInstance_ReturnsManifestSuccessfully()
+    {
+        // Arrange
+        var tourInstanceId = Guid.NewGuid();
+        var guideUserId = Guid.NewGuid();
+        var bookingId = Guid.NewGuid();
+
+        var tourInstance = new TourInstanceEntity
+        {
+            Id = tourInstanceId,
+            TourName = "Test Tour",
+            StartDate = DateTimeOffset.UtcNow.AddDays(5),
+            EndDate = DateTimeOffset.UtcNow.AddDays(10),
+            Status = TourInstanceStatus.Available
+        };
+        tourInstance.Managers.Add(new TourInstanceManagerEntity
+        {
+            TourInstanceId = tourInstanceId,
+            UserId = guideUserId,
+            Role = TourInstanceManagerRole.Guide
+        });
+
+        _tourInstanceRepository.FindById(tourInstanceId, asNoTracking: true, Arg.Any<CancellationToken>())
+            .Returns(tourInstance);
+
+        _user.Roles.Returns(new List<string> { "TourGuide" });
+
+        // Booking
+        var booking = BookingEntity.Create(tourInstanceId, "John Doe", "+84987654321", 1, 1000000m, PaymentMethod.Momo, true, "TEST");
+        booking.Id = bookingId;
+        booking.Status = BookingStatus.Confirmed;
+        booking.BookingParticipants = new List<BookingParticipantEntity>
+        {
+            BookingParticipantEntity.Create(bookingId, "Adult", "John Doe", "TEST")
+        };
+
+        _bookingRepository.GetByTourInstanceIdAsync(tourInstanceId, Arg.Any<CancellationToken>())
+            .Returns(new List<BookingEntity> { booking });
+
+        var query = new GetTourGuideManifestQuery(tourInstanceId, guideUserId);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Single(result.Value.Bookings);
+    }
 }

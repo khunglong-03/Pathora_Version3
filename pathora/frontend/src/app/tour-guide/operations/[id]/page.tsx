@@ -82,14 +82,14 @@ export default function TourOperationDetailPage() {
     return () => { isMounted = false; };
   }, [instanceId, refreshKey, t]);
 
-  const handleStartActivity = async (tourDayId: string) => {
+  const handleStartActivity = async (tourDayId: string, activityId: string) => {
     if (!bookingId) {
       alert("Không tìm thấy booking hợp lệ cho tour này. Vui lòng liên hệ quản lý.");
       return;
     }
-    setActionLoading(`start-${tourDayId}`);
+    setActionLoading(`start-${activityId}`);
     try {
-      await bookingService.startActivity(bookingId, tourDayId, new Date().toISOString());
+      await bookingService.startActivity(bookingId, tourDayId, new Date().toISOString(), activityId);
       setRefreshKey(prev => prev + 1);
     } catch (err: any) {
       const msg = err?.response?.data?.errorMessage || err?.response?.data?.message || err?.message || "Lỗi không xác định";
@@ -99,14 +99,14 @@ export default function TourOperationDetailPage() {
     }
   };
 
-  const handleCompleteActivity = async (tourDayId: string) => {
+  const handleCompleteActivity = async (tourDayId: string, activityId: string) => {
     if (!bookingId) {
       alert("Không tìm thấy booking hợp lệ cho tour này. Vui lòng liên hệ quản lý.");
       return;
     }
-    setActionLoading(`complete-${tourDayId}`);
+    setActionLoading(`complete-${activityId}`);
     try {
-      await bookingService.completeActivity(bookingId, tourDayId, new Date().toISOString());
+      await bookingService.completeActivity(bookingId, tourDayId, new Date().toISOString(), activityId);
       setRefreshKey(prev => prev + 1);
     } catch (err: any) {
       const msg = err?.response?.data?.errorMessage || err?.response?.data?.message || err?.message || "Lỗi không xác định";
@@ -163,8 +163,22 @@ export default function TourOperationDetailPage() {
   const allActivitiesCompleted = instance.days?.every(day => {
     const parentTourDayId = (day as any).tourDayId as string | null | undefined;
     if (!parentTourDayId) return true; // no status tracking → treat as done
+    
+    // If a day has no activities, it is considered completed
+    if (!day.activities || day.activities.length === 0) return true;
+
     const statusObj = activityStatuses.find(s => s.tourDayId === parentTourDayId);
-    return statusObj?.activityStatus === "Completed" || statusObj?.activityStatus === "Cancelled";
+    if (!statusObj) return false;
+
+    // Check if all non-optional activities of this day are completed
+    const requiredActs = day.activities.filter(a => !a.isOptional);
+    if (requiredActs.length === 0) return true; // all activities on this day are optional
+
+    return requiredActs.every(act => 
+      statusObj.completedActivityIds?.includes(act.id) || 
+      statusObj.activityStatus === "Completed" ||
+      statusObj.activityStatus === "Cancelled"
+    );
   });
 
   const totalAdults = bookings.reduce((sum, b) => sum + (b.numberAdult || 0), 0);
@@ -359,10 +373,25 @@ export default function TourOperationDetailPage() {
                         ? activityStatuses.find(s => s.tourDayId === parentTourDayId)
                         : undefined;
                       
-                      const actStatus = statusObj?.activityStatus || "Pending";
+                      // Check individual activity status
+                      const isDayCompleted = statusObj?.activityStatus === "Completed";
+                      const isDayCancelled = statusObj?.activityStatus === "Cancelled";
+                      const isActCompleted = statusObj?.completedActivityIds?.includes(act.id) || isDayCompleted || false;
+                      const isActStarted = statusObj?.startedActivityIds?.includes(act.id) || isActCompleted || false;
+
+                      let actStatus = "Pending";
+                      if (isDayCancelled) {
+                        actStatus = "Cancelled";
+                      } else if (isActCompleted) {
+                        actStatus = "Completed";
+                      } else if (isActStarted) {
+                        actStatus = "Started";
+                      }
+
                       const isPending = actStatus === "Pending";
                       const isStarted = actStatus === "Started";
                       const isCompleted = actStatus === "Completed";
+                      const isCancelled = actStatus === "Cancelled";
                       
                       // targetId = template tourDayId used by the backend activity-status endpoints
                       const targetId = statusObj?.tourDayId || parentTourDayId;
@@ -372,7 +401,7 @@ export default function TourOperationDetailPage() {
                       // - Today: allowed if activity startTime has passed (or no startTime set)
                       // - Future days: blocked
                       let canCheckIn = false;
-                      if (!isFuture && !!targetId) {
+                      if (!isFuture && !!targetId && !isDayCancelled) {
                         if (isPast) {
                           canCheckIn = true;
                         } else if (isToday) {
@@ -393,10 +422,12 @@ export default function TourOperationDetailPage() {
                           <div className={`hidden sm:flex shrink-0 size-8 rounded-full border-4 bg-white items-center justify-center relative z-10 ${
                             isCompleted ? "border-emerald-500 text-emerald-500" :
                             isStarted ? "border-amber-500 text-amber-500" :
+                            isCancelled ? "border-red-500 text-red-500" :
                             isPast ? "border-slate-300 text-slate-300" :
                             "border-slate-200 text-slate-200"
                           }`}>
                             {isCompleted ? <CheckCircleIcon weight="fill" className="size-6" /> : 
+                             isCancelled ? <WarningCircleIcon weight="fill" className="size-6 text-red-500" /> :
                              isStarted ? <div className="size-2.5 bg-amber-500 rounded-full" /> :
                              <CircleIcon weight="fill" className="size-3" />}
                           </div>
@@ -404,11 +435,16 @@ export default function TourOperationDetailPage() {
                           <div className={`flex-1 w-full bg-white border rounded-xl p-4 transition-all ${
                             isStarted ? "border-amber-200 ring-1 ring-amber-100 shadow-md shadow-amber-900/5" :
                             isCompleted ? "border-slate-200 bg-slate-50/50" :
+                            isCancelled ? "border-red-200 bg-red-50/20" :
                             "border-slate-200 shadow-sm"
                           }`}>
                             <div className="flex justify-between items-start mb-2 gap-4">
                               <div>
-                                <h4 className={`font-bold text-sm sm:text-base mb-1 ${isCompleted ? "text-slate-600" : "text-slate-900"}`}>
+                                <h4 className={`font-bold text-sm sm:text-base mb-1 ${
+                                  isCompleted ? "text-slate-600" : 
+                                  isCancelled ? "text-red-900/60 line-through" : 
+                                  "text-slate-900"
+                                }`}>
                                   {act.title}
                                 </h4>
                                 {act.startTime && (
@@ -421,9 +457,13 @@ export default function TourOperationDetailPage() {
                               <span className={`shrink-0 text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md border ${
                                 isCompleted ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
                                 isStarted ? "bg-amber-50 text-amber-700 border-amber-100" :
+                                isCancelled ? "bg-red-50 text-red-700 border-red-100" :
                                 "bg-slate-50 text-slate-600 border-slate-200"
                               }`}>
-                                {actStatus === "Pending" ? "Chưa bắt đầu" : actStatus === "Started" ? "Đang diễn ra" : "Hoàn thành"}
+                                {actStatus === "Pending" ? "Chưa bắt đầu" : 
+                                 actStatus === "Started" ? "Đang diễn ra" : 
+                                 actStatus === "Completed" ? "Hoàn thành" : 
+                                 "Đã hủy"}
                               </span>
                             </div>
                             
@@ -448,7 +488,7 @@ export default function TourOperationDetailPage() {
                               <div className="sm:ml-auto mt-2 sm:mt-0 w-full sm:w-auto">
                                 {bookingId && isPending && (
                                   <button
-                                    onClick={() => handleStartActivity(targetId)}
+                                    onClick={() => handleStartActivity(targetId, act.id)}
                                     disabled={!!actionLoading || !canCheckIn}
                                     className={`w-full sm:w-auto py-2 px-4 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all ${
                                       canCheckIn 
@@ -457,7 +497,7 @@ export default function TourOperationDetailPage() {
                                     }`}
                                     title={!canCheckIn ? (isFuture ? "Chưa đến ngày" : isToday && act.startTime ? "Chưa đến giờ" : "Không thể check-in") : ""}
                                   >
-                                    {actionLoading === `start-${targetId}` ? (
+                                    {actionLoading === `start-${act.id}` ? (
                                       <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                     ) : (
                                       <>Check-in <PlayCircleIcon weight="fill" /></>
@@ -467,11 +507,11 @@ export default function TourOperationDetailPage() {
                                 
                                 {isStarted && (
                                   <button
-                                    onClick={() => handleCompleteActivity(targetId)}
+                                    onClick={() => handleCompleteActivity(targetId, act.id)}
                                     disabled={!!actionLoading || !targetId}
                                     className="w-full sm:w-auto py-2 px-4 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                                   >
-                                    {actionLoading === `complete-${targetId}` ? (
+                                    {actionLoading === `complete-${act.id}` ? (
                                       <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                     ) : (
                                       <>Hoàn Thành <CheckCircleIcon weight="bold" /></>

@@ -119,18 +119,18 @@ export const bookingService = {
     return extractItems<TourDayActivityStatus>(response.data);
   },
 
-  startActivity: async (bookingId: string, tourDayId: string, actualTime?: string) => {
+  startActivity: async (bookingId: string, tourDayId: string, actualTime?: string, activityId?: string) => {
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.BOOKING.START_ACTIVITY(bookingId, tourDayId),
-      { actualTime },
+      { actualTime, activityId },
     );
     return extractResult<unknown>(response.data);
   },
 
-  completeActivity: async (bookingId: string, tourDayId: string, actualTime?: string) => {
+  completeActivity: async (bookingId: string, tourDayId: string, actualTime?: string, activityId?: string) => {
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.BOOKING.COMPLETE_ACTIVITY(bookingId, tourDayId),
-      { actualTime },
+      { actualTime, activityId },
     );
     return extractResult<unknown>(response.data);
   },

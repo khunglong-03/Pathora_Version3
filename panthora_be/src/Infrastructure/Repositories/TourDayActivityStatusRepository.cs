@@ -22,4 +22,12 @@ public class TourDayActivityStatusRepository(AppDbContext context)
         return await _dbSet
             .FirstOrDefaultAsync(x => x.BookingId == bookingId && x.TourDayId == tourDayId, cancellationToken);
     }
+
+    public async Task<List<TourDayActivityStatusEntity>> GetByBookingIdsAsync(IEnumerable<Guid> bookingIds, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(x => bookingIds.Contains(x.BookingId))
+            .ToListAsync(cancellationToken);
+    }
 }

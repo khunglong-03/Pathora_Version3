@@ -43,14 +43,21 @@ public sealed class GetTourGuideManifestQueryHandler(
 
         if (!isAdminOrManager)
         {
-            // Nếu không phải Admin/Manager, chỉ cho phép Guide thuộc team của tour instance này truy cập
-            var assignedGuides = await bookingTourGuideRepository.GetListAsync(
-                x => x.UserId == request.GuideUserId && x.Booking.TourInstanceId == request.TourInstanceId && x.Status != AssignmentStatus.Cancelled,
-                cancellationToken: cancellationToken);
+            // Kiểm tra xem Hướng dẫn viên có được gán trực tiếp cho Tour Instance không
+            var isAssignedToInstance = tourInstance.Managers.Any(m => 
+                m.UserId == request.GuideUserId && m.Role == TourInstanceManagerRole.Guide);
 
-            if (!assignedGuides.Any())
+            if (!isAssignedToInstance)
             {
-                return Error.Forbidden(ErrorConstants.TourGuideManifest.NotAuthorizedCode, ErrorConstants.TourGuideManifest.NotAuthorizedDescription.En);
+                // Nếu không được gán trực tiếp cho Tour Instance, kiểm tra phân công ở cấp Booking
+                var assignedGuides = await bookingTourGuideRepository.GetListAsync(
+                    x => x.UserId == request.GuideUserId && x.Booking.TourInstanceId == request.TourInstanceId && x.Status != AssignmentStatus.Cancelled,
+                    cancellationToken: cancellationToken);
+
+                if (!assignedGuides.Any())
+                {
+                    return Error.Forbidden(ErrorConstants.TourGuideManifest.NotAuthorizedCode, ErrorConstants.TourGuideManifest.NotAuthorizedDescription.En);
+                }
             }
         }
 

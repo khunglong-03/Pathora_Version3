@@ -28,14 +28,14 @@ public sealed class BookingActivityStatusController : BaseApiController
     [HttpPost(BookingManagementEndpoint.ActivityStatusStart)]
     public async Task<IActionResult> StartActivity(Guid id, Guid tourDayId, [FromBody] UpdateActivityStatusDto request)
     {
-        var result = await Sender.Send(new StartActivityCommand(id, tourDayId, request.ActualTime));
+        var result = await Sender.Send(new StartActivityCommand(id, tourDayId, request.ActualTime, request.ActivityId));
         return HandleUpdated(result);
     }
 
     [HttpPost(BookingManagementEndpoint.ActivityStatusComplete)]
     public async Task<IActionResult> CompleteActivity(Guid id, Guid tourDayId, [FromBody] UpdateActivityStatusDto request)
     {
-        var result = await Sender.Send(new CompleteActivityCommand(id, tourDayId, request.ActualTime));
+        var result = await Sender.Send(new CompleteActivityCommand(id, tourDayId, request.ActualTime, request.ActivityId));
         return HandleUpdated(result);
     }
 

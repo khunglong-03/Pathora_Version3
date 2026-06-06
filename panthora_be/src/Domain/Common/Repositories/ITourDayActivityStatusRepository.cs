@@ -6,4 +6,5 @@ public interface ITourDayActivityStatusRepository : IRepository<TourDayActivityS
 {
     Task<IReadOnlyList<TourDayActivityStatusEntity>> GetByBookingIdAsync(Guid bookingId, CancellationToken cancellationToken = default);
     Task<TourDayActivityStatusEntity?> GetByBookingIdAndTourDayIdAsync(Guid bookingId, Guid tourDayId, CancellationToken cancellationToken = default);
+    Task<List<TourDayActivityStatusEntity>> GetByBookingIdsAsync(IEnumerable<Guid> bookingIds, CancellationToken cancellationToken = default);
 }
